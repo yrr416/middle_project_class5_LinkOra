@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05class.reservation.mapper.ReservationMapper">
+
+    <!--
+        ================================================
+         예약 관리 SQL 모음
+        ================================================
+        [사용 테이블]
+          reservation : r_idx, s_idx, u_idx, r_start_time, r_end_time,
+                        r_content(취소 시 취소 사유 저장), r_headcount,
+                        r_total_price, r_created, r_updated, r_status(ENUM)
+          user        : u_idx, u_name, u_email, u_phone
+          space       : s_idx, b_idx, s_name, s_type, s_price
+          branch      : b_idx, b_name
+        ================================================
+    -->
+
+    <!-- ═══════════════════════════════════════
+         공통 검색 조건 SQL 조각
+         — 날짜 범위·상태·공간·고객명 필터
+         ═══════════════════════════════════════ -->
+    <sql id="searchCondition">
+        <where>
+            <!-- 날짜 범위 시작 (r_start_time 의 날짜 부분 기준) -->
+            <if test="vo.start_date != null and vo.start_date != ''">
+                AND DATE(r.r_start_time) &gt;= #{vo.start_date}
+            </if>
+            <!-- 날짜 범위 종료 -->
+            <if test="vo.end_date != null and vo.end_date != ''">
+                AND DATE(r.r_start_time) &lt;= #{vo.end_date}
+            </if>
+            <!-- 예약 상태 필터 -->
+            <if test="vo.status_filter != null and vo.status_filter != ''">
+                AND r.r_status = #{vo.status_filter}
+            </if>
+            <!-- 공간별 필터 (s_idx) -->
+            <if test="vo.space_filter != null and vo.space_filter != ''">
+                AND r.s_idx = #{vo.space_filter}
+            </if>
+            <!-- 고객명 검색 (LIKE) -->
+            <if test="vo.search_word != null and vo.search_word != ''">
+                AND u.u_name LIKE CONCAT('%', #{vo.search_word}, '%')
+            </if>
+        </where>
+    </sql>
+
+    <!-- 상태 필터를 제외한 검색 조건 (통계 카드용) -->
+    <sql id="searchConditionNoStatus">
+        <where>
+            <if test="vo.start_date != null and vo.start_date != ''">
+                AND DATE(r.r_start_time) &gt;= #{vo.start_date}
+            </if>
+            <if test="vo.end_date != null and vo.end_date != ''">
+                AND DATE(r.r_start_time) &lt;= #{vo.end_date}
+            </if>
+            <if test="vo.space_filter != null and vo.space_filter != ''">
+                AND r.s_idx = #{vo.space_filter}
+            </if>
+            <if test="vo.search_word != null and vo.search_word != ''">
+                AND u.u_name LIKE CONCAT('%', #{vo.search_word}, '%')
+            </if>
+        </where>
+    </sql>
+
+
+    <!-- ═══════════════════════════════════════
+         목록 조회
+         ═══════════════════════════════════════ -->
+
+    <!-- 전체 예약 건수 (페이징 총 건수 계산) -->
+    <select id="getReservationCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+          FROM reservation r
+          JOIN user   u ON r.u_idx = u.u_idx
+          JOIN space  s ON r.s_idx = s.s_idx
+        <include refid="searchCondition"/>
+    </select>
+
+    <!--
+        예약 목록 조회 (페이징 + 필터)
+        반환: reservation + user + space + branch 조인 결과
+    -->
+    <select id="getReservationList" parameterType="map"
+            resultType="org.study.project05class.reservation.vo.ReservationVO">
+        SELECT
+            r.r_idx,
+            r.s_idx,
+            r.u_idx,
+            DATE_FORMAT(r.r_start_time, '%Y-%m-%d %H:%i') AS r_start_time,
+            DATE_FORMAT(r.r_end_time,   '%Y-%m-%d %H:%i') AS r_end_time,
+            r.r_content,
+            r.r_headcount,
+            r.r_total_price,
+            DATE_FORMAT(r.r_created, '%Y-%m-%d %H:%i')    AS r_created,
+            DATE_FORMAT(r.r_updated, '%Y-%m-%d %H:%i')    AS r_updated,
+            r.r_status,
+            u.u_name,
+            u.u_email,
+            u.u_phone,
+            s.s_name,
+            s.s_type,
+            s.s_price,
+            b.b_name
+          FROM reservation r
+          JOIN user   u ON r.u_idx  = u.u_idx
+          JOIN space  s ON r.s_idx  = s.s_idx
+          LEFT JOIN branch b ON s.b_idx = b.b_idx
+        <include refid="searchCondition"/>
+         ORDER BY r.r_created DESC
+         LIMIT #{numPerPage} OFFSET #{offset}
+    </select>
+
+
+    <!-- ═══════════════════════════════════════
+         상세 조회 (모달용)
+         ═══════════════════════════════════════ -->
+
+    <!--
+        예약 상세 정보 단건 조회
+        AJAX 호출로 모달에 표시할 모든 정보를 한 번에 반환
+    -->
+    <select id="getReservationDetail" parameterType="int"
+            resultType="org.study.project05class.reservation.vo.ReservationVO">
+        SELECT
+            r.r_idx,
+            r.s_idx,
+            r.u_idx,
+            DATE_FORMAT(r.r_start_time, '%Y-%m-%d %H:%i') AS r_start_time,
+            DATE_FORMAT(r.r_end_time,   '%Y-%m-%d %H:%i') AS r_end_time,
+            r.r_content,
+            r.r_headcount,
+            r.r_total_price,
+            DATE_FORMAT(r.r_created, '%Y-%m-%d %H:%i')    AS r_created,
+            DATE_FORMAT(r.r_updated, '%Y-%m-%d %H:%i')    AS r_updated,
+            r.r_status,
+            u.u_name,
+            u.u_email,
+            u.u_phone,
+            s.s_name,
+            s.s_type,
+            s.s_price,
+            b.b_name
+          FROM reservation r
+          JOIN user   u ON r.u_idx  = u.u_idx
+          JOIN space  s ON r.s_idx  = s.s_idx
+          LEFT JOIN branch b ON s.b_idx = b.b_idx
+         WHERE r.r_idx = #{r_idx}
+    </select>
+
+
+    <!-- ═══════════════════════════════════════
+         필터 드롭다운 / 통계
+         ═══════════════════════════════════════ -->
+
+    <!-- 공간 전체 목록 (공간 필터 드롭다운용, s_idx + s_name 만 필요) -->
+    <select id="getSpaceListForFilter"
+            resultType="org.study.project05class.reservation.vo.ReservationVO">
+        SELECT s_idx, s_name
+          FROM space
+         ORDER BY s_name ASC
+    </select>
+
+    <!--
+        상태별 예약 건수 집계 (통계 카드용)
+        - 상태 필터를 제외한 날짜·공간·검색 조건만 적용
+        - 반환 맵 키: r_status(String), cnt(Long)
+    -->
+    <select id="getStatusSummary" parameterType="map" resultType="map">
+        SELECT
+            r.r_status,
+            COUNT(*) AS cnt
+          FROM reservation r
+          JOIN user   u ON r.u_idx = u.u_idx
+          JOIN space  s ON r.s_idx = s.s_idx
+        <include refid="searchConditionNoStatus"/>
+         GROUP BY r.r_status
+    </select>
+
+
+    <!-- ═══════════════════════════════════════
+         상태 변경 (예약 확정 / 완료 / 취소)
+         ═══════════════════════════════════════ -->
+
+    <!-- 예약 확정: PENDING → CONFIRMED -->
+    <update id="confirmReservation" parameterType="int">
+        UPDATE reservation
+           SET r_status  = 'CONFIRMED',
+               r_updated = NOW()
+         WHERE r_idx   = #{r_idx}
+           AND r_status = 'PENDING'
+    </update>
+
+    <!-- 이용 완료 처리: CONFIRMED 또는 USING → COMPLETED -->
+    <update id="completeReservation" parameterType="int">
+        UPDATE reservation
+           SET r_status  = 'COMPLETED',
+               r_updated = NOW()
+         WHERE r_idx    = #{r_idx}
+           AND r_status IN ('CONFIRMED', 'USING')
+    </update>
+
+    <!--
+        강제 취소 처리: → CANCELLED
+        - r_content 에 취소 사유를 저장
+          (별도 취소 사유 컬럼이 없으므로 r_content 재사용)
+        - r_updated 갱신
+        - ⚠️ 실제 환불 처리는 결제 시스템 API 와 별도 연동 필요
+    -->
+    <update id="cancelReservation" parameterType="map">
+        UPDATE reservation
+           SET r_status  = 'CANCELLED',
+               r_content = #{cancel_reason},
+               r_updated = NOW()
+         WHERE r_idx    = #{r_idx}
+           AND r_status NOT IN ('CANCELLED', 'COMPLETED')
+    </update>
+
+</mapper>

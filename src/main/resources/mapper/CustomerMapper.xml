@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05class.customer.mapper.CustomerMapper">
+
+    <!-- 검색 조건 공통 SQL -->
+    <sql id="searchCondition">
+        <where>
+            <!-- 상태 필터 (0: 정상, 1: 숨김) -->
+            <if test="customerVO.status_filter != null and customerVO.status_filter != ''">
+                AND u.u_active = #{customerVO.status_filter}
+            </if>
+            <!-- 검색어 -->
+            <if test="customerVO.search_word != null and customerVO.search_word != ''">
+                <choose>
+                    <when test="customerVO.search_type == 'name'">
+                        AND u.u_name LIKE CONCAT('%', #{customerVO.search_word}, '%')
+                    </when>
+                    <when test="customerVO.search_type == 'email'">
+                        AND u.u_email LIKE CONCAT('%', #{customerVO.search_word}, '%')
+                    </when>
+                    <when test="customerVO.search_type == 'phone'">
+                        AND u.u_phone LIKE CONCAT('%', #{customerVO.search_word}, '%')
+                    </when>
+                    <otherwise>
+                        AND (u.u_name  LIKE CONCAT('%', #{customerVO.search_word}, '%')
+                          OR u.u_email LIKE CONCAT('%', #{customerVO.search_word}, '%'))
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+    </sql>
+
+    <!-- 전체 회원 수 조회 -->
+    <select id="getCustomerCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+          FROM user u
+        <include refid="searchCondition"/>
+    </select>
+
+    <!-- 회원 목록 조회 (페이징 + 검색) -->
+    <select id="getCustomerList" parameterType="map" resultType="CustomerVO">
+        SELECT u.u_idx,
+               u.u_id,
+               u.u_role,
+               u.u_name,
+               u.u_email,
+               u.u_phone,
+               u.u_addr,
+               u.u_created,
+               u.u_active,
+               (SELECT COUNT(*) FROM reservation r WHERE r.u_idx = u.u_idx) AS reserve_cnt
+          FROM user u
+        <include refid="searchCondition"/>
+         ORDER BY u.u_created DESC
+         LIMIT #{numPerPage} OFFSET #{offset}
+    </select>
+
+    <!-- 회원 상세 조회 -->
+    <select id="getCustomerDetail" parameterType="String" resultType="CustomerVO">
+        SELECT u.u_idx,
+               u.u_id,
+               u.u_role,
+               u.u_name,
+               u.u_email,
+               u.u_phone,
+               u.u_addr,
+               u.u_created,
+               u.u_active,
+               (SELECT COUNT(*) FROM reservation r WHERE r.u_idx = u.u_idx) AS reserve_cnt
+          FROM user u
+         WHERE u.u_idx = #{u_idx}
+    </select>
+
+    <!-- 회원 등록 (신규 가입 시 u_active=0 으로 정상 상태로 시작) -->
+    <insert id="insertCustomer" parameterType="CustomerVO">
+        INSERT INTO user (u_id, u_pwd, u_role, u_name, u_email, u_phone, u_addr, u_active, u_created)
+        VALUES (0, #{u_pwd}, #{u_role}, #{u_name}, #{u_email}, #{u_phone}, #{u_addr}, 0, CURDATE())
+    </insert>
+
+    <!-- 회원 정보 수정 -->
+    <update id="updateCustomer" parameterType="CustomerVO">
+        UPDATE user
+           SET u_name  = #{u_name},
+               u_email = #{u_email},
+               u_phone = #{u_phone},
+               u_addr  = #{u_addr}
+         WHERE u_idx = #{u_idx}
+    </update>
+
+    <!-- 회원 숨김 상태 변경 (0: 정상, 1: 숨김) -->
+    <update id="updateCustomerStatus" parameterType="CustomerVO">
+        UPDATE user
+           SET u_active = #{u_active}
+         WHERE u_idx = #{u_idx}
+    </update>
+
+    <!-- 회원 영구 삭제 대신 숨김 처리 (u_active = 1로 변경, 데이터 보존) -->
+    <update id="deleteCustomer" parameterType="String">
+        UPDATE user
+           SET u_active = 1
+         WHERE u_idx = #{u_idx}
+    </update>
+
+    <!-- 역할 변경 -->
+    <update id="updateCustomerMemo" parameterType="CustomerVO">
+        UPDATE user
+           SET u_role = #{u_role}
+         WHERE u_idx = #{u_idx}
+    </update>
+
+    <!-- 아이디 중복 확인 -->
+    <select id="checkDuplicateId" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM user WHERE u_id = #{u_id}
+    </select>
+
+    <!-- 이메일 중복 확인 -->
+    <select id="checkDuplicateEmail" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM user WHERE u_email = #{u_email}
+    </select>
+
+</mapper>
