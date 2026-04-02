@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.midproject.chat.mapper.ChatMapper">
+
+    <!-- 새로운 대화 저장 -->
+    <insert id="insertChat" parameterType="org.study.midproject.chat.vo.ChatVO">
+        INSERT INTO chatbot (
+            u_idx, c_session, c_message, c_response, c_intent, c_page, c_time
+        ) VALUES (
+            #{uIdx}, #{cSession}, #{cMessage}, #{cResponse}, #{cIntent}, #{cPage}, NOW()
+        )
+    </insert>
+
+    <!-- 세션별 대화 내역 조회 -->
+    <select id="selectChatListBySession" parameterType="int" resultType="org.study.midproject.chat.vo.ChatVO">
+        SELECT 
+            c_idx AS cIdx,
+            u_idx AS uIdx,
+            c_session AS cSession,
+            c_message AS cMessage,
+            c_response AS cResponse,
+            c_intent AS cIntent,
+            c_page AS cPage,
+            c_time AS cTime
+        FROM chatbot
+        WHERE c_session = #{cSession}
+        ORDER BY c_idx ASC
+    </select>
+
+</mapper>

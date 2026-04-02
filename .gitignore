@@ -1,0 +1,19 @@
+# Maven
+target/
+*.log
+
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# Maven Wrapper
+.mvn/
+mvnw
+mvnw.cmd
+
+# Local Temp Files
+tmp/
+
+# Security (API Keys)
+src/main/resources/application-secret.properties
