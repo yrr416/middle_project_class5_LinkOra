@@ -166,10 +166,10 @@
             <a class="nav-link" href="/admin/reservation/list">
                 <i class="bi bi-calendar-check"></i>예약 관리
             </a>
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="/admin/space/list">
                 <i class="bi bi-building"></i>오피스 관리
             </a>
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="/admin/review/list">
                 <i class="bi bi-star"></i>리뷰 관리
             </a>
             <a class="nav-link" href="#">

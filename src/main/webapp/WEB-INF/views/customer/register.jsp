@@ -36,8 +36,8 @@
             <a class="nav-link" href="/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
             <a class="nav-link active" href="/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
             <a class="nav-link" href="/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
-            <a class="nav-link" href="#"><i class="bi bi-building"></i>오피스 관리</a>
-            <a class="nav-link" href="#"><i class="bi bi-star"></i>리뷰 관리</a>
+            <a class="nav-link" href="/admin/space/list"><i class="bi bi-building"></i>오피스 관리</a>
+            <a class="nav-link" href="/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
             <a class="nav-link" href="#"><i class="bi bi-bell"></i>공지 관리</a>
             <a class="nav-link" href="#"><i class="bi bi-chat-left-text"></i>문의 내역</a>
             <hr class="border-secondary mx-3">
