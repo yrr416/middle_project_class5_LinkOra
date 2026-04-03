@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+    [review_report 테이블 생성 DDL - 최초 1회 실행 필요]
+    CREATE TABLE review_report (
+        rr_idx         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '신고 고유번호',
+        v_idx          INT          NOT NULL COMMENT '신고 대상 리뷰 번호 (FK → review.v_idx)',
+        u_idx          INT          NOT NULL DEFAULT 0 COMMENT '신고자 회원 번호 (FK → user.u_idx)',
+        rr_reason      VARCHAR(500) NOT NULL COMMENT '신고 사유',
+        rr_status      VARCHAR(20)  NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING / BLINDED / DISMISSED',
+        rr_admin_reply TEXT         NULL     COMMENT '관리자 처리 결과 메시지 (신고자에게 알림)',
+        rr_created     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '신고 일시'
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='리뷰 신고 관리';
+-->
+
+<mapper namespace="org.study.project05class.review.mapper.ReviewMapper">
+
+    <!-- ─────────────────────────────────────────────────────────────
+         공통 검색 조건
+         - 원본 리뷰만 조회 (v_parent_idx = 0)
+         - 관리자 답글이 달린 리뷰는 제외:
+           review 테이블에 v_parent_idx = v.v_idx 인 행이 존재하면 숨김
+           (v_active 변경 없이 v_parent_idx 존재 여부로 처리완료 판단)
+         ───────────────────────────────────────────────────────────── -->
+    <sql id="reviewSearchCondition">
+        <where>
+            v.v_parent_idx = 0
+            AND NOT EXISTS (
+                SELECT 1 FROM review r2 WHERE r2.v_parent_idx = v.v_idx
+            )
+            <!-- 별점 필터 -->
+            <if test="reviewVO.rating_filter != null and reviewVO.rating_filter != ''">
+                AND v.v_rating = #{reviewVO.rating_filter}
+            </if>
+            <!-- 블라인드 여부 필터 (""=전체, "0"=정상, "2"=블라인드) -->
+            <if test="reviewVO.blind_filter != null and reviewVO.blind_filter != ''">
+                AND v.v_active = #{reviewVO.blind_filter}
+            </if>
+            <!-- 작성자 또는 내용 검색 -->
+            <if test="reviewVO.search_word != null and reviewVO.search_word != ''">
+                AND (u.u_name LIKE CONCAT('%', #{reviewVO.search_word}, '%')
+                  OR v.v_content LIKE CONCAT('%', #{reviewVO.search_word}, '%'))
+            </if>
+        </where>
+    </sql>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         전체 리뷰 수
+         ───────────────────────────────────────────────────────────── -->
+    <select id="getReviewCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+          FROM review v
+          LEFT JOIN user u ON v.u_idx = u.u_idx
+        <include refid="reviewSearchCondition"/>
+    </select>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         리뷰 목록 조회 (페이징 + 필터)
+         - 신고 횟수(report_cnt) 서브쿼리 포함
+         - sort_reported = '1' 이면 신고된 리뷰 우선 정렬
+         ───────────────────────────────────────────────────────────── -->
+    <select id="getReviewList" parameterType="map" resultType="ReviewVO">
+        SELECT v.v_idx,
+               v.u_idx,
+               u.u_name,
+               v.s_idx,
+               s.s_name,
+               v.v_time,
+               v.v_rating,
+               v.v_content,
+               v.v_parent_idx,
+               v.v_active,
+               v.v_img,
+               v.v_created_at,
+               v.v_updated_at,
+               /* 신고 횟수 - review_report 테이블에서 집계 */
+               (SELECT COUNT(*) FROM review_report rr WHERE rr.v_idx = v.v_idx AND rr.rr_status = 'PENDING') AS report_cnt,
+               /* 관리자 답글 내용 */
+               (SELECT rv.v_content FROM review rv WHERE rv.v_parent_idx = v.v_idx LIMIT 1) AS admin_reply,
+               (SELECT rv.v_created_at FROM review rv WHERE rv.v_parent_idx = v.v_idx LIMIT 1) AS admin_reply_at
+          FROM review v
+          LEFT JOIN user  u ON v.u_idx = u.u_idx
+          LEFT JOIN space s ON v.s_idx = s.s_idx
+        <include refid="reviewSearchCondition"/>
+         ORDER BY
+            /* 신고된 리뷰 우선 표시 */
+            <choose>
+                <when test="reviewVO.sort_reported != null and reviewVO.sort_reported == '1'">
+                    report_cnt DESC,
+                </when>
+            </choose>
+            v.v_created_at DESC
+         LIMIT #{numPerPage} OFFSET #{offset}
+    </select>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         리뷰 상세 단건 조회
+         ───────────────────────────────────────────────────────────── -->
+    <select id="getReviewDetail" parameterType="String" resultType="ReviewVO">
+        SELECT v.v_idx,
+               v.u_idx,
+               u.u_name,
+               v.s_idx,
+               s.s_name,
+               v.v_time,
+               v.v_rating,
+               v.v_content,
+               v.v_parent_idx,
+               v.v_active,
+               v.v_img,
+               v.v_created_at,
+               v.v_updated_at
+          FROM review v
+          LEFT JOIN user  u ON v.u_idx = u.u_idx
+          LEFT JOIN space s ON v.s_idx = s.s_idx
+         WHERE v.v_idx = #{v_idx}
+    </select>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         관리자 답글 등록
+         - u_idx = 0 (관리자), v_parent_idx = 원본 리뷰 v_idx
+         - v_active = 0 (원본 리뷰의 v_active는 건드리지 않음)
+         - 관리자 페이지 숨김 여부는 v_parent_idx 존재 여부로 판단
+         ───────────────────────────────────────────────────────────── -->
+    <insert id="insertAdminReply" parameterType="ReviewVO">
+        INSERT INTO review (u_idx, s_idx, v_content, v_rating, v_parent_idx, v_active, v_created_at)
+        VALUES (#{u_idx}, #{s_idx}, #{v_content}, 0, #{v_parent_idx}, 0, NOW())
+    </insert>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         리뷰 활성 상태 변경 (블라인드 처리/해제)
+         map: { v_idx, v_active }
+         ───────────────────────────────────────────────────────────── -->
+    <update id="updateReviewActive" parameterType="map">
+        UPDATE review
+           SET v_active = #{v_active},
+               v_updated_at = NOW()
+         WHERE v_idx = #{v_idx}
+    </update>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         신고 전체 수
+         map: { statusFilter }
+         ───────────────────────────────────────────────────────────── -->
+    <select id="getReportCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+          FROM review_report rr
+        <where>
+            <if test="statusFilter != null and statusFilter != ''">
+                rr.rr_status = #{statusFilter}
+            </if>
+        </where>
+    </select>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         신고 목록 조회
+         - 신고 사유, 신고자, 대상 리뷰 정보 포함
+         - PENDING 상태 신고를 최신 순으로 표시
+         ───────────────────────────────────────────────────────────── -->
+    <select id="getReportList" parameterType="map" resultType="ReviewReportVO">
+        SELECT rr.rr_idx,
+               rr.v_idx,
+               rr.u_idx,
+               u.u_name,
+               rr.rr_reason,
+               rr.rr_status,
+               rr.rr_admin_reply,
+               rr.rr_created,
+               /* 신고 대상 리뷰 정보 */
+               v.v_content,
+               v.v_rating,
+               v.v_active,
+               s.s_name,
+               writer.u_name AS writer_name
+          FROM review_report rr
+          LEFT JOIN user  u      ON rr.u_idx = u.u_idx         /* 신고자 */
+          LEFT JOIN review v     ON rr.v_idx = v.v_idx         /* 신고된 리뷰 */
+          LEFT JOIN space  s     ON v.s_idx   = s.s_idx        /* 공간 */
+          LEFT JOIN user  writer ON v.u_idx   = writer.u_idx   /* 리뷰 작성자 */
+        <where>
+            <if test="statusFilter != null and statusFilter != ''">
+                rr.rr_status = #{statusFilter}
+            </if>
+        </where>
+         ORDER BY rr.rr_created DESC
+         LIMIT #{numPerPage} OFFSET #{offset}
+    </select>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         신고 처리 결과 업데이트
+         - rr_status: BLINDED(블라인드) / DISMISSED(반려)
+         - rr_admin_reply: 신고자에게 전달할 관리자 메시지
+         map: { rr_idx, rr_status, rr_admin_reply }
+         ───────────────────────────────────────────────────────────── -->
+    <update id="updateReportStatus" parameterType="map">
+        UPDATE review_report
+           SET rr_status      = #{rr_status},
+               rr_admin_reply = #{rr_admin_reply}
+         WHERE rr_idx = #{rr_idx}
+    </update>
+
+</mapper>

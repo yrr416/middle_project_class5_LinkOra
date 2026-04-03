@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05class.settings.mapper.SettingsMapper">
+
+    <!-- ── 설정 키-값 ──────────────────────────────────────────── -->
+
+    <!-- 전체 설정 목록 조회 -->
+    <select id="getAllSettings" resultType="map">
+        SELECT s_key, s_value FROM settings
+    </select>
+
+    <!-- 특정 설정 값 조회 -->
+    <select id="getSettingValue" parameterType="String" resultType="String">
+        SELECT s_value FROM settings WHERE s_key = #{s_key}
+    </select>
+
+    <!-- 설정 저장: 이미 있으면 value 갱신 (UPSERT) -->
+    <insert id="upsertSetting" parameterType="map">
+        INSERT INTO settings (s_key, s_value)
+        VALUES (#{s_key}, #{s_value})
+        ON DUPLICATE KEY UPDATE s_value = #{s_value}
+    </insert>
+
+    <!-- ── 관리자 계정 ──────────────────────────────────────────── -->
+
+    <!-- 관리자 계정 정보 조회 -->
+    <select id="getAdminInfo" parameterType="String" resultType="map">
+        SELECT a_idx, a_id, a_name, a_email, a_addr, a_phone, a_pwd
+          FROM admin
+         WHERE a_idx = #{a_idx}
+    </select>
+
+    <!-- 관리자 이름·이메일·연락처 수정 -->
+    <update id="updateAdminInfo" parameterType="map">
+        UPDATE admin
+           SET a_name  = #{a_name},
+               a_email = #{a_email},
+               a_phone = #{a_phone}
+         WHERE a_idx = #{a_idx}
+    </update>
+
+    <!-- 비밀번호 변경 -->
+    <update id="updateAdminPassword" parameterType="map">
+        UPDATE admin
+           SET a_pwd = #{a_pwd}
+         WHERE a_idx = #{a_idx}
+    </update>
+
+    <!-- ── 답변 템플릿 ──────────────────────────────────────────── -->
+
+    <!-- 템플릿 전체 목록 (최신 등록순) -->
+    <select id="getTemplateList" resultType="TemplateVO">
+        SELECT t_idx,
+               t_title,
+               t_content,
+               DATE_FORMAT(t_created, '%Y-%m-%d') AS t_created
+          FROM inquiry_template
+         ORDER BY t_created DESC
+    </select>
+
+    <!-- 템플릿 등록 -->
+    <insert id="insertTemplate" parameterType="TemplateVO">
+        INSERT INTO inquiry_template (t_title, t_content)
+        VALUES (#{t_title}, #{t_content})
+    </insert>
+
+    <!-- 템플릿 수정 -->
+    <update id="updateTemplate" parameterType="TemplateVO">
+        UPDATE inquiry_template
+           SET t_title   = #{t_title},
+               t_content = #{t_content}
+         WHERE t_idx = #{t_idx}
+    </update>
+
+    <!-- 템플릿 삭제 -->
+    <delete id="deleteTemplate" parameterType="String">
+        DELETE FROM inquiry_template WHERE t_idx = #{t_idx}
+    </delete>
+
+    <!-- ── 관리자 활동 로그 ──────────────────────────────────────── -->
+
+    <!-- 로그 전체 수 -->
+    <select id="getLogCount" resultType="int">
+        SELECT COUNT(*) FROM admin_log
+    </select>
+
+    <!-- 로그 목록 (최신순, 페이징) -->
+    <select id="getLogList" parameterType="map" resultType="AdminLogVO">
+        SELECT l_idx,
+               a_idx,
+               a_name,
+               l_action,
+               l_detail,
+               l_ip,
+               DATE_FORMAT(l_created, '%Y-%m-%d %H:%i:%s') AS l_created
+          FROM admin_log
+         ORDER BY l_created DESC
+         LIMIT #{numPerPage} OFFSET #{offset}
+    </select>
+
+    <!-- 로그 기록 -->
+    <insert id="insertLog" parameterType="AdminLogVO">
+        INSERT INTO admin_log (a_idx, a_name, l_action, l_detail, l_ip)
+        VALUES (#{a_idx}, #{a_name}, #{l_action}, #{l_detail}, #{l_ip})
+    </insert>
+
+</mapper>
