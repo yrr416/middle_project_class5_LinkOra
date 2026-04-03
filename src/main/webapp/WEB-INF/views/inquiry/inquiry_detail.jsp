@@ -57,7 +57,7 @@
             <span class="category-tag">${inquiry.category}</span>
             <h1 class="title">${inquiry.title}</h1>
             <div class="meta-info">
-                <span>작성일: ${inquiry.createdAt}</span>
+                <span>작성일: ${inquiry.created}</span>
                 <span>상태: <strong>${inquiry.status}</strong></span>
             </div>
         </div>
@@ -72,7 +72,7 @@
                     <h3><i class="fa-solid fa-comment-dots"></i> 관리자 답변입니다.</h3>
                     <p>${inquiry.answer}</p>
                     <div class="ans-meta">
-                        답변일: ${inquiry.answeredAt}
+                        답변일: ${inquiry.answered}
                     </div>
                 </div>
             </c:when>

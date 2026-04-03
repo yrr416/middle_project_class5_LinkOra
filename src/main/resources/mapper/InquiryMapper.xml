@@ -3,7 +3,7 @@
 
 <mapper namespace="org.study.midproject.inquiry.mapper.InquiryMapper">
 
-    <!-- ResultMap for InquiryVO (Explicit Mapping) -->
+    <!-- ResultMap for InquiryVO (Full Standardization) -->
     <resultMap id="inquiryResultMap" type="org.study.midproject.inquiry.vo.InquiryVO">
         <id property="idx" column="i_idx" />
         <result property="userIdx" column="u_idx" />
@@ -13,8 +13,8 @@
         <result property="content" column="i_content" />
         <result property="fileUrl" column="i_file_url" />
         <result property="answer" column="i_answer" />
-        <result property="createdAt" column="i_created" />
-        <result property="answeredAt" column="i_answered" />
+        <result property="created" column="i_created" />
+        <result property="answered" column="i_answered" />
     </resultMap>
 
     <!-- 신규 문의 등록 -->
@@ -22,12 +22,12 @@
         INSERT INTO inquiries (
             u_idx, i_category, i_title, i_content, i_status, i_created
         ) VALUES (
-            #{userIdx}, #{category}, #{title}, #{content}, '대기중', DATE_FORMAT(NOW(), '%Y.%m.%d %H:%i:%s')
+            #{userIdx}, #{category}, #{title}, #{content}, '대기중', NOW()
         )
     </insert>
 
     <!-- 특정 사용자의 문의 내역 리스트 조회 -->
-    <select id="selectInquiryListByUser" parameterType="int" resultMap="inquiryResultMap">
+    <select id="selectInquiryListByUser" parameterType="long" resultMap="inquiryResultMap">
         SELECT 
             i_idx, u_idx, i_category, i_title, i_status, 
             DATE_FORMAT(i_created, '%Y.%m.%d') AS i_created

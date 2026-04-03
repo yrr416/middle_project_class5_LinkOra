@@ -71,7 +71,7 @@
                         <c:forEach var="inquiry" items="${inquiryList}">
                             <tr>
                                 <td style="font-size: 13px; color: var(--text-muted);">
-                                    ${inquiry.createdAt}
+                                    ${inquiry.created}
                                 </td>
                                 <td style="font-size: 14px; font-weight: 600; color: var(--point-main);">${inquiry.category}</td>
                                 <td style="text-align: left;">
