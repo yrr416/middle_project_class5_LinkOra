@@ -28,7 +28,7 @@ public class ChatServiceImpl implements ChatService {
 
         // --- 시나리오 분기: 초기 진입([OPEN_CHAT]) 시 맞춤 인사 ---
         if ("[OPEN_CHAT]".equals(userMessage)) {
-            String welcomeMsg = "안녕하세요! 공유 오피스 Antigravity의 친절한 안내원 **오피(Offy)**입니다. 무엇을 도와드릴까요?";
+            String welcomeMsg = "안녕하세요! 공유 오피스의 친절한 안내원 **오피(Offy)**입니다. 무엇을 도와드릴까요?";
             if (currentPage.contains("reservation")) {
                 welcomeMsg = "예약을 고민 중이신가요? 저 **오피**가 날짜나 인원수에 맞는 최적의 공간을 추천해 드릴게요! 📅";
             } else if (currentPage.contains("list") || currentPage.contains("search")) {
@@ -49,7 +49,7 @@ public class ChatServiceImpl implements ChatService {
         java.util.Map<String, String> systemMsg = new java.util.HashMap<>();
         systemMsg.put("role", "system");
         systemMsg.put("content", 
-            "너는 공유 오피스 'Antigravity'의 스마트 안내원 '오피(Offy)'야. 아래 지침을 따라줘:\n" +
+            "너는 공유 오피스의 스마트 안내원 '오피(Offy)'야. 아래 지침을 따라줘:\n" +
             "1. 스스로를 '오피'라고 소개하며, 전문적이고 친절한 한국어로 답변할 것.\n" +
             "2. 주요 기능: 공간 추천, 예약 방법 안내, FAQ(환불, 시설, 장단기 예약) 대응.\n" +
             "3. FAQ 정보:\n" +
