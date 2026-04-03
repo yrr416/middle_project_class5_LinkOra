@@ -15,14 +15,14 @@
     <!-- 세션별 대화 내역 조회 -->
     <select id="selectChatListBySession" parameterType="int" resultType="org.study.midproject.chat.vo.ChatVO">
         SELECT 
-            c_idx AS cIdx,
-            u_idx AS uIdx,
-            c_session AS cSession,
-            c_message AS cMessage,
-            c_response AS cResponse,
-            c_intent AS cIntent,
-            c_page AS cPage,
-            c_time AS cTime
+            c_idx,
+            u_idx,
+            c_session,
+            c_message,
+            c_response,
+            c_intent,
+            c_page,
+            c_time
         FROM chatbot
         WHERE c_session = #{cSession}
         ORDER BY c_idx ASC
