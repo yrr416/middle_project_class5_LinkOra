@@ -14,27 +14,47 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const contextPath = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 2)) || "";
+    const currentPage = window.location.pathname;
 
     // 2. 이력 로드 여부 플래그
     let historyLoaded = false;
 
-    // 3. 채팅 이력 불러오기 함수
+    // 3. 채팅 이력 불러오기 또는 초기 인사
     const loadChatHistory = () => {
-        if (historyLoaded) return; // 이미 로드했다면 중복 생략
+        if (historyLoaded) return; 
 
         fetch(`${contextPath}/chat/history/${sessionId}`)
         .then(response => response.json())
         .then(data => {
             if (data && data.length > 0) {
-                // 기존 메시지 이력 출력
                 data.forEach(chat => {
                     if (chat.cmessage) appendMessage('user', chat.cmessage);
                     if (chat.cresponse) appendMessage('bot', chat.cresponse);
                 });
-                historyLoaded = true;
+            } else {
+                // 이력이 없을 때만 초기 인사 요청 (페이지 정보 포함)
+                requestInitialGreeting();
             }
+            historyLoaded = true;
         })
         .catch(error => console.error('History Load Error:', error));
+    };
+
+    // 현재 페이지 정보가 포함된 초기 인사 요청
+    const requestInitialGreeting = () => {
+        fetch(`${contextPath}/chat/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                cmessage: "[OPEN_CHAT]", 
+                csession: sessionId,
+                cpage: currentPage
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            appendMessage('bot', data.cresponse);
+        });
     };
 
     // 챗봇 열기/닫기 토글
@@ -42,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
         chatWindow.classList.toggle('hidden');
         if (!chatWindow.classList.contains('hidden')) {
             chatInput.focus();
-            loadChatHistory(); // 창을 열 때 이력 로드
+            loadChatHistory();
         }
     });
 
@@ -50,9 +70,24 @@ document.addEventListener('DOMContentLoaded', function() {
         chatWindow.classList.add('hidden');
     });
 
+    // 직접 문의 버튼 연결
+    document.getElementById('direct-inquiry').addEventListener('click', () => {
+        if(confirm("1:1 문의 페이지로 이동하시겠습니까?")) {
+            window.location.href = `${contextPath}/inquiry`;
+        }
+    });
+
+    // 칩 클릭 이벤트
+    document.querySelectorAll('.chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            const msg = this.getAttribute('data-msg');
+            sendMessage(msg);
+        });
+    });
+
     // 메시지 전송 로직
-    const sendMessage = () => {
-        const message = chatInput.value.trim();
+    const sendMessage = (text) => {
+        const message = text || chatInput.value.trim();
         if (!message) return;
 
         appendMessage('user', message);
@@ -62,8 +97,9 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                cmessage: message, // ChatVO 필드명에 맞춰 소문자로 전송될 수 있으니 주의 (MyBatis resultType 설정 확인)
-                csession: sessionId
+                cmessage: message,
+                csession: sessionId,
+                cpage: currentPage
             })
         })
         .then(response => response.json())
@@ -76,7 +112,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
-    // UI에 메시지 추가 (동일)
     const appendMessage = (sender, text) => {
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message', sender);
@@ -85,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     };
 
-    sendBtn.addEventListener('click', sendMessage);
+    sendBtn.addEventListener('click', () => sendMessage());
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
