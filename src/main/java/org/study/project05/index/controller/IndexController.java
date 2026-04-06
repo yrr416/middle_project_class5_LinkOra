@@ -1,4 +1,4 @@
-package org.study.midproject.index.controller;
+package org.study.project05.index.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

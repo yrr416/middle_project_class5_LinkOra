@@ -8,10 +8,10 @@
         <relativePath/>
     </parent>
     <groupId>org.study</groupId>
-    <artifactId>midproject</artifactId>
+    <artifactId>project05</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
-    <name>midproject</name>
+    <name>project05</name>
     <properties>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

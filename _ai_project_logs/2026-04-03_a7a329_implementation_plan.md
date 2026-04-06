@@ -22,7 +22,7 @@ ALTER TABLE inquiries MODIFY i_answered DATETIME NULL;
 
 ### 2. Inquiry Controller Logic Improvement
 
-#### [MODIFY] [InquiryController.java](file:///d:/dev/midProject/midproject/src/main/java/org/study/midproject/inquiry/controller/InquiryController.java)
+#### [MODIFY] [InquiryController.java](file:///d:/dev/project05/project05/src/main/java/org/study/project05/inquiry/controller/InquiryController.java)
 - `getLoggedInUserIdx` 메서드를 수정하여 세션의 `u_idx`가 `Integer`, `Long`, `String` 중 어떤 타입으로 저장되어 있더라도 안전하게 `Integer`로 변환하여 반환하도록 로직을 강화합니다.
 
 ---

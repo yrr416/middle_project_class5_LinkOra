@@ -47,6 +47,11 @@
         .navigation { margin-top: 30px; text-align: center; }
         .navigation a { color: var(--text-muted); text-decoration: none; font-size: 14px; transition: color 0.2s; }
         .navigation a:hover { color: var(--point-main); text-decoration: underline; }
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 40px; }
+        .page-link { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: var(--white); color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 600; transition: all 0.2s; }
+        .page-link:hover { border-color: var(--point-main); color: var(--point-main); }
+        .page-link.active { background: var(--point-main); color: var(--white); border-color: var(--point-main); }
+        .page-link.prev, .page-link.next { width: auto; padding: 0 12px; }
     </style>
 </head>
 <body>
@@ -71,21 +76,41 @@
                         <c:forEach var="inquiry" items="${inquiryList}">
                             <tr>
                                 <td style="font-size: 13px; color: var(--text-muted);">
-                                    ${inquiry.created}
+                                    ${inquiry.icreated}
                                 </td>
-                                <td style="font-size: 14px; font-weight: 600; color: var(--point-main);">${inquiry.category}</td>
+                                <td style="font-size: 14px; font-weight: 600; color: var(--point-main);">${inquiry.icategory}</td>
                                 <td style="text-align: left;">
-                                    <a href="${pageContext.request.contextPath}/inquiry/detail/${inquiry.idx}" class="inquiry-link">${inquiry.title}</a>
+                                    <a href="${pageContext.request.contextPath}/inquiry/detail/${inquiry.iidx}" class="inquiry-link">${inquiry.ititle}</a>
                                 </td>
                                 <td>
-                                    <span class="status-badge ${inquiry.status == '답변완료' ? 'status-complete' : 'status-waiting'}">
-                                        ${inquiry.status}
+                                    <span class="status-badge ${inquiry.istatus == '답변완료' ? 'status-complete' : 'status-waiting'}">
+                                        ${inquiry.istatus}
                                     </span>
                                 </td>
                             </tr>
                         </c:forEach>
                     </tbody>
                 </table>
+                
+                <%-- Pagination Bar --%>
+                <c:if test="${paging.totalPage > 1}">
+                    <div class="pagination">
+                        <%-- Previous Block --%>
+                        <c:if test="${paging.beginBlock > 1}">
+                            <a href="?page=${paging.beginBlock - 1}" class="page-link prev">이전</a>
+                        </c:if>
+                        
+                        <%-- Page Numbers --%>
+                        <c:forEach var="p" begin="${paging.beginBlock}" end="${paging.endBlock}">
+                            <a href="?page=${p}" class="page-link ${p == paging.nowPage ? 'active' : ''}">${p}</a>
+                        </c:forEach>
+                        
+                        <%-- Next Block --%>
+                        <c:if test="${paging.endBlock < paging.totalPage}">
+                            <a href="?page=${paging.endBlock + 1}" class="page-link next">다음</a>
+                        </c:if>
+                    </div>
+                </c:if>
             </c:when>
             <c:otherwise>
                 <div class="empty-msg">

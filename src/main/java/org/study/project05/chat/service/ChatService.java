@@ -1,6 +1,6 @@
-package org.study.midproject.chat.service;
+package org.study.project05.chat.service;
 
-import org.study.midproject.chat.vo.ChatVO;
+import org.study.project05.chat.vo.ChatVO;
 import java.util.List;
 
 public interface ChatService {

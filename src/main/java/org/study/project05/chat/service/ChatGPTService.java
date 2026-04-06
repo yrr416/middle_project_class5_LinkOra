@@ -1,9 +1,10 @@
-package org.study.midproject.chat.service;
+package org.study.project05.chat.service;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import okhttp3.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -12,14 +13,21 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
+@Slf4j
 public class ChatGPTService {
     
     // API 키와 모델명은 설정 파일(application.properties 등)에서 읽어옵니다.
     @Value("${openai.api.key:}")
     private String apiKey;
     
-    @Value("${openai.model:gpt-3.5-turbo}")
+    @Value("${openai.model:gpt-5.4-mini}")
     private String modelName;
+
+    private final OkHttpClient client = new OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build();
 
     private static final String API_URL = "https://api.openai.com/v1/chat/completions";
 
@@ -32,12 +40,7 @@ public class ChatGPTService {
             throw new IllegalArgumentException("전송할 메시지가 없습니다.");
         }
 
-        // 2. OkHttpClient 구성
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(60, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .build();
+
 
         // 3. JSON 요청 바디 생성
         JsonObject jsonObject = new JsonObject();
@@ -51,11 +54,13 @@ public class ChatGPTService {
             jsonArray.add(item);
         }
         jsonObject.add("messages", jsonArray);
+        jsonObject.addProperty("temperature", 0.7);
+        jsonObject.addProperty("max_completion_tokens", 500);
 
         // 4. Request 생성
         RequestBody body = RequestBody.create(
                 jsonObject.toString(),
-                MediaType.parse("application/json")
+                MediaType.parse("application/json; charset=utf-8")
         );
 
         Request request = new Request.Builder()
@@ -69,6 +74,7 @@ public class ChatGPTService {
             String respBody = response.body() != null ? response.body().string() : "";
 
             if (!response.isSuccessful()) {
+                log.error("OpenAI API Failure: {} - {}", response.code(), respBody);
                 throw new RuntimeException("OpenAI API 호출 실패: " + response.code() + " - " + respBody);
             }
 

@@ -1,10 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.study.midproject.chat.mapper.ChatMapper">
+<mapper namespace="org.study.project05.chat.mapper.ChatMapper">
+
+    <!-- 결과 매핑 (DB 컬럼 -> VO 카멜케이스) -->
+    <resultMap id="ChatResultMap" type="org.study.project05.chat.vo.ChatVO">
+        <id property="cIdx" column="c_idx" />
+        <result property="uIdx" column="u_idx" />
+        <result property="cSession" column="c_session" />
+        <result property="cMessage" column="c_message" />
+        <result property="cResponse" column="c_response" />
+        <result property="cIntent" column="c_intent" />
+        <result property="cPage" column="c_page" />
+        <result property="cTime" column="c_time" />
+    </resultMap>
 
     <!-- 새로운 대화 저장 -->
-    <insert id="insertChat" parameterType="org.study.midproject.chat.vo.ChatVO">
+    <insert id="insertChat" parameterType="org.study.project05.chat.vo.ChatVO">
         INSERT INTO chatbot (
             u_idx, c_session, c_message, c_response, c_intent, c_page, c_time
         ) VALUES (
@@ -13,16 +25,9 @@
     </insert>
 
     <!-- 세션별 대화 내역 조회 -->
-    <select id="selectChatListBySession" parameterType="int" resultType="org.study.midproject.chat.vo.ChatVO">
+    <select id="selectChatListBySession" parameterType="int" resultMap="ChatResultMap">
         SELECT 
-            c_idx,
-            u_idx,
-            c_session,
-            c_message,
-            c_response,
-            c_intent,
-            c_page,
-            c_time
+            c_idx, u_idx, c_session, c_message, c_response, c_intent, c_page, c_time
         FROM chatbot
         WHERE c_session = #{cSession}
         ORDER BY c_idx ASC

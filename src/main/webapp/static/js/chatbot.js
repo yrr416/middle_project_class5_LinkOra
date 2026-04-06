@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data && data.length > 0) {
                 data.forEach(chat => {
-                    if (chat.cmessage) appendMessage('user', chat.cmessage);
-                    if (chat.cresponse) appendMessage('bot', chat.cresponse);
+                    if (chat.cMessage) appendMessage('user', chat.cMessage);
+                    if (chat.cResponse) appendMessage('bot', chat.cResponse);
                 });
             } else {
                 // 이력이 없을 때만 초기 인사 요청 (페이지 정보 포함)
@@ -46,14 +46,14 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                cmessage: "[OPEN_CHAT]", 
-                csession: sessionId,
-                cpage: currentPage
+                cMessage: "[OPEN_CHAT]", 
+                cSession: sessionId,
+                cPage: currentPage
             })
         })
         .then(response => response.json())
         .then(data => {
-            appendMessage('bot', data.cresponse);
+            appendMessage('bot', data.cResponse);
         });
     };
 
@@ -97,14 +97,14 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                cmessage: message,
-                csession: sessionId,
-                cpage: currentPage
+                cMessage: message,
+                cSession: sessionId,
+                cPage: currentPage
             })
         })
         .then(response => response.json())
         .then(data => {
-            appendMessage('bot', data.cresponse);
+            appendMessage('bot', data.cResponse);
         })
         .catch(error => {
             console.error('Error:', error);

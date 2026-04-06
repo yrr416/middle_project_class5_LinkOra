@@ -1,25 +1,25 @@
-# Project Walkthrough: 'midproject' Setup
+# Project Walkthrough: 'project05' Setup
 
-`myproject01`을 기반으로 한 `midproject`의 초기 환경 구축이 완료되었습니다.
+`myproject01`을 기반으로 한 `project05`의 초기 환경 구축이 완료되었습니다.
 
 ## 📁 주요 디렉토리 및 파일 구성
 
 ### [Core Config]
-- **[.gitignore](file:///D:/dev/midProject/midproject/.gitignore)**: 빌드 산출물 및 비밀번호 설정 파일 제외
-- **[pom.xml](file:///D:/dev/midProject/midproject/pom.xml)**: Spring Boot 4.0.3, MyBatis, JSP 의존성 설정
-- **[application-secret.properties](file:///D:/dev/midProject/midproject/src/main/resources/application-secret.properties)**: DB 접속 정보 및 OpenAI API KEY (보안 격리)
+- **[.gitignore](file:///D:/dev/project05/project05/.gitignore)**: 빌드 산출물 및 비밀번호 설정 파일 제외
+- **[pom.xml](file:///D:/dev/project05/project05/pom.xml)**: Spring Boot 4.0.3, MyBatis, JSP 의존성 설정
+- **[application-secret.properties](file:///D:/dev/project05/project05/src/main/resources/application-secret.properties)**: DB 접속 정보 및 OpenAI API KEY (보안 격리)
 
 ### [Java Sources]
-- **[MidProjectApplication.java](file:///D:/dev/midProject/midproject/src/main/java/org/study/midproject/MidProjectApplication.java)**: 애플리케이션 시작점
-- **[ServletInitializer.java](file:///D:/dev/midProject/midproject/src/main/java/org/study/midproject/ServletInitializer.java)**: 외장 서블릿 컨테이너 대응
-- **[IndexController.java](file:///D:/dev/midProject/midproject/src/main/java/org/study/midproject/index/controller/IndexController.java)**: 루트 URL 매핑
+- **[project05Application.java](file:///D:/dev/project05/project05/src/main/java/org/study/project05/project05Application.java)**: 애플리케이션 시작점
+- **[ServletInitializer.java](file:///D:/dev/project05/project05/src/main/java/org/study/project05/ServletInitializer.java)**: 외장 서블릿 컨테이너 대응
+- **[IndexController.java](file:///D:/dev/project05/project05/src/main/java/org/study/project05/index/controller/IndexController.java)**: 루트 URL 매핑
 
 ### [Web Resources]
-- **[index.jsp](file:///D:/dev/midProject/midproject/src/main/webapp/WEB-INF/views/index.jsp)**: 기본 메인 홈 페이지
+- **[index.jsp](file:///D:/dev/project05/project05/src/main/webapp/WEB-INF/views/index.jsp)**: 기본 메인 홈 페이지
 
 ## 🛠️ 빌드 및 실행 방법
 
-1. **빌드**: 터미널에서 프로젝트 루트 폴더(`D:\dev\midProject\midproject`)로 이동한 후 다음 명령어를 실행합니다.
+1. **빌드**: 터미널에서 프로젝트 루트 폴더(`D:\dev\project05\project05`)로 이동한 후 다음 명령어를 실행합니다.
    ```bash
    .\mvnw clean compile
    ```
@@ -27,7 +27,7 @@
    ```bash
    .\mvnw spring-boot:run
    ```
-3. **접속**: 브라우저에서 `http://localhost:8080/midproject/` 주소로 접속하여 결과를 확인합니다.
+3. **접속**: 브라우저에서 `http://localhost:8080/project05/` 주소로 접속하여 결과를 확인합니다.
 
 ## 🔐 보안 주의사항
 

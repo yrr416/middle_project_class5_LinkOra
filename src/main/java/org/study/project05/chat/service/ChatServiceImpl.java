@@ -1,13 +1,16 @@
-package org.study.midproject.chat.service;
+package org.study.project05.chat.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.study.midproject.chat.mapper.ChatMapper;
-import org.study.midproject.chat.vo.ChatVO;
+import org.study.project05.chat.mapper.ChatMapper;
+import org.study.project05.chat.vo.ChatVO;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChatServiceImpl implements ChatService {
 
     private final ChatMapper chatMapper;
@@ -19,8 +22,8 @@ public class ChatServiceImpl implements ChatService {
         String userMessage = chatVO.getCMessage();
         String currentPage = chatVO.getCPage() != null ? chatVO.getCPage() : "/";
 
-        if (chatVO.getUIdx() == null || chatVO.getUIdx() == 0) {
-            chatVO.setUIdx(1); 
+        if (chatVO.getUIdx() == null || chatVO.getUIdx() == 0L) {
+            chatVO.setUIdx(1L); 
         }
         if (chatVO.getCSession() == null || chatVO.getCSession() == 0) {
             chatVO.setCSession(1001); 
@@ -50,17 +53,21 @@ public class ChatServiceImpl implements ChatService {
         systemMsg.put("role", "system");
         systemMsg.put("content", 
             "너는 공유 오피스의 스마트 안내원 '오피(Offy)'야. 아래 지침을 따라줘:\n" +
-            "1. 스스로를 '오피'라고 소개하며, 전문적이고 친절한 한국어로 답변할 것.\n" +
+            "1. 전문적이고 친절한 한국어로 답변할 것. 모든 응답마다 자기소개를 반복할 필요는 없으며, 자연스럽게 본론부터 답변해줘.\n" +
             "2. 주요 기능: 공간 추천, 예약 방법 안내, FAQ(환불, 시설, 장단기 예약) 대응.\n" +
             "3. FAQ 정보:\n" +
             "   - 환불: 이용 3일 전 100%, 1일 전 50%, 당일 환불 불가.\n" +
             "   - 시설: 24시간 개방, 초고속 와이파이, 커피 무제한, 회의실 완비.\n" +
             "   - 예약: 앱/웹에서 실시간 가능, 1개월 이상 장기 예약 시 별도 할인.\n" +
-            "4. 해결이 어려운 요청이나 직접 상담이 필요해 보이면 상단의 '직접 문의' 버튼이나 '/inquiry' 페이지를 안내해줘.");
+            "4. 해결이 어려운 요청이나 직접 상담이 필요해 보이면 상단의 '직접 문의' 버튼이나 '/inquiry' 페이지를 안내해줘.\n" +
+            "   - 문의 카테고리: 공간 예약, 결제 및 환불, 시설 이용, 회원정보/계정, 이용방법, 제휴 및 광고, 장애/오류 등.");
         messages.add(systemMsg);
 
-        // 이전 대화 내역 추가
-        for (ChatVO h : history) {
+        // 이전 대화 내역 중 최신 10개만 포함 (슬라이딩 윈도우)
+        int start = Math.max(0, history.size() - 10);
+        List<ChatVO> recentHistory = history.subList(start, history.size());
+
+        for (ChatVO h : recentHistory) {
             if (h.getCMessage() != null && !"[OPEN_CHAT]".equals(h.getCMessage())) {
                 messages.add(createMsg("user", h.getCMessage()));
             }
@@ -77,6 +84,7 @@ public class ChatServiceImpl implements ChatService {
         try {
             botResponse = chatGPTService.chat(messages);
         } catch (Exception e) {
+            log.error("AI Service Error for session {}: {}", chatVO.getCSession(), e.getMessage());
             botResponse = "[서비스 점검 중] 질문을 이해하지 못했습니다. 상단의 '직접 문의' 버튼을 이용해 주세요.";
         }
 
@@ -95,11 +103,8 @@ public class ChatServiceImpl implements ChatService {
         return chatMapper.selectChatListBySession(cSession);
     }
 
-    // 메시지 객체 생성을 위한 헬퍼 메서드
-    private java.util.Map<String, String> createMsg(String role, String content) {
-        java.util.Map<String, String> msg = new java.util.HashMap<>();
-        msg.put("role", role);
-        msg.put("content", content);
-        return msg;
+    // 메시지 객체 생성을 위한 헬퍼 메서드 (Java 21 Map.of 활용)
+    private Map<String, String> createMsg(String role, String content) {
+        return Map.of("role", role, "content", content);
     }
 }

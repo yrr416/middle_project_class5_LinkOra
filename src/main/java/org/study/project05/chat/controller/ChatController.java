@@ -1,9 +1,9 @@
-package org.study.midproject.chat.controller;
+package org.study.project05.chat.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import org.study.midproject.chat.service.ChatService;
-import org.study.midproject.chat.vo.ChatVO;
+import org.study.project05.chat.service.ChatService;
+import org.study.project05.chat.vo.ChatVO;
 import java.util.List;
 
 @RestController

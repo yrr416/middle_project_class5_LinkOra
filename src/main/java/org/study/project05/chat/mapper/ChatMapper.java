@@ -1,7 +1,7 @@
-package org.study.midproject.chat.mapper;
+package org.study.project05.chat.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.study.midproject.chat.vo.ChatVO;
+import org.study.project05.chat.vo.ChatVO;
 import java.util.List;
 
 @Mapper

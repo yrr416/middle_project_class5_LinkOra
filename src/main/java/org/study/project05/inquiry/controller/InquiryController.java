@@ -1,14 +1,14 @@
-package org.study.midproject.inquiry.controller;
+package org.study.project05.inquiry.controller;
 
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.study.midproject.inquiry.service.InquiryService;
-import org.study.midproject.inquiry.vo.InquiryVO;
+import org.study.project05.inquiry.service.InquiryService;
+import org.study.project05.inquiry.vo.InquiryVO;
 
-import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/inquiry")
@@ -71,19 +71,20 @@ public class InquiryController {
         Long userIdx = getLoggedInUserIdx(session);
         if (userIdx == null) return "redirect:/login";
 
-        vo.setUserIdx(userIdx); // Standardized setter (userIdx)
+        vo.setUidx(userIdx); // Standardized setter (uidx)
         inquiryService.registerInquiry(vo);
         return "redirect:/inquiry/mylist";
     }
 
-    // 3. 나의 문의 내역 리스트 조회
     @GetMapping("/mylist")
-    public String myInquiryList(HttpSession session, Model model) {
+    public String myInquiryList(@RequestParam(value = "page", defaultValue = "1") int page, 
+                                HttpSession session, Model model) {
         Long userIdx = getLoggedInUserIdx(session);
         if (userIdx == null) return "redirect:/login";
 
-        List<InquiryVO> list = inquiryService.getInquiryList(userIdx);
-        model.addAttribute("inquiryList", list);
+        Map<String, Object> result = inquiryService.getInquiryList(userIdx, page);
+        model.addAttribute("inquiryList", result.get("inquiryList"));
+        model.addAttribute("paging", result.get("paging"));
         return "inquiry/my_inquiries";
     }
 
@@ -95,8 +96,8 @@ public class InquiryController {
 
         InquiryVO detail = inquiryService.getInquiryDetail(idx);
         
-        // 본인 글 확인 (Standardized getter: userIdx)
-        if (detail == null || !detail.getUserIdx().equals(userIdx)) {
+        // 본인 글 확인 (Standardized getter: uidx)
+        if (detail == null || !detail.getUidx().equals(userIdx)) {
             return "redirect:/inquiry/mylist";
         }
 

@@ -1,11 +1,11 @@
-package org.study.midproject;
+package org.study.project05;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class MidProjectApplication {
+public class Project05Application {
     public static void main(String[] args) {
-        SpringApplication.run(MidProjectApplication.class, args);
+        SpringApplication.run(Project05Application.class, args);
     }
 }

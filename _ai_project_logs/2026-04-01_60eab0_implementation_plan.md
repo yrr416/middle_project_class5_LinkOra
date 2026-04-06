@@ -12,14 +12,14 @@
 
 ### 1. 프론트엔드 (Logic)
 
-#### [MODIFY] [chatbot.js](file:///d:/dev/midProject/midproject/src/main/webapp/static/js/chatbot.js)
+#### [MODIFY] [chatbot.js](file:///d:/dev/project05/project05/src/main/webapp/static/js/chatbot.js)
 *   `localStorage`에서 `chat_session_id`를 관리하도록 수정.
 *   `loadChatHistory()` 함수 추가: 서버 엔드포인트 `/chat/history/{cSession}` 호출.
 *   채팅창 오픈 시 기존 메시지를 비우고 다시 렌더링하는 로직 구현.
 
 ### 2. 백엔드 (Verification)
 
-#### [VERIFY] [ChatController.java](file:///d:/dev/midProject/midproject/src/main/java/org/study/midproject/chat/controller/ChatController.java)
+#### [VERIFY] [ChatController.java](file:///d:/dev/project05/project05/src/main/java/org/study/project05/chat/controller/ChatController.java)
 *   `/chat/history/{cSession}` 엔드포인트가 정상적으로 작동하는지 확인.
 *   필요 시 조회 데이터의 시간 순서(ORDER BY) 재검증.
 
