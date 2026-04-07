@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05.space.mapper.FacilityMapper">
+
+    <resultMap id="facilityResultMap" type="org.study.project05.space.vo.FacilityVO">
+        <id     property="facIdx"      column="f_idx"/>
+        <result property="spcIdx"      column="s_idx"/>
+        <result property="facCafe"     column="f_cafe"/>
+        <result property="facDesk"     column="f_desk"/>
+        <result property="facDelivery" column="f_delivery"/>
+        <result property="facWater"    column="f_water"/>
+        <result property="facHours24"  column="f_24hours"/>
+        <result property="facKitchen"  column="f_kitchen"/>
+        <result property="facDisplay"  column="f_display"/>
+        <result property="facStorage"  column="f_storage"/>
+        <result property="facParking"  column="f_parking"/>
+        <result property="facFax"      column="f_fax"/>
+        <result property="facPet"      column="f_pet"/>
+        <result property="facLounge"   column="f_lounge"/>
+    </resultMap>
+
+    <select id="selectBySpaceIdx" parameterType="int" resultMap="facilityResultMap">
+        SELECT f_idx, s_idx,
+               f_cafe, f_desk, f_delivery, f_water, f_24hours,
+               f_kitchen, f_display, f_storage, f_parking,
+               f_fax, f_pet, f_lounge
+        FROM facilities
+        WHERE s_idx = #{spcIdx}
+    </select>
+
+</mapper>
