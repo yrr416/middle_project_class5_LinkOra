@@ -24,7 +24,7 @@ public class InquiryController {
     // 세션에서 사용자 정보를 가져오는 메서드
     private Long getLoggedInUserIdx(HttpSession session) {
         Object loginUser = session.getAttribute("loginUser");
-        Object uIdxObj = session.getAttribute("uIdx");
+        Object uIdxObj = session.getAttribute("userIdx");
         
         Long uIdx = null;
         
@@ -71,7 +71,7 @@ public class InquiryController {
         Long userIdx = getLoggedInUserIdx(session);
         if (userIdx == null) return "redirect:/login";
 
-        vo.setUidx(userIdx); // Standardized setter (uidx)
+        vo.setUserIdx(userIdx); // Standardized setter (userIdx)
         inquiryService.registerInquiry(vo);
         return "redirect:/inquiry/mylist";
     }
@@ -89,15 +89,15 @@ public class InquiryController {
     }
 
     // 4. 문의 상세 정보 및 답변 확인
-    @GetMapping("/detail/{idx}")
-    public String inquiryDetail(@PathVariable("idx") Integer idx, HttpSession session, Model model) {
+    @GetMapping("/detail/{inqIdx}")
+    public String inquiryDetail(@PathVariable("inqIdx") Integer inqIdx, HttpSession session, Model model) {
         Long userIdx = getLoggedInUserIdx(session);
         if (userIdx == null) return "redirect:/login";
 
-        InquiryVO detail = inquiryService.getInquiryDetail(idx);
+        InquiryVO detail = inquiryService.getInquiryDetail(inqIdx);
         
-        // 본인 글 확인 (Standardized getter: uidx)
-        if (detail == null || !detail.getUidx().equals(userIdx)) {
+        // 본인 글 확인 (Standardized getter: userIdx)
+        if (detail == null || !detail.getUserIdx().equals(userIdx)) {
             return "redirect:/inquiry/mylist";
         }
 

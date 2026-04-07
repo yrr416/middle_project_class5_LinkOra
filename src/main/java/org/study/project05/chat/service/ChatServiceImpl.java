@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.study.project05.chat.mapper.ChatMapper;
 import org.study.project05.chat.vo.ChatVO;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,47 +20,49 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public ChatVO processMessage(ChatVO chatVO) {
         // 1. 사용자 메시지 추출 및 기본값 세팅
-        String userMessage = chatVO.getCMessage();
-        String currentPage = chatVO.getCPage() != null ? chatVO.getCPage() : "/";
+        String userMessage = chatVO.getChatMessage();
+        String currentPage = chatVO.getChatPage() != null ? chatVO.getChatPage() : "/";
 
-        if (chatVO.getUIdx() == null || chatVO.getUIdx() == 0L) {
-            chatVO.setUIdx(1L); 
+        if (chatVO.getUserIdx() == null || chatVO.getUserIdx() == 0L) {
+            chatVO.setUserIdx(1L); 
         }
-        if (chatVO.getCSession() == null || chatVO.getCSession() == 0) {
-            chatVO.setCSession(1001); 
+        if (chatVO.getChatSession() == null || chatVO.getChatSession() == 0) {
+            chatVO.setChatSession(1001); 
         }
 
         // --- 시나리오 분기: 초기 진입([OPEN_CHAT]) 시 맞춤 인사 ---
         if ("[OPEN_CHAT]".equals(userMessage)) {
-            String welcomeMsg = "안녕하세요! 공유 오피스의 친절한 안내원 **오피(Offy)**입니다. 무엇을 도와드릴까요?";
+            String welcomeMsg = "안녕하세요! 공유 오피스의 친절한 안내원 오피(Offy)입니다. 무엇을 도와드릴까요?";
             if (currentPage.contains("reservation")) {
-                welcomeMsg = "예약을 고민 중이신가요? 저 **오피**가 날짜나 인원수에 맞는 최적의 공간을 추천해 드릴게요! 📅";
+                welcomeMsg = "예약을 고민 중이신가요? 저 오피가 날짜나 인원수에 맞는 최적의 공간을 추천해 드릴게요! 📅";
             } else if (currentPage.contains("list") || currentPage.contains("search")) {
-                welcomeMsg = "원하시는 지역이나 오피스 스타일이 있으신가요? 저 **오피**가 맞춤형 공간을 찾아드릴게요! 🏢";
+                welcomeMsg = "원하시는 지역이나 오피스 스타일이 있으신가요? 저 오피가 맞춤형 공간을 찾아드릴게요! 🏢";
             }
             
-            chatVO.setCResponse(welcomeMsg);
-            chatVO.setCIntent("WELCOME_GREETING");
-            chatVO.setCPage(currentPage);
+            chatVO.setChatResponse(welcomeMsg);
+            chatVO.setChatIntent("WELCOME_GREETING");
+            chatVO.setChatPage(currentPage);
             return chatVO;
         }
 
         // 2. 대화 이력 조회 및 GPT 컨텍스트 구성
-        List<ChatVO> history = chatMapper.selectChatListBySession(chatVO.getCSession());
+        List<ChatVO> history = chatMapper.selectChatListBySession(chatVO.getChatSession());
         List<java.util.Map<String, String>> messages = new java.util.ArrayList<>();
 
-        // 시스템 지시어 강화 (이름: 오피 반영)
+        // 시스템 지시어 강화 (최신 모델 사양: role을 'developer'로 설정)
         java.util.Map<String, String> systemMsg = new java.util.HashMap<>();
-        systemMsg.put("role", "system");
+        systemMsg.put("role", "developer");
         systemMsg.put("content", 
             "너는 공유 오피스의 스마트 안내원 '오피(Offy)'야. 아래 지침을 따라줘:\n" +
-            "1. 전문적이고 친절한 한국어로 답변할 것. 모든 응답마다 자기소개를 반복할 필요는 없으며, 자연스럽게 본론부터 답변해줘.\n" +
-            "2. 주요 기능: 공간 추천, 예약 방법 안내, FAQ(환불, 시설, 장단기 예약) 대응.\n" +
-            "3. FAQ 정보:\n" +
+            "1. 전문적이고 친절한 한국어로 답변할 것. \n" +
+            "2. 마크다운 형식(예: **, #, - 등)을 절대 사용하지 말고, 오직 순수 텍스트로만 답변해줘.\n" +
+            "3. 답변은 핵심 위주로 명확하게 300자 내외로 작성해줘.\n" +
+            "4. 주요 기능: 공간 추천, 예약 방법 안내, FAQ(환불, 시설, 장단기 예약) 대응.\n" +
+            "5. FAQ 정보:\n" +
             "   - 환불: 이용 3일 전 100%, 1일 전 50%, 당일 환불 불가.\n" +
             "   - 시설: 24시간 개방, 초고속 와이파이, 커피 무제한, 회의실 완비.\n" +
             "   - 예약: 앱/웹에서 실시간 가능, 1개월 이상 장기 예약 시 별도 할인.\n" +
-            "4. 해결이 어려운 요청이나 직접 상담이 필요해 보이면 상단의 '직접 문의' 버튼이나 '/inquiry' 페이지를 안내해줘.\n" +
+            "6. 해결이 어려운 요청이나 직접 상담이 필요해 보이면 상단의 '직접 문의' 버튼이나 '/inquiry' 페이지를 안내해줘.\n" +
             "   - 문의 카테고리: 공간 예약, 결제 및 환불, 시설 이용, 회원정보/계정, 이용방법, 제휴 및 광고, 장애/오류 등.");
         messages.add(systemMsg);
 
@@ -68,11 +71,11 @@ public class ChatServiceImpl implements ChatService {
         List<ChatVO> recentHistory = history.subList(start, history.size());
 
         for (ChatVO h : recentHistory) {
-            if (h.getCMessage() != null && !"[OPEN_CHAT]".equals(h.getCMessage())) {
-                messages.add(createMsg("user", h.getCMessage()));
+            if (h.getChatMessage() != null && !"[OPEN_CHAT]".equals(h.getChatMessage())) {
+                messages.add(createMsg("user", h.getChatMessage()));
             }
-            if (h.getCResponse() != null && !h.getCResponse().isEmpty()) {
-                messages.add(createMsg("assistant", h.getCResponse()));
+            if (h.getChatResponse() != null && !h.getChatResponse().isEmpty()) {
+                messages.add(createMsg("assistant", h.getChatResponse()));
             }
         }
 
@@ -84,27 +87,49 @@ public class ChatServiceImpl implements ChatService {
         try {
             botResponse = chatGPTService.chat(messages);
         } catch (Exception e) {
-            log.error("AI Service Error for session {}: {}", chatVO.getCSession(), e.getMessage());
+            log.error("AI Service Error for session {}: {}", chatVO.getChatSession(), e.getMessage());
             botResponse = "[서비스 점검 중] 질문을 이해하지 못했습니다. 상단의 '직접 문의' 버튼을 이용해 주세요.";
         }
 
-        // 4. 결과 세팅 및 DB 저장
-        chatVO.setCResponse(botResponse);
-        chatVO.setCIntent("AI_GENERATED");
-        chatVO.setCPage(currentPage);
+        // 4. 결과 세팅 및 DB 저장용 길이 제한 (사용자님 DB 설정상 최대 500자)
+        chatVO.setChatResponse(botResponse);
+        chatVO.setChatIntent("AI_GENERATED");
+        chatVO.setChatPage(currentPage);
         
-        chatMapper.insertChat(chatVO);
+        // --- DB 저장용 객체 전처리 (500자 Truncation) ---
+        String safeMessage = (userMessage != null && userMessage.length() > 500) 
+                             ? userMessage.substring(0, 500) : userMessage;
+        String safeResponse = (botResponse != null && botResponse.length() > 500) 
+                              ? botResponse.substring(0, 500) : botResponse;
 
+        chatVO.setChatMessage(safeMessage);
+        chatVO.setChatResponse(safeResponse);
+
+        try {
+            log.info("[Chat DB Insert Check] session={}, userIdx={}, intent={}, responseLen={}", 
+                     chatVO.getChatSession(), chatVO.getUserIdx(), chatVO.getChatIntent(), 
+                     (botResponse != null ? botResponse.length() : 0));
+            chatMapper.insertChat(chatVO);
+        } catch (Exception e) {
+            // DB 저장이 실패하더라도(길이 초과 등) 이미 생성된 답변은 브라우저로 무조건 전달
+            log.error("Database Insert Failure for session {}: {}", chatVO.getChatSession(), e.getMessage());
+        }
+
+        // 브라우저에는 자르지 않은 원본 답변을 전달하여 사용자 경험 유지
+        chatVO.setChatResponse(botResponse);
         return chatVO;
     }
 
     @Override
-    public List<ChatVO> getChatHistory(int cSession) {
-        return chatMapper.selectChatListBySession(cSession);
+    public List<ChatVO> getChatHistory(int chatSession) {
+        return chatMapper.selectChatListBySession(chatSession);
     }
 
     // 메시지 객체 생성을 위한 헬퍼 메서드 (Java 21 Map.of 활용)
     private Map<String, String> createMsg(String role, String content) {
-        return Map.of("role", role, "content", content);
+        Map<String, String> msg = new HashMap<>();
+        msg.put("role", role);
+        msg.put("content", content != null ? content : "");
+        return msg;
     }
 }

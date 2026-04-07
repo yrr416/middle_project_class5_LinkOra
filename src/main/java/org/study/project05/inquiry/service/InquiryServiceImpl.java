@@ -55,7 +55,7 @@ public class InquiryServiceImpl implements InquiryService {
     }
 
     @Override
-    public InquiryVO getInquiryDetail(Integer idx) {
-        return inquiryMapper.selectInquiryDetail(idx);
+    public InquiryVO getInquiryDetail(Integer inqIdx) {
+        return inquiryMapper.selectInquiryDetail(inqIdx);
     }
 }

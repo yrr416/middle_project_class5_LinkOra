@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('chatbot_session_id', sessionId);
     }
 
-    const contextPath = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 2)) || "";
+    const contextPath = window.contextPath || "";
     const currentPage = window.location.pathname;
 
     // 2. 이력 로드 여부 플래그
@@ -26,10 +26,11 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`${contextPath}/chat/history/${sessionId}`)
         .then(response => response.json())
         .then(data => {
+            console.log("[Chat History Response]", data);
             if (data && data.length > 0) {
                 data.forEach(chat => {
-                    if (chat.cMessage) appendMessage('user', chat.cMessage);
-                    if (chat.cResponse) appendMessage('bot', chat.cResponse);
+                    if (chat.chatMessage) appendMessage('user', chat.chatMessage);
+                    if (chat.chatResponse) appendMessage('bot', chat.chatResponse);
                 });
             } else {
                 // 이력이 없을 때만 초기 인사 요청 (페이지 정보 포함)
@@ -46,14 +47,15 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                cMessage: "[OPEN_CHAT]", 
-                cSession: sessionId,
-                cPage: currentPage
+                chatMessage: "[OPEN_CHAT]", 
+                chatSession: sessionId,
+                chatPage: currentPage
             })
         })
         .then(response => response.json())
         .then(data => {
-            appendMessage('bot', data.cResponse);
+            console.log("[Initial Greeting Response]", data);
+            appendMessage('bot', data.chatResponse);
         });
     };
 
@@ -97,18 +99,26 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                cMessage: message,
-                cSession: sessionId,
-                cPage: currentPage
+                chatMessage: message,
+                chatSession: sessionId,
+                chatPage: currentPage
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
         .then(data => {
-            appendMessage('bot', data.cResponse);
+            console.log("[Chat Send Response]", data);
+            if (data && data.chatResponse) {
+                appendMessage('bot', data.chatResponse);
+            } else {
+                appendMessage('bot', '죄송합니다. 답변을 가져오는 중 문제가 발생했습니다.');
+            }
         })
         .catch(error => {
             console.error('Error:', error);
-            appendMessage('bot', '죄송합니다. 서버와 연결이 원활하지 않습니다.');
+            appendMessage('bot', '죄송합니다. 서버와 연결이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.');
         });
     };
 

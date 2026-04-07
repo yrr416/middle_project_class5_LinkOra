@@ -76,15 +76,15 @@
                         <c:forEach var="inquiry" items="${inquiryList}">
                             <tr>
                                 <td style="font-size: 13px; color: var(--text-muted);">
-                                    ${inquiry.icreated}
+                                    ${inquiry.inqCreated}
                                 </td>
-                                <td style="font-size: 14px; font-weight: 600; color: var(--point-main);">${inquiry.icategory}</td>
+                                <td style="font-size: 14px; font-weight: 600; color: var(--point-main);">${inquiry.inqCategory}</td>
                                 <td style="text-align: left;">
-                                    <a href="${pageContext.request.contextPath}/inquiry/detail/${inquiry.iidx}" class="inquiry-link">${inquiry.ititle}</a>
+                                    <a href="${pageContext.request.contextPath}/inquiry/detail/${inquiry.inqIdx}" class="inquiry-link">${inquiry.inqTitle}</a>
                                 </td>
                                 <td>
-                                    <span class="status-badge ${inquiry.istatus == '답변완료' ? 'status-complete' : 'status-waiting'}">
-                                        ${inquiry.istatus}
+                                    <span class="status-badge ${inquiry.inqStatus == '답변완료' ? 'status-complete' : 'status-waiting'}">
+                                        ${inquiry.inqStatus}
                                     </span>
                                 </td>
                             </tr>

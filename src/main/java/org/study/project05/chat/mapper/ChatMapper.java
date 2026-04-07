@@ -1,6 +1,7 @@
 package org.study.project05.chat.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.study.project05.chat.vo.ChatVO;
 import java.util.List;
 
@@ -18,5 +19,5 @@ public interface ChatMapper {
      * @param cSession 세션 ID
      * @return 대화 리스트
      */
-    List<ChatVO> selectChatListBySession(int cSession);
+    List<ChatVO> selectChatListBySession(@Param("chatSession") int chatSession);
 }

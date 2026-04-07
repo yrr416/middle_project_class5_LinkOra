@@ -18,18 +18,24 @@ public class ChatController {
      */
     @PostMapping("/send")
     public ChatVO sendMessage(@RequestBody ChatVO chatVO) {
-        // 실제로는 세션 관리 로직 등이 추가되어야 함 (현재는 테스트 코드 중심)
-        if (chatVO.getCSession() == 0) {
-            chatVO.setCSession(1001); // 기본 세션 ID 부여 (임시)
+        // 1. 세션 번호 체크 및 자동 부여
+        if (chatVO.getChatSession() == null || chatVO.getChatSession() == 0) {
+            chatVO.setChatSession((int)(System.currentTimeMillis() % 1000000));
         }
+        
+        // 2. 사용자 ID 체크 (로그인 연동 전까지 기본값 1L 부여)
+        if (chatVO.getUserIdx() == null) {
+            chatVO.setUserIdx(1L);
+        }
+        
         return chatService.processMessage(chatVO);
     }
 
     /**
      * 특정 세션의 대화 내역 조회
      */
-    @GetMapping("/history/{cSession}")
-    public List<ChatVO> getHistory(@PathVariable int cSession) {
-        return chatService.getChatHistory(cSession);
+    @GetMapping("/history/{chatSession}")
+    public List<ChatVO> getHistory(@PathVariable int chatSession) {
+        return chatService.getChatHistory(chatSession);
     }
 }

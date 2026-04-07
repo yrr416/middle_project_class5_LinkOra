@@ -5,22 +5,22 @@
 
     <!-- 결과 매핑 (DB 컬럼 -> VO 카멜케이스) -->
     <resultMap id="ChatResultMap" type="org.study.project05.chat.vo.ChatVO">
-        <id property="cIdx" column="c_idx" />
-        <result property="uIdx" column="u_idx" />
-        <result property="cSession" column="c_session" />
-        <result property="cMessage" column="c_message" />
-        <result property="cResponse" column="c_response" />
-        <result property="cIntent" column="c_intent" />
-        <result property="cPage" column="c_page" />
-        <result property="cTime" column="c_time" />
+        <id property="chatIdx" column="c_idx" />
+        <result property="userIdx" column="u_idx" />
+        <result property="chatSession" column="c_session" />
+        <result property="chatMessage" column="c_message" />
+        <result property="chatResponse" column="c_response" />
+        <result property="chatIntent" column="c_intent" />
+        <result property="chatPage" column="c_page" />
+        <result property="chatTime" column="c_time" />
     </resultMap>
 
     <!-- 새로운 대화 저장 -->
-    <insert id="insertChat" parameterType="org.study.project05.chat.vo.ChatVO">
+    <insert id="insertChat" parameterType="org.study.project05.chat.vo.ChatVO" useGeneratedKeys="true" keyProperty="chatIdx">
         INSERT INTO chatbot (
             u_idx, c_session, c_message, c_response, c_intent, c_page, c_time
         ) VALUES (
-            #{uIdx}, #{cSession}, #{cMessage}, #{cResponse}, #{cIntent}, #{cPage}, NOW()
+            #{userIdx}, #{chatSession}, #{chatMessage}, #{chatResponse}, #{chatIntent}, #{chatPage}, NOW()
         )
     </insert>
 
@@ -29,7 +29,7 @@
         SELECT 
             c_idx, u_idx, c_session, c_message, c_response, c_intent, c_page, c_time
         FROM chatbot
-        WHERE c_session = #{cSession}
+        WHERE c_session = #{chatSession}
         ORDER BY c_idx ASC
     </select>
 

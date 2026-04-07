@@ -54,25 +54,25 @@
 <body>
     <div class="container">
         <div class="header">
-            <span class="category-tag">${inquiry.icategory}</span>
-            <h1 class="title">${inquiry.ititle}</h1>
+            <span class="category-tag">${inquiry.inqCategory}</span>
+            <h1 class="title">${inquiry.inqTitle}</h1>
             <div class="meta-info">
-                <span>작성일: ${inquiry.icreated}</span>
-                <span>상태: <strong>${inquiry.istatus}</strong></span>
+                <span>작성일: ${inquiry.inqCreated}</span>
+                <span>상태: <strong>${inquiry.inqStatus}</strong></span>
             </div>
         </div>
         
         <div class="section-title">문의 내용</div>
-        <div class="content-box">${inquiry.icontent}</div>
+        <div class="content-box">${inquiry.inqContent}</div>
         
         <div class="section-title">관리자 답변</div>
         <c:choose>
-            <c:when test="${inquiry.istatus == '답변완료'}">
+            <c:when test="${inquiry.inqStatus == '답변완료'}">
                 <div class="answer-box">
                     <h3><i class="fa-solid fa-comment-dots"></i> 관리자 답변입니다.</h3>
-                    <p>${inquiry.ianswer}</p>
+                    <p>${inquiry.inqAnswer}</p>
                     <div class="ans-meta">
-                        답변일: ${inquiry.ianswered}
+                        답변일: ${inquiry.inqAnswered}
                     </div>
                 </div>
             </c:when>

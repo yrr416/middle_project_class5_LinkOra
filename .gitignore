@@ -12,8 +12,12 @@ out/
 mvnw
 mvnw.cmd
 
-# Local Temp Files
-tmp/
+# VS Code
+.vscode/
 
-# Security (API Keys)
+# AI Logs
+_ai_project_logs/
+
+# Security (API Keys and Configs)
+src/main/resources/application.properties
 src/main/resources/application-secret.properties

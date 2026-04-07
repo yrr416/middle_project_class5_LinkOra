@@ -56,5 +56,8 @@
 </div>
 
 <!-- 스타일 및 스크립트 연결 (추후 static 경로에 맞게 조정 필요) -->
+<script>
+    window.contextPath = '${pageContext.request.contextPath}';
+</script>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/chatbot.css">
-<script src="${pageContext.request.contextPath}/static/js/chatbot.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/chatbot.js?v=1.1"></script>

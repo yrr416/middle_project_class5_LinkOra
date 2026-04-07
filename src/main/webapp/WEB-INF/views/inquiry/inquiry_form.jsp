@@ -50,7 +50,7 @@
         <form action="${pageContext.request.contextPath}/inquiry/submit" method="post">
             <div class="form-group">
                 <label class="form-label">문의 카테고리</label>
-                <select name="icategory" class="form-control" required>
+                <select name="inqCategory" class="form-control" required>
                     <option value="">카테고리를 선택해주세요</option>
                     <option value="공간 예약">공간 예약 문의</option>
                     <option value="결제 및 환불">결제 및 환불 문의</option>
@@ -66,12 +66,12 @@
             
             <div class="form-group">
                 <label class="form-label">문의 제목</label>
-                <input type="text" name="ititle" class="form-control" placeholder="제목을 입력해주세요" required>
+                <input type="text" name="inqTitle" class="form-control" placeholder="제목을 입력해주세요" required>
             </div>
             
             <div class="form-group">
                 <label class="form-label">문의 내용</label>
-                <textarea name="icontent" class="form-control" placeholder="문의하실 내용을 상세히 적어주세요. 관리자가 확인 후 답변을 드립니다." required></textarea>
+                <textarea name="inqContent" class="form-control" placeholder="문의하실 내용을 상세히 적어주세요. 관리자가 확인 후 답변을 드립니다." required></textarea>
             </div>
             
             <button type="submit" class="btn-submit">문의 등록하기</button>

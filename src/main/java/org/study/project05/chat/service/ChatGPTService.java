@@ -74,15 +74,23 @@ public class ChatGPTService {
             String respBody = response.body() != null ? response.body().string() : "";
 
             if (!response.isSuccessful()) {
-                log.error("OpenAI API Failure: {} - {}", response.code(), respBody);
+                log.error("OpenAI API Failure: Status {} - Response: {}", response.code(), respBody);
                 throw new RuntimeException("OpenAI API 호출 실패: " + response.code() + " - " + respBody);
             }
 
             JsonObject root = JsonParser.parseString(respBody).getAsJsonObject();
-            return root.getAsJsonArray("choices")
+            JsonObject message = root.getAsJsonArray("choices")
                     .get(0).getAsJsonObject()
-                    .getAsJsonObject("message")
-                    .get("content").getAsString();
+                    .getAsJsonObject("message");
+            
+            // content가 없고 refusal이 있는 경우 처리 (최신 모델 사양)
+            if (message.has("content") && !message.get("content").isJsonNull()) {
+                return message.get("content").getAsString();
+            } else if (message.has("refusal") && !message.get("refusal").isJsonNull()) {
+                return "[정책상 답변 중단] " + message.get("refusal").getAsString();
+            }
+            
+            return "죄송합니다. 답변을 생성할 수 없습니다.";
         }
     }
 }
