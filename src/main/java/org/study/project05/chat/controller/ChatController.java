@@ -38,4 +38,12 @@ public class ChatController {
     public List<ChatVO> getHistory(@PathVariable int chatSession) {
         return chatService.getChatHistory(chatSession);
     }
+
+    /**
+     * 사용자별 최근 대화 내역 조회 (하이브리드 세션용)
+     */
+    @GetMapping("/recent/{userIdx}")
+    public List<ChatVO> getRecentHistory(@PathVariable Long userIdx) {
+        return chatService.getRecentUserHistory(userIdx);
+    }
 }

@@ -65,15 +65,14 @@ public class ChatServiceImpl implements ChatService {
             "너는 공유 오피스의 스마트 예약 에이전트 '오피(Offy)'야. 아래 지침을 반드시 지켜줘:\n" +
             "1. 전문적이고 친절한 한국어로 답변할 것. 마크다운 형식(** 등) 금지.\n" +
             "2. 너는 실시간 예약/조회 권한이 있는 '실행형 AI'다. '시스템상 번호 제공이 안 된다'는 거짓말은 절대 금지.\n" +
-            "3. 예약 확정 시 임무 (중요):\n" +
-            "   - 사용자가 예약을 결정하면, 지체 없이 답변 끝에 [[COMMIT_BOOKING:공간ID|시작시간|종료시간|인원]] 태그를 붙여.\n" +
-            "   - 데이터 구분자는 반드시 파이프(|) 기호를 사용해.\n" +
-            "   - 시작/종료시간 형식: YYYY-MM-DDTHH:mm (예: 2026-04-10T14:00)\n" +
-            "   - 이 태그가 없으면 실제 예약이 등록되지 않으므로 예약 완료 답변에는 100% 확률로 태그를 달아야 함.\n" +
+            "3. 예약/추천 가이드 (최우선):\n" +
+            "   - 특정 공간을 추천하거나 사용자가 관심을 보이면, 반드시 답변 마지막에 [[ACTIONS:공간ID|공간명|지점명|이미지파일명]] 태그를 붙여.\n" +
+            "   - 이미지가 없으면 'default_office.png'를 사용해.\n" +
+            "   - 예약 확정 시에는 기존처럼 [[COMMIT_BOOKING:공간ID|시작시간|종료시간|인원]] 태그를 붙여.\n" +
             "4. 예시:\n" +
-            "   - 조회 시: '현황을 확인해 드릴게요. [[CHECK_AVAILABILITY:10|2026-04-10]]'\n" +
+            "   - 추천 시: '라운지가 멋진 공간이에요! [[ACTIONS:10|아늑한 라운지|홍대점|default_office.png]]'\n" +
             "   - 완료 시: '예약을 완료했습니다! 즐거운 업무 되세요. [[COMMIT_BOOKING:10|2026-04-10T12:00|2026-04-10T18:00|1]]'\n" +
-            "5. 현재 지점 정보:\n" +
+            "5. 현재 지점 및 공간 정보 (액션 태그에 활용):\n" +
             reservationContext + "\n" +
             "6. FAQ 정보: 환불(3일 전 100%, 1일 전 50%), 시설(24시간, 카페, 회의실).");
         messages.add(systemMsg);
@@ -143,6 +142,12 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public List<ChatVO> getChatHistory(int chatSession) {
         return chatMapper.selectChatListBySession(chatSession);
+    }
+
+    @Override
+    public List<ChatVO> getRecentUserHistory(Long userIdx) {
+        log.info("[CHAT_HISTORY] Fetching recent chat for userIdx: {}", userIdx);
+        return chatMapper.selectRecentChatByUser(userIdx);
     }
 
     /** GPT의 가용성 조회 요청을 실제 DB 데이터로 변환 */
@@ -242,9 +247,10 @@ public class ChatServiceImpl implements ChatService {
                 sb.append("- ").append(b.getBrnName()).append(":\n");
                 List<org.study.project05.space.vo.SpaceVO> spaces = spaceMapper.selectByBranch(b.getBrnIdx());
                 for (org.study.project05.space.vo.SpaceVO s : spaces) {
+                    String img = (s.getSpcImg() != null && !s.getSpcImg().isEmpty()) ? s.getSpcImg() : "default_office.png";
                     sb.append("  * ").append(s.getSpcName())
                       .append(" (ID:").append(s.getSpcIdx()).append(", 타입:").append(s.getSpcType())
-                      .append(", 가격:").append(s.getSpcPrice()).append("원/시간)\n");
+                      .append(", 가격:").append(s.getSpcPrice()).append("원/시간, 이미지:").append(img).append(")\n");
                 }
             }
             return sb.toString();

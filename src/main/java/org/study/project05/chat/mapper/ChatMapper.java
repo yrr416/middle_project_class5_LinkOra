@@ -20,4 +20,11 @@ public interface ChatMapper {
      * @return 대화 리스트
      */
     List<ChatVO> selectChatListBySession(@Param("chatSession") int chatSession);
+
+    /**
+     * 사용자별 최근 대화 내역 조회 (과거 이력 불러오기용)
+     * @param userIdx 사용자 ID
+     * @return 대화 리스트
+     */
+    List<ChatVO> selectRecentChatByUser(@Param("userIdx") Long userIdx);
 }

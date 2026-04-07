@@ -17,4 +17,11 @@ public interface ChatService {
      * @return 대화 리스트
      */
     List<ChatVO> getChatHistory(int cSession);
+
+    /**
+     * 사용자별 최근 대화 내역 조회 (하이브리드 세션용)
+     * @param userIdx 사용자 ID
+     * @return 최근 대화 리스트
+     */
+    List<ChatVO> getRecentUserHistory(Long userIdx);
 }

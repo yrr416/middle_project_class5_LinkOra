@@ -33,4 +33,17 @@
         ORDER BY c_idx ASC
     </select>
 
+    <!-- 사용자별 최근 대화 10개 조회 (과거 이력 불러오기용) -->
+    <select id="selectRecentChatByUser" parameterType="long" resultMap="ChatResultMap">
+        SELECT * FROM (
+            SELECT 
+                c_idx, u_idx, c_session, c_message, c_response, c_intent, c_page, c_time
+            FROM chatbot
+            WHERE u_idx = #{userIdx}
+            ORDER BY c_idx DESC
+            LIMIT 10
+        ) sub
+        ORDER BY c_idx ASC
+    </select>
+
 </mapper>
