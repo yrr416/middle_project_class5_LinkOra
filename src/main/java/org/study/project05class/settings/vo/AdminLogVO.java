@@ -5,15 +5,16 @@ import lombok.*;
 /**
  * admin_log 테이블 매핑 VO
  * 관리자 활동 이력
+ * camelCase 필드명 사용 (MyBatis map-underscore-to-camel-case 자동 매핑)
  */
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 public class AdminLogVO {
-    private String l_idx;     // PK
-    private String a_idx;     // 관리자 번호
-    private String a_name;    // 관리자 이름
-    private String l_action;  // 수행 작업
-    private String l_detail;  // 상세 내용
-    private String l_ip;      // 접속 IP
-    private String l_created; // 작업 일시
+    private String alogIdx;     // PK
+    private String admIdx;      // 관리자 번호 (FK → admin)
+    private String admName;     // 관리자 이름 (JOIN)
+    private String alogAction;  // 수행 작업
+    private String alogDetail;  // 상세 내용
+    private String alogIp;      // 접속 IP
+    private String alogCreated; // 작업 일시
 }

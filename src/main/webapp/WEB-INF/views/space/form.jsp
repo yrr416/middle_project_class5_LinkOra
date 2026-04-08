@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -41,15 +42,17 @@
         <div class="sidebar-brand"><i class="bi bi-building me-2"></i>오피스 예약</div>
         <nav class="nav flex-column mt-2">
             <span class="nav-link text-white-50 small px-3 pt-3 pb-1">관리자 메뉴</span>
-            <a class="nav-link" href="/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
-            <a class="nav-link" href="/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
-            <a class="nav-link" href="/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
-            <a class="nav-link active" href="/admin/space/list"><i class="bi bi-building"></i>오피스 관리</a>
-            <a class="nav-link" href="/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
-            <a class="nav-link" href="/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
-            <a class="nav-link" href="/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
+            <a class="nav-link" href="${ctx}/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
+            <a class="nav-link" href="${ctx}/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
+            <a class="nav-link active" href="${ctx}/admin/space/list"><i class="bi bi-building"></i>오피스 관리</a>
+            <a class="nav-link" href="${ctx}/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
+            <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
+            <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
+            <a class="nav-link" href="${ctx}/partner/register/step1"><i class="bi bi-person-badge me-1"></i>파트너 등록</a>
             <hr class="border-secondary mx-3">
-            <a class="nav-link" href="/admin/settings"><i class="bi bi-gear"></i>설정</a>
+            <a class="nav-link" href="${ctx}/admin/settings"><i class="bi bi-gear"></i>설정</a>
         </nav>
     </div>
 
@@ -65,19 +68,20 @@
                 </h5>
                 <small class="text-muted">${mode == 'register' ? '새로운 공간을 등록합니다.' : '공간 정보를 수정합니다.'}</small>
             </div>
-            <a href="/admin/space/list" class="btn btn-outline-secondary btn-sm">
+            <a href="${ctx}/admin/space/list" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>목록으로
             </a>
         </div>
 
         <!-- 폼 -->
-        <form method="post"
-              action="${mode == 'register' ? '/admin/space/registerok' : '/admin/space/updateok'}"
-              enctype="multipart/form-data"
-              id="spaceForm">
+        <c:choose>
+            <c:when test="${mode == 'register'}"><c:set var="formAction" value="${ctx}/admin/space/registerok"/></c:when>
+            <c:otherwise><c:set var="formAction" value="${ctx}/admin/space/updateok"/></c:otherwise>
+        </c:choose>
+        <form method="post" action="${formAction}" enctype="multipart/form-data" id="spaceForm">
 
             <c:if test="${mode == 'update'}">
-                <input type="hidden" name="s_idx" value="${svo.s_idx}">
+                <input type="hidden" name="spcIdx" value="${svo.spcIdx}">
                 <input type="hidden" name="nowPage" value="${nowPage}">
             </c:if>
 
@@ -90,18 +94,18 @@
                         <!-- 공간명 -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">공간명 <span class="text-danger">*</span></label>
-                            <input type="text" name="s_name" class="form-control"
-                                   value="${svo.s_name}" placeholder="예) 강남 A 회의실" required>
+                            <input type="text" name="spcName" class="form-control"
+                                   value="${svo.spcName}" placeholder="예) 강남 A 회의실" required>
                         </div>
                         <!-- 지점 -->
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">지점</label>
-                            <select name="b_idx" class="form-select">
+                            <label class="form-label fw-semibold">지점 <c:if test="${mode == 'register'}"><span class="text-danger">*</span></c:if></label>
+                            <select name="brnIdx" class="form-select" ${mode == 'register' ? 'required' : ''}>
                                 <option value="">-- 지점 선택 --</option>
                                 <c:forEach var="b" items="${branchList}">
-                                    <option value="${b.b_idx}"
-                                        ${svo.b_idx == b.b_idx.toString() ? 'selected' : ''}>
-                                        ${b.b_name}
+                                    <option value="${b.brnIdx}"
+                                        ${svo.brnIdx == b.brnIdx ? 'selected' : ''}>
+                                        ${b.brnName}
                                     </option>
                                 </c:forEach>
                             </select>
@@ -109,19 +113,19 @@
                         <!-- 타입 -->
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">공간 타입 <span class="text-danger">*</span></label>
-                            <select name="s_type" class="form-select" required>
+                            <select name="spcType" class="form-select" required>
                                 <option value="">-- 타입 선택 --</option>
-                                <option value="CONFERENCE" ${svo.s_type == 'CONFERENCE' ? 'selected':''}>회의실 (Conference)</option>
-                                <option value="INDIVIDUAL"  ${svo.s_type == 'INDIVIDUAL'  ? 'selected':''}>집중석 (Individual)</option>
-                                <option value="LOUNGE"      ${svo.s_type == 'LOUNGE'      ? 'selected':''}>라운지 (Lounge)</option>
+                                <option value="CONFERENCE" ${svo.spcType == 'CONFERENCE' ? 'selected':''}>회의실 (Conference)</option>
+                                <option value="INDIVIDUAL"  ${svo.spcType == 'INDIVIDUAL'  ? 'selected':''}>집중석 (Individual)</option>
+                                <option value="LOUNGE"      ${svo.spcType == 'LOUNGE'      ? 'selected':''}>라운지 (Lounge)</option>
                             </select>
                         </div>
                         <!-- 수용 인원 -->
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">최대 수용 인원 <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <input type="number" name="s_max_capacity" class="form-control"
-                                       value="${svo.s_max_capacity}" min="1" placeholder="0" required>
+                                <input type="number" name="spcMaxCapacity" class="form-control"
+                                       value="${svo.spcMaxCapacity}" min="1" placeholder="0" required>
                                 <span class="input-group-text">명</span>
                             </div>
                         </div>
@@ -129,8 +133,8 @@
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">시간당 가격 <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <input type="number" name="s_price" class="form-control"
-                                       value="${svo.s_price}" min="0" step="1000" placeholder="0" required>
+                                <input type="number" name="spcPrice" class="form-control"
+                                       value="${svo.spcPrice}" min="0" step="1000" placeholder="0" required>
                                 <span class="input-group-text">원</span>
                             </div>
                         </div>
@@ -144,8 +148,8 @@
                         <div class="col-md-5">
                             <div class="img-preview-wrap" id="previewWrap">
                                 <c:choose>
-                                    <c:when test="${not empty svo.s_img}">
-                                        <img id="imgPreview" src="${svo.s_img}" alt="미리보기">
+                                    <c:when test="${not empty svo.spcImg}">
+                                        <img id="imgPreview" src="${svo.spcImg}" alt="미리보기">
                                     </c:when>
                                     <c:otherwise>
                                         <div class="placeholder-text" id="placeholder">
@@ -168,9 +172,9 @@
                                 <i class="bi bi-info-circle me-1"></i>
                                 JPG, PNG, GIF, WEBP 형식 지원 / 권장 크기: 800×500px
                             </div>
-                            <c:if test="${not empty svo.s_img}">
+                            <c:if test="${not empty svo.spcImg}">
                                 <div class="mt-2">
-                                    <small class="text-muted">현재 이미지: ${svo.s_img}</small>
+                                    <small class="text-muted">현재 이미지: ${svo.spcImg}</small>
                                 </div>
                             </c:if>
                         </div>
@@ -219,43 +223,44 @@
                     </div>
                 </div>
 
-                <!-- ④ 이용 가능 시간 -->
+                <!-- ④ 이용 가능 시간 (참고용 UI — DB 저장 없음, branch.b_hours 에서 관리) -->
                 <div class="form-section">
-                    <div class="section-title"><i class="bi bi-clock me-2 text-primary"></i>이용 가능 시간</div>
+                    <div class="section-title"><i class="bi bi-clock me-2 text-primary"></i>이용 가능 시간 (참고)</div>
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">운영 시작 시간</label>
-                            <input type="time" name="s_open_time" class="form-control"
-                                   value="${not empty svo.s_open_time ? svo.s_open_time : '09:00'}">
+                            <input type="time" class="form-control" value="09:00" disabled>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">운영 종료 시간</label>
-                            <input type="time" name="s_close_time" class="form-control"
-                                   value="${not empty svo.s_close_time ? svo.s_close_time : '22:00'}">
+                            <input type="time" class="form-control" value="22:00" disabled>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">최소 예약 단위</label>
-                            <select name="s_min_hour" class="form-select">
-                                <option value="1" ${svo.s_min_hour == '1' ? 'selected':''}>1시간</option>
-                                <option value="2" ${svo.s_min_hour == '2' ? 'selected':''}>2시간</option>
-                                <option value="4" ${svo.s_min_hour == '4' ? 'selected':''}>4시간</option>
+                            <select class="form-select" disabled>
+                                <option>1시간</option>
+                                <option>2시간</option>
+                                <option>4시간</option>
                             </select>
                         </div>
+                    </div>
+                    <div class="form-text mt-2 text-warning-emphasis">
+                        <i class="bi bi-info-circle me-1"></i>운영 시간은 지점(branch) 설정에서 관리됩니다.
                     </div>
                 </div>
 
                 <!-- ⑤ 공간 설명 -->
                 <div class="form-section">
                     <div class="section-title"><i class="bi bi-text-left me-2 text-primary"></i>공간 설명</div>
-                    <textarea name="s_description" class="form-control" rows="6"
+                    <textarea name="spcDescription" class="form-control" rows="6"
                               placeholder="공간의 특징, 분위기, 이용 안내 등을 상세히 입력해 주세요."
-                              style="resize:vertical;">${svo.s_description}</textarea>
+                              style="resize:vertical;">${svo.spcDescription}</textarea>
                     <div class="form-text mt-1">최대 2000자까지 입력 가능합니다.</div>
                 </div>
 
                 <!-- 저장 버튼 -->
                 <div class="form-section d-flex justify-content-end gap-2">
-                    <a href="/admin/space/list" class="btn btn-outline-secondary">
+                    <a href="${ctx}/admin/space/list" class="btn btn-outline-secondary">
                         <i class="bi bi-x-circle me-1"></i>취소
                     </a>
                     <button type="submit" class="btn btn-primary px-4">

@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -61,15 +62,17 @@
         <div class="sidebar-brand"><i class="bi bi-building me-2"></i>오피스 예약</div>
         <nav class="nav flex-column mt-2">
             <span class="nav-link text-white-50 small px-3 pt-3 pb-1">관리자 메뉴</span>
-            <a class="nav-link" href="/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
-            <a class="nav-link" href="/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
-            <a class="nav-link" href="/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
-            <a class="nav-link active" href="/admin/space/list"><i class="bi bi-building"></i>오피스 관리</a>
-            <a class="nav-link" href="/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
-            <a class="nav-link" href="/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
-            <a class="nav-link" href="/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
+            <a class="nav-link" href="${ctx}/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
+            <a class="nav-link" href="${ctx}/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
+            <a class="nav-link active" href="${ctx}/admin/space/list"><i class="bi bi-building"></i>오피스 관리</a>
+            <a class="nav-link" href="${ctx}/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
+            <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
+            <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
+            <a class="nav-link" href="${ctx}/partner/register/step1"><i class="bi bi-person-badge me-1"></i>파트너 등록</a>
             <hr class="border-secondary mx-3">
-            <a class="nav-link" href="/admin/settings"><i class="bi bi-gear"></i>설정</a>
+            <a class="nav-link" href="${ctx}/admin/settings"><i class="bi bi-gear"></i>설정</a>
         </nav>
     </div>
 
@@ -82,9 +85,14 @@
                 <h5 class="mb-1 fw-bold"><i class="bi bi-building me-2 text-primary"></i>오피스 관리</h5>
                 <small class="text-muted">등록된 공간을 조회하고 관리합니다.</small>
             </div>
-            <a href="/admin/space/register" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-circle me-1"></i>공간 등록
-            </a>
+            <div class="d-flex gap-2">
+                <a href="${ctx}/admin/space/register" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle me-1"></i>공간 등록
+                </a>
+                <a href="${ctx}/partner/register/step1" class="btn btn-success btn-sm">
+                    <i class="bi bi-plus-circle me-1"></i>오피스 등록 신청
+                </a>
+            </div>
         </div>
 
         <!-- 통계 카드 -->
@@ -99,7 +107,7 @@
                 <div class="stats-card">
                     <c:set var="activeCnt" value="0"/>
                     <c:forEach var="s" items="${spaceList}">
-                        <c:if test="${s.s_active == '1'}"><c:set var="activeCnt" value="${activeCnt+1}"/></c:if>
+                        <c:if test="${s.spcActive == '1'}"><c:set var="activeCnt" value="${activeCnt+1}"/></c:if>
                     </c:forEach>
                     <div class="number text-success">${activeCnt}</div>
                     <div class="text-muted small mt-1">운영 중 (이 페이지)</div>
@@ -121,37 +129,37 @@
 
         <!-- 검색 / 필터 영역 -->
         <div class="search-area">
-            <form method="get" action="/admin/space/list" class="row g-2 align-items-end">
+            <form method="get" action="${ctx}/admin/space/list" class="row g-2 align-items-end">
                 <!-- 타입 필터 -->
                 <div class="col-auto">
                     <label class="form-label small mb-1">공간 타입</label>
-                    <select name="type_filter" class="form-select form-select-sm">
+                    <select name="typeFilter" class="form-select form-select-sm">
                         <option value="">전체</option>
-                        <option value="CONFERENCE" ${spaceVO.type_filter == 'CONFERENCE' ? 'selected':''}>회의실</option>
-                        <option value="INDIVIDUAL"  ${spaceVO.type_filter == 'INDIVIDUAL'  ? 'selected':''}>집중석</option>
-                        <option value="LOUNGE"      ${spaceVO.type_filter == 'LOUNGE'      ? 'selected':''}>라운지</option>
+                        <option value="CONFERENCE" ${spaceVO.typeFilter == 'CONFERENCE' ? 'selected':''}>회의실</option>
+                        <option value="INDIVIDUAL"  ${spaceVO.typeFilter == 'INDIVIDUAL'  ? 'selected':''}>집중석</option>
+                        <option value="LOUNGE"      ${spaceVO.typeFilter == 'LOUNGE'      ? 'selected':''}>라운지</option>
                     </select>
                 </div>
                 <!-- 활성 상태 필터 -->
                 <div class="col-auto">
                     <label class="form-label small mb-1">상태</label>
-                    <select name="active_filter" class="form-select form-select-sm">
+                    <select name="activeFilter" class="form-select form-select-sm">
                         <option value="">전체</option>
-                        <option value="1" ${spaceVO.active_filter == '1' ? 'selected':''}>활성</option>
-                        <option value="2" ${spaceVO.active_filter == '2' ? 'selected':''}>비활성</option>
+                        <option value="1" ${spaceVO.activeFilter == '1' ? 'selected':''}>활성</option>
+                        <option value="2" ${spaceVO.activeFilter == '2' ? 'selected':''}>비활성</option>
                     </select>
                 </div>
                 <!-- 검색어 -->
                 <div class="col">
                     <label class="form-label small mb-1">공간명 검색</label>
-                    <input type="text" name="search_word" value="${spaceVO.search_word}"
+                    <input type="text" name="searchWord" value="${spaceVO.searchWord}"
                            class="form-control form-control-sm" placeholder="공간명을 입력하세요">
                 </div>
                 <div class="col-auto">
                     <button type="submit" class="btn btn-primary btn-sm">
                         <i class="bi bi-search me-1"></i>검색
                     </button>
-                    <a href="/admin/space/list" class="btn btn-outline-secondary btn-sm ms-1">
+                    <a href="${ctx}/admin/space/list" class="btn btn-outline-secondary btn-sm ms-1">
                         <i class="bi bi-arrow-counterclockwise me-1"></i>초기화
                     </a>
                 </div>
@@ -169,7 +177,7 @@
                 <div class="text-center py-5 text-muted bg-white rounded-3 shadow-sm">
                     <i class="bi bi-building fs-1 d-block mb-3 text-secondary"></i>
                     <p class="mb-0">등록된 공간이 없습니다.</p>
-                    <a href="/admin/space/register" class="btn btn-primary btn-sm mt-3">
+                    <a href="${ctx}/admin/space/register" class="btn btn-primary btn-sm mt-3">
                         <i class="bi bi-plus-circle me-1"></i>첫 번째 공간 등록하기
                     </a>
                 </div>
@@ -181,8 +189,8 @@
                             <div class="space-card h-100 d-flex flex-column">
                                 <!-- 썸네일 -->
                                 <c:choose>
-                                    <c:when test="${not empty s.s_img}">
-                                        <img src="${s.s_img}" alt="${s.s_name}" class="thumbnail">
+                                    <c:when test="${not empty s.spcImg}">
+                                        <img src="${s.spcImg}" alt="${s.spcName}" class="thumbnail">
                                     </c:when>
                                     <c:otherwise>
                                         <div class="thumbnail-placeholder">
@@ -196,22 +204,22 @@
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <!-- 타입 배지 -->
                                         <c:choose>
-                                            <c:when test="${s.s_type == 'CONFERENCE'}">
+                                            <c:when test="${s.spcType == 'CONFERENCE'}">
                                                 <span class="badge badge-conference rounded-pill">회의실</span>
                                             </c:when>
-                                            <c:when test="${s.s_type == 'INDIVIDUAL'}">
+                                            <c:when test="${s.spcType == 'INDIVIDUAL'}">
                                                 <span class="badge badge-individual rounded-pill">집중석</span>
                                             </c:when>
-                                            <c:when test="${s.s_type == 'LOUNGE'}">
+                                            <c:when test="${s.spcType == 'LOUNGE'}">
                                                 <span class="badge badge-lounge rounded-pill">라운지</span>
                                             </c:when>
                                             <c:otherwise>
-                                                <span class="badge bg-secondary rounded-pill">${s.s_type}</span>
+                                                <span class="badge bg-secondary rounded-pill">${s.spcType}</span>
                                             </c:otherwise>
                                         </c:choose>
                                         <!-- 활성 상태 배지 -->
                                         <c:choose>
-                                            <c:when test="${s.s_active == '1'}">
+                                            <c:when test="${s.spcActive == '1'}">
                                                 <span class="badge badge-active rounded-pill">운영 중</span>
                                             </c:when>
                                             <c:otherwise>
@@ -220,17 +228,17 @@
                                         </c:choose>
                                     </div>
 
-                                    <div class="space-name">${s.s_name}</div>
+                                    <div class="space-name">${s.spcName}</div>
 
                                     <div class="space-meta mb-2">
-                                        <i class="bi bi-geo-alt me-1"></i>${not empty s.b_name ? s.b_name : '-'}
+                                        <i class="bi bi-geo-alt me-1"></i>${not empty s.brnName ? s.brnName : '-'}
                                         &nbsp;|&nbsp;
-                                        <i class="bi bi-people me-1"></i>최대 ${s.s_max_capacity}명
+                                        <i class="bi bi-people me-1"></i>최대 ${s.spcMaxCapacity}명
                                     </div>
 
                                     <!-- 이용률 -->
                                     <c:set var="usageMax" value="50"/>
-                                    <c:set var="usageCnt" value="${empty s.reservation_cnt ? 0 : s.reservation_cnt}"/>
+                                    <c:set var="usageCnt" value="${empty s.reservationCnt ? 0 : s.reservationCnt}"/>
                                     <c:set var="usagePct" value="${usageCnt > usageMax ? 100 : usageCnt * 100 / usageMax}"/>
                                     <div class="d-flex justify-content-between align-items-center mb-1">
                                         <small class="text-muted">이용률</small>
@@ -241,31 +249,31 @@
                                     </div>
 
                                     <div class="space-price mt-auto">
-                                        <fmt:formatNumber value="${s.s_price}" type="number"/>원 <small class="text-muted fw-normal">/ 시간</small>
+                                        <fmt:formatNumber value="${s.spcPrice}" type="number"/>원 <small class="text-muted fw-normal">/ 시간</small>
                                     </div>
                                 </div>
 
                                 <!-- 카드 푸터: 수정 + 토글 버튼 -->
                                 <div class="d-flex border-top">
-                                    <a href="/admin/space/update?s_idx=${s.s_idx}&nowPage=${nowPage}"
+                                    <a href="${ctx}/admin/space/update?spcIdx=${s.spcIdx}&nowPage=${nowPage}"
                                        class="btn btn-sm btn-outline-primary flex-grow-1 rounded-0" style="border-right:0;">
                                         <i class="bi bi-pencil me-1"></i>수정
                                     </a>
-                                    <form method="post" action="/admin/space/toggle" class="flex-grow-1 m-0">
-                                        <input type="hidden" name="s_idx" value="${s.s_idx}">
+                                    <form method="post" action="${ctx}/admin/space/toggle" class="flex-grow-1 m-0">
+                                        <input type="hidden" name="spcIdx" value="${s.spcIdx}">
                                         <input type="hidden" name="nowPage" value="${nowPage}">
-                                        <input type="hidden" name="type_filter" value="${spaceVO.type_filter}">
-                                        <input type="hidden" name="active_filter" value="${spaceVO.active_filter}">
+                                        <input type="hidden" name="typeFilter" value="${spaceVO.typeFilter}">
+                                        <input type="hidden" name="activeFilter" value="${spaceVO.activeFilter}">
                                         <c:choose>
-                                            <c:when test="${s.s_active == '1'}">
-                                                <input type="hidden" name="s_active" value="2">
+                                            <c:when test="${s.spcActive == '1'}">
+                                                <input type="hidden" name="spcActive" value="2">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger toggle-btn rounded-0"
                                                         onclick="return confirm('이 공간을 비활성화하시겠습니까?')">
                                                     <i class="bi bi-pause-circle me-1"></i>비활성화
                                                 </button>
                                             </c:when>
                                             <c:otherwise>
-                                                <input type="hidden" name="s_active" value="1">
+                                                <input type="hidden" name="spcActive" value="1">
                                                 <button type="submit" class="btn btn-sm btn-outline-success toggle-btn rounded-0"
                                                         onclick="return confirm('이 공간을 활성화하시겠습니까?')">
                                                     <i class="bi bi-play-circle me-1"></i>활성화
@@ -287,21 +295,21 @@
                 <ul class="pagination pagination-sm mb-0">
                     <c:if test="${beginBlock > 1}">
                         <li class="page-item">
-                            <a class="page-link" href="/admin/space/list?nowPage=${beginBlock-1}&type_filter=${spaceVO.type_filter}&active_filter=${spaceVO.active_filter}&search_word=${spaceVO.search_word}">
+                            <a class="page-link" href="${ctx}/admin/space/list?nowPage=${beginBlock-1}&typeFilter=${spaceVO.typeFilter}&activeFilter=${spaceVO.activeFilter}&searchWord=${spaceVO.searchWord}">
                                 <i class="bi bi-chevron-left"></i>
                             </a>
                         </li>
                     </c:if>
                     <c:forEach var="p" begin="${beginBlock}" end="${endBlock}">
                         <li class="page-item ${nowPage == p ? 'active' : ''}">
-                            <a class="page-link" href="/admin/space/list?nowPage=${p}&type_filter=${spaceVO.type_filter}&active_filter=${spaceVO.active_filter}&search_word=${spaceVO.search_word}">
+                            <a class="page-link" href="${ctx}/admin/space/list?nowPage=${p}&typeFilter=${spaceVO.typeFilter}&activeFilter=${spaceVO.activeFilter}&searchWord=${spaceVO.searchWord}">
                                 ${p}
                             </a>
                         </li>
                     </c:forEach>
                     <c:if test="${endBlock < totalPage}">
                         <li class="page-item">
-                            <a class="page-link" href="/admin/space/list?nowPage=${endBlock+1}&type_filter=${spaceVO.type_filter}&active_filter=${spaceVO.active_filter}&search_word=${spaceVO.search_word}">
+                            <a class="page-link" href="${ctx}/admin/space/list?nowPage=${endBlock+1}&typeFilter=${spaceVO.typeFilter}&activeFilter=${spaceVO.activeFilter}&searchWord=${spaceVO.searchWord}">
                                 <i class="bi bi-chevron-right"></i>
                             </a>
                         </li>
@@ -350,11 +358,11 @@
                             <tbody>
                                 <c:forEach var="p" items="${pendingList}">
                                     <tr>
-                                        <td class="ps-4">${p.s_idx}</td>
+                                        <td class="ps-4">${p.spcIdx}</td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${not empty p.s_img}">
-                                                    <img src="${p.s_img}" alt="썸네일"
+                                                <c:when test="${not empty p.spcImg}">
+                                                    <img src="${p.spcImg}" alt="썸네일"
                                                          style="width:56px;height:40px;object-fit:cover;border-radius:4px;">
                                                 </c:when>
                                                 <c:otherwise>
@@ -365,38 +373,38 @@
                                             </c:choose>
                                         </td>
                                         <td>
-                                            <strong>${p.s_name}</strong>
-                                            <c:if test="${not empty p.s_description}">
+                                            <strong>${p.spcName}</strong>
+                                            <c:if test="${not empty p.spcDescription}">
                                                 <br>
                                                 <small class="text-muted" style="max-width:200px;display:inline-block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                                    ${p.s_description}
+                                                    ${p.spcDescription}
                                                 </small>
                                             </c:if>
                                         </td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${p.s_type == 'CONFERENCE'}"><span class="badge badge-conference rounded-pill">회의실</span></c:when>
-                                                <c:when test="${p.s_type == 'INDIVIDUAL'}"><span class="badge badge-individual rounded-pill">집중석</span></c:when>
-                                                <c:when test="${p.s_type == 'LOUNGE'}"><span class="badge badge-lounge rounded-pill">라운지</span></c:when>
-                                                <c:otherwise><span class="badge bg-secondary rounded-pill">${p.s_type}</span></c:otherwise>
+                                                <c:when test="${p.spcType == 'CONFERENCE'}"><span class="badge badge-conference rounded-pill">회의실</span></c:when>
+                                                <c:when test="${p.spcType == 'INDIVIDUAL'}"><span class="badge badge-individual rounded-pill">집중석</span></c:when>
+                                                <c:when test="${p.spcType == 'LOUNGE'}"><span class="badge badge-lounge rounded-pill">라운지</span></c:when>
+                                                <c:otherwise><span class="badge bg-secondary rounded-pill">${p.spcType}</span></c:otherwise>
                                             </c:choose>
                                         </td>
-                                        <td>${not empty p.b_name ? p.b_name : '-'}</td>
-                                        <td>${p.s_max_capacity}명</td>
-                                        <td><fmt:formatNumber value="${p.s_price}" type="number"/>원</td>
-                                        <td>${p.s_created}</td>
+                                        <td>${not empty p.brnName ? p.brnName : '-'}</td>
+                                        <td>${p.spcMaxCapacity}명</td>
+                                        <td><fmt:formatNumber value="${p.spcPrice}" type="number"/>원</td>
+                                        <td>${p.spcCreated}</td>
                                         <td class="text-center">
                                             <!-- 수락 -->
-                                            <form method="post" action="/admin/space/approve" class="d-inline">
-                                                <input type="hidden" name="s_idx" value="${p.s_idx}">
+                                            <form method="post" action="${ctx}/admin/space/approve" class="d-inline">
+                                                <input type="hidden" name="spcIdx" value="${p.spcIdx}">
                                                 <button type="submit" class="btn btn-success btn-sm"
                                                         onclick="return confirm('이 공간을 수락하시겠습니까?\n수락하면 바로 활성화됩니다.')">
                                                     <i class="bi bi-check-lg me-1"></i>수락
                                                 </button>
                                             </form>
                                             <!-- 거부 -->
-                                            <form method="post" action="/admin/space/reject" class="d-inline ms-1">
-                                                <input type="hidden" name="s_idx" value="${p.s_idx}">
+                                            <form method="post" action="${ctx}/admin/space/reject" class="d-inline ms-1">
+                                                <input type="hidden" name="spcIdx" value="${p.spcIdx}">
                                                 <button type="submit" class="btn btn-danger btn-sm"
                                                         onclick="return confirm('이 공간을 거부하시겠습니까?\n거부하면 데이터가 완전히 삭제됩니다.')">
                                                     <i class="bi bi-x-lg me-1"></i>거부

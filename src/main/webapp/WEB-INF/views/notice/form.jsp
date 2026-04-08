@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -45,15 +46,17 @@
         <div class="sidebar-brand"><i class="bi bi-building me-2"></i>오피스 예약</div>
         <nav class="nav flex-column mt-2">
             <span class="nav-link text-white-50 small px-3 pt-3 pb-1">관리자 메뉴</span>
-            <a class="nav-link" href="/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
-            <a class="nav-link" href="/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
-            <a class="nav-link" href="/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
-            <a class="nav-link" href="/admin/space/list"><i class="bi bi-building"></i>오피스 관리</a>
-            <a class="nav-link" href="/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
-            <a class="nav-link active" href="/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
-            <a class="nav-link" href="/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
+            <a class="nav-link" href="${ctx}/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
+            <a class="nav-link" href="${ctx}/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
+            <a class="nav-link" href="${ctx}/admin/space/list"><i class="bi bi-building"></i>오피스 관리</a>
+            <a class="nav-link" href="${ctx}/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
+            <a class="nav-link active" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
+            <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
+            <a class="nav-link" href="${ctx}/partner/register/step1"><i class="bi bi-person-badge me-1"></i>파트너 등록</a>
             <hr class="border-secondary mx-3">
-            <a class="nav-link" href="/admin/settings"><i class="bi bi-gear"></i>설정</a>
+            <a class="nav-link" href="${ctx}/admin/settings"><i class="bi bi-gear"></i>설정</a>
         </nav>
     </div>
 
@@ -70,7 +73,7 @@
                 <small class="text-muted">공지 내용을 작성하고 발행 방식을 선택합니다.</small>
             </div>
             <!-- 목록으로 돌아가기 -->
-            <a href="/admin/notice/list?nowPage=${nowPage}" class="btn btn-outline-secondary btn-sm">
+            <a href="${ctx}/admin/notice/list?nowPage=${nowPage}" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>목록
             </a>
         </div>
@@ -79,29 +82,29 @@
         <div class="form-card">
             <!-- 등록 / 수정 분기: action URL 및 hidden n_idx 처리 -->
             <form id="noticeForm" method="post"
-                  action="${not empty notice ? '/admin/notice/updateok' : '/admin/notice/registerok'}">
+                  action="${ctx}${not empty notice ? '/admin/notice/updateok' : '/admin/notice/registerok'}">
 
                 <!-- 수정 시 공지 번호 전달 -->
                 <c:if test="${not empty notice}">
-                    <input type="hidden" name="n_idx" value="${notice.n_idx}">
+                    <input type="hidden" name="ntcIdx" value="${notice.ntcIdx}">
                 </c:if>
                 <input type="hidden" name="nowPage" value="${nowPage}">
                 <!-- CKEditor 내용을 받을 숨김 필드 -->
-                <input type="hidden" name="n_content" id="n_content_hidden">
+                <input type="hidden" name="ntcContent" id="ntcContentHidden">
 
                 <!-- 제목 -->
                 <div class="mb-4">
                     <label class="form-label">제목 <span class="text-danger">*</span></label>
-                    <input type="text" name="n_title" class="form-control"
+                    <input type="text" name="ntcTitle" class="form-control"
                            placeholder="공지 제목을 입력하세요"
-                           value="${notice.n_title}" required>
+                           value="${notice.ntcTitle}" required>
                 </div>
 
                 <!-- 본문 에디터 (CKEditor 5) -->
                 <div class="mb-4">
                     <label class="form-label">내용 <span class="text-danger">*</span></label>
                     <!-- CKEditor 가 이 div 를 에디터로 교체 -->
-                    <div id="editor">${notice.n_content}</div>
+                    <div id="editor">${notice.ntcContent}</div>
                 </div>
 
                 <!-- 고정 여부 -->
@@ -109,15 +112,15 @@
                     <label class="form-label">고정 여부</label>
                     <div class="d-flex gap-3">
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="n_active"
+                            <input class="form-check-input" type="radio" name="ntcActive"
                                    id="activeNormal" value="0"
-                                   ${notice.n_active != '1' ? 'checked' : ''}>
+                                   ${notice.ntcActive != '1' ? 'checked' : ''}>
                             <label class="form-check-label" for="activeNormal">일반 공지</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="n_active"
+                            <input class="form-check-input" type="radio" name="ntcActive"
                                    id="activePinned" value="1"
-                                   ${notice.n_active == '1' ? 'checked' : ''}>
+                                   ${notice.ntcActive == '1' ? 'checked' : ''}>
                             <label class="form-check-label" for="activePinned">
                                 <i class="bi bi-pin-angle-fill text-warning"></i> 고정 공지 (상단 고정)
                             </label>
@@ -162,19 +165,19 @@
                         <label class="form-label">발행 일시</label>
                         <input type="datetime-local" id="scheduledAt" class="form-control"
                                style="max-width:280px;"
-                               value="${notice.n_created}">
+                               value="${notice.ntcCreated}">
                         <small class="text-muted mt-1 d-block">
                             <i class="bi bi-info-circle me-1"></i>
                             설정 시간이 지나야 사용자에게 공지가 노출됩니다.
                         </small>
                     </div>
                     <!-- 실제 DB에 저장될 n_created 숨김 필드 -->
-                    <input type="hidden" name="n_created" id="n_created_hidden">
+                    <input type="hidden" name="ntcCreated" id="ntcCreatedHidden">
                 </div>
 
                 <!-- 버튼 영역 -->
                 <div class="d-flex gap-2 justify-content-end border-top pt-3 mt-2">
-                    <a href="/admin/notice/list?nowPage=${nowPage}" class="btn btn-outline-secondary">취소</a>
+                    <a href="${ctx}/admin/notice/list?nowPage=${nowPage}" class="btn btn-outline-secondary">취소</a>
                     <button type="button" class="btn btn-primary" onclick="submitForm()">
                         <i class="bi bi-check-lg me-1"></i>
                         ${not empty notice ? '수정 완료' : '등록'}
@@ -235,7 +238,7 @@
             alert('공지 내용을 입력하세요.');
             return;
         }
-        document.getElementById('n_content_hidden').value = content;
+        document.getElementById('ntcContentHidden').value = content;
 
         // 발행 방식에 따라 n_created 설정
         const isScheduled = document.getElementById('radioScheduled').checked;
@@ -246,10 +249,10 @@
                 return;
             }
             // datetime-local 값("YYYY-MM-DDTHH:mm") → MySQL 형식("YYYY-MM-DD HH:mm:ss")
-            document.getElementById('n_created_hidden').value = scheduledAt.replace('T', ' ') + ':00';
+            document.getElementById('ntcCreatedHidden').value = scheduledAt.replace('T', ' ') + ':00';
         } else {
             // 즉시 발행: n_created = "" → 서버에서 NOW() 처리
-            document.getElementById('n_created_hidden').value = '';
+            document.getElementById('ntcCreatedHidden').value = '';
         }
 
         document.getElementById('noticeForm').submit();

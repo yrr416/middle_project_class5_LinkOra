@@ -85,10 +85,10 @@ public class SpaceController {
                              HttpServletRequest request) {
         if (imgFile != null && !imgFile.isEmpty()) {
             String savedPath = saveImage(imgFile, request);
-            if (savedPath != null) spaceVO.setS_img(savedPath);
+            if (savedPath != null) spaceVO.setSpcImg(savedPath);
         }
         // 관리자 직접 등록은 바로 활성(1)
-        spaceVO.setS_active("1");
+        spaceVO.setSpcActive("1");
         int result = spaceService.insertSpace(spaceVO);
         return result > 0 ? "redirect:/admin/space/list"
                           : "redirect:/admin/space/register?error=fail";
@@ -98,10 +98,10 @@ public class SpaceController {
      * 공간 수정 폼 (GET)
      */
     @GetMapping("/update")
-    public String updateForm(@RequestParam("s_idx") String s_idx,
+    public String updateForm(@RequestParam("spcIdx") String spcIdx,
                              @RequestParam(defaultValue = "1") int nowPage,
                              Model model) {
-        SpaceVO svo = spaceService.getSpaceDetail(s_idx);
+        SpaceVO svo = spaceService.getSpaceDetail(spcIdx);
         if (svo == null) return "redirect:/admin/space/list";
 
         model.addAttribute("svo",        svo);
@@ -121,34 +121,34 @@ public class SpaceController {
                            HttpServletRequest request) {
         if (imgFile != null && !imgFile.isEmpty()) {
             String savedPath = saveImage(imgFile, request);
-            if (savedPath != null) spaceVO.setS_img(savedPath);
+            if (savedPath != null) spaceVO.setSpcImg(savedPath);
         }
         int result = spaceService.updateSpace(spaceVO);
         return result > 0
                 ? "redirect:/admin/space/list?nowPage=" + nowPage
-                : "redirect:/admin/space/update?s_idx=" + spaceVO.getS_idx() + "&nowPage=" + nowPage + "&error=fail";
+                : "redirect:/admin/space/update?spcIdx=" + spaceVO.getSpcIdx() + "&nowPage=" + nowPage + "&error=fail";
     }
 
     /**
      * 활성/비활성 토글 (POST)
-     * s_active: 1(활성) ↔ 2(비활성)
+     * sActive: 1(활성) ↔ 2(비활성)
      */
     @PostMapping("/toggle")
     public String toggle(@RequestParam(defaultValue = "1") int nowPage,
                          SpaceVO spaceVO) {
         spaceService.toggleSpaceActive(spaceVO);
         return "redirect:/admin/space/list?nowPage=" + nowPage
-                + "&type_filter=" + (spaceVO.getType_filter() != null ? spaceVO.getType_filter() : "")
-                + "&active_filter=" + (spaceVO.getActive_filter() != null ? spaceVO.getActive_filter() : "");
+                + "&typeFilter=" + (spaceVO.getTypeFilter() != null ? spaceVO.getTypeFilter() : "")
+                + "&activeFilter=" + (spaceVO.getActiveFilter() != null ? spaceVO.getActiveFilter() : "");
     }
 
     /**
      * 파트너 매물 수락 (POST) → s_active = 1
      */
     @PostMapping("/approve")
-    public String approve(@RequestParam("s_idx") String s_idx) {
-        spaceService.approveSpace(s_idx);
-        log.info("파트너 매물 수락 - s_idx: {}", s_idx);
+    public String approve(@RequestParam("spcIdx") String spcIdx) {
+        spaceService.approveSpace(spcIdx);
+        log.info("파트너 매물 수락 - spcIdx: {}", spcIdx);
         return "redirect:/admin/space/list";
     }
 
@@ -156,9 +156,9 @@ public class SpaceController {
      * 파트너 매물 거부 (POST) → DELETE
      */
     @PostMapping("/reject")
-    public String reject(@RequestParam("s_idx") String s_idx) {
-        spaceService.rejectSpace(s_idx);
-        log.info("파트너 매물 거부(삭제) - s_idx: {}", s_idx);
+    public String reject(@RequestParam("spcIdx") String spcIdx) {
+        spaceService.rejectSpace(spcIdx);
+        log.info("파트너 매물 거부(삭제) - spcIdx: {}", spcIdx);
         return "redirect:/admin/space/list";
     }
 

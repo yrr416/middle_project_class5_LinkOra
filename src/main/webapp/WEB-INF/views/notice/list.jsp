@@ -1,6 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -52,15 +54,17 @@
         <div class="sidebar-brand"><i class="bi bi-building me-2"></i>오피스 예약</div>
         <nav class="nav flex-column mt-2">
             <span class="nav-link text-white-50 small px-3 pt-3 pb-1">관리자 메뉴</span>
-            <a class="nav-link" href="/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
-            <a class="nav-link" href="/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
-            <a class="nav-link" href="/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
-            <a class="nav-link" href="/admin/space/list"><i class="bi bi-building"></i>오피스 관리</a>
-            <a class="nav-link" href="/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
-            <a class="nav-link active" href="/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
-            <a class="nav-link" href="/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
+            <a class="nav-link" href="${ctx}/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
+            <a class="nav-link" href="${ctx}/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
+            <a class="nav-link" href="${ctx}/admin/space/list"><i class="bi bi-building"></i>오피스 관리</a>
+            <a class="nav-link" href="${ctx}/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
+            <a class="nav-link active" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
+            <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
+            <a class="nav-link" href="${ctx}/partner/register/step1"><i class="bi bi-person-badge me-1"></i>파트너 등록</a>
             <hr class="border-secondary mx-3">
-            <a class="nav-link" href="/admin/settings"><i class="bi bi-gear"></i>설정</a>
+            <a class="nav-link" href="${ctx}/admin/settings"><i class="bi bi-gear"></i>설정</a>
         </nav>
     </div>
 
@@ -74,7 +78,7 @@
                 <small class="text-muted">공지사항을 등록·수정·삭제하고 고정 여부를 설정합니다.</small>
             </div>
             <!-- 공지 등록 버튼 -->
-            <a href="/admin/notice/register?nowPage=${nowPage}" class="btn btn-primary btn-sm">
+            <a href="${ctx}/admin/notice/register?nowPage=${nowPage}" class="btn btn-primary btn-sm">
                 <i class="bi bi-plus-lg me-1"></i>공지 등록
             </a>
         </div>
@@ -95,20 +99,20 @@
 
             <!-- 검색/필터 바 -->
             <div class="filter-bar">
-                <form method="get" action="/admin/notice/list" class="row g-2 align-items-end">
+                <form method="get" action="${ctx}/admin/notice/list" class="row g-2 align-items-end">
                     <!-- 고정 필터 -->
                     <div class="col-auto">
-                        <select name="active_filter" class="form-select form-select-sm" onchange="this.form.submit()">
-                            <option value=""  <c:if test="${noticeVO.active_filter == ''}">selected</c:if>>전체</option>
-                            <option value="1" <c:if test="${noticeVO.active_filter == '1'}">selected</c:if>>고정 공지</option>
-                            <option value="0" <c:if test="${noticeVO.active_filter == '0'}">selected</c:if>>일반 공지</option>
+                        <select name="activeFilter" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value=""  <c:if test="${noticeVO.activeFilter == ''}">selected</c:if>>전체</option>
+                            <option value="1" <c:if test="${noticeVO.activeFilter == '1'}">selected</c:if>>고정 공지</option>
+                            <option value="0" <c:if test="${noticeVO.activeFilter == '0'}">selected</c:if>>일반 공지</option>
                         </select>
                     </div>
                     <!-- 제목 검색 -->
                     <div class="col-auto">
                         <div class="input-group input-group-sm">
-                            <input type="text" name="search_word" class="form-control"
-                                   placeholder="제목 검색" value="${noticeVO.search_word}">
+                            <input type="text" name="searchWord" class="form-control"
+                                   placeholder="제목 검색" value="${noticeVO.searchWord}">
                             <button class="btn btn-outline-secondary" type="submit">
                                 <i class="bi bi-search"></i>
                             </button>
@@ -116,7 +120,7 @@
                     </div>
                     <!-- 검색 초기화 -->
                     <div class="col-auto">
-                        <a href="/admin/notice/list" class="btn btn-outline-secondary btn-sm">초기화</a>
+                        <a href="${ctx}/admin/notice/list" class="btn btn-outline-secondary btn-sm">초기화</a>
                     </div>
                 </form>
             </div>
@@ -144,22 +148,22 @@
                             </c:when>
                             <c:otherwise>
                                 <c:forEach var="notice" items="${noticeList}">
-                                    <tr class="${notice.n_active == '1' ? 'pinned' : ''}">
-                                        <td class="text-muted small">${notice.n_idx}</td>
+                                    <tr class="${notice.ntcActive == '1' ? 'pinned' : ''}">
+                                        <td class="text-muted small">${notice.ntcIdx}</td>
                                         <td>
                                             <!-- 제목 클릭 → 수정 폼 이동 -->
-                                            <a href="/admin/notice/update?n_idx=${notice.n_idx}&nowPage=${nowPage}"
+                                            <a href="${ctx}/admin/notice/update?ntcIdx=${notice.ntcIdx}&nowPage=${nowPage}"
                                                class="text-decoration-none text-dark fw-semibold">
-                                                <c:if test="${notice.n_active == '1'}">
+                                                <c:if test="${notice.ntcActive == '1'}">
                                                     <i class="bi bi-pin-angle-fill text-warning me-1"></i>
                                                 </c:if>
-                                                ${notice.n_title}
+                                                ${notice.ntcTitle}
                                             </a>
                                         </td>
                                         <td>
                                             <!-- 고정 배지 -->
                                             <c:choose>
-                                                <c:when test="${notice.n_active == '1'}">
+                                                <c:when test="${notice.ntcActive == '1'}">
                                                     <span class="badge badge-pinned">고정</span>
                                                 </c:when>
                                                 <c:otherwise>
@@ -167,16 +171,16 @@
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
-                                        <td class="text-muted small">${notice.n_created}</td>
+                                        <td class="text-muted small">${notice.ntcCreated}</td>
                                         <td>
                                             <!-- 고정/해제 토글 버튼 -->
-                                            <form method="post" action="/admin/notice/toggle" class="d-inline">
-                                                <input type="hidden" name="n_idx"        value="${notice.n_idx}">
+                                            <form method="post" action="${ctx}/admin/notice/toggle" class="d-inline">
+                                                <input type="hidden" name="ntcIdx"        value="${notice.ntcIdx}">
                                                 <input type="hidden" name="nowPage"      value="${nowPage}">
-                                                <input type="hidden" name="search_word"  value="${noticeVO.search_word}">
-                                                <input type="hidden" name="active_filter" value="${noticeVO.active_filter}">
+                                                <input type="hidden" name="searchWord"  value="${noticeVO.searchWord}">
+                                                <input type="hidden" name="activeFilter" value="${noticeVO.activeFilter}">
                                                 <c:choose>
-                                                    <c:when test="${notice.n_active == '1'}">
+                                                    <c:when test="${notice.ntcActive == '1'}">
                                                         <button type="submit" class="btn btn-sm btn-warning me-1" title="고정 해제">
                                                             <i class="bi bi-pin-angle"></i> 해제
                                                         </button>
@@ -189,12 +193,12 @@
                                                 </c:choose>
                                             </form>
                                             <!-- 수정 버튼 -->
-                                            <a href="/admin/notice/update?n_idx=${notice.n_idx}&nowPage=${nowPage}"
+                                            <a href="${ctx}/admin/notice/update?ntcIdx=${notice.ntcIdx}&nowPage=${nowPage}"
                                                class="btn btn-sm btn-outline-primary me-1">수정</a>
                                             <!-- 삭제 버튼 -->
-                                            <form method="post" action="/admin/notice/delete" class="d-inline"
+                                            <form method="post" action="${ctx}/admin/notice/delete" class="d-inline"
                                                   onsubmit="return confirm('공지를 삭제하시겠습니까?');">
-                                                <input type="hidden" name="n_idx"   value="${notice.n_idx}">
+                                                <input type="hidden" name="ntcIdx"   value="${notice.ntcIdx}">
                                                 <input type="hidden" name="nowPage" value="${nowPage}">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
                                             </form>
@@ -214,7 +218,7 @@
                         <!-- 이전 블록 -->
                         <c:if test="${beginBlock > 1}">
                             <li class="page-item">
-                                <a class="page-link" href="/admin/notice/list?nowPage=${beginBlock - 1}&search_word=${noticeVO.search_word}&active_filter=${noticeVO.active_filter}">
+                                <a class="page-link" href="${ctx}/admin/notice/list?nowPage=${beginBlock - 1}&searchWord=${noticeVO.searchWord}&activeFilter=${noticeVO.activeFilter}">
                                     <i class="bi bi-chevron-left"></i>
                                 </a>
                             </li>
@@ -222,7 +226,7 @@
                         <!-- 페이지 번호 -->
                         <c:forEach begin="${beginBlock}" end="${endBlock}" var="page">
                             <li class="page-item ${page == nowPage ? 'active' : ''}">
-                                <a class="page-link" href="/admin/notice/list?nowPage=${page}&search_word=${noticeVO.search_word}&active_filter=${noticeVO.active_filter}">
+                                <a class="page-link" href="${ctx}/admin/notice/list?nowPage=${page}&searchWord=${noticeVO.searchWord}&activeFilter=${noticeVO.activeFilter}">
                                     ${page}
                                 </a>
                             </li>
@@ -230,7 +234,7 @@
                         <!-- 다음 블록 -->
                         <c:if test="${endBlock < totalPage}">
                             <li class="page-item">
-                                <a class="page-link" href="/admin/notice/list?nowPage=${endBlock + 1}&search_word=${noticeVO.search_word}&active_filter=${noticeVO.active_filter}">
+                                <a class="page-link" href="${ctx}/admin/notice/list?nowPage=${endBlock + 1}&searchWord=${noticeVO.searchWord}&activeFilter=${noticeVO.activeFilter}">
                                     <i class="bi bi-chevron-right"></i>
                                 </a>
                             </li>

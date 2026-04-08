@@ -16,8 +16,11 @@ public interface ReviewMapper {
 
     // ─── 리뷰 목록 ───────────────────────────────────────────────
 
-    /** 전체 리뷰 수 (원본 리뷰만, v_active=1 처리완료 제외) */
+    /** 전체 리뷰 수 (원본 리뷰만) */
     int getReviewCount(Map<String, Object> map);
+
+    /** 답변완료 리뷰 수 */
+    int getAnsweredReviewCount();
 
     /** 리뷰 목록 조회 (페이징 + 필터, 신고 수 포함) */
     List<ReviewVO> getReviewList(Map<String, Object> map);
@@ -49,4 +52,16 @@ public interface ReviewMapper {
 
     /** 신고 처리 (상태 변경 + 관리자 알림 메시지 저장) */
     int updateReportStatus(Map<String, Object> map);
+
+    /** 특정 리뷰의 전체 신고 목록 조회 */
+    List<ReviewReportVO> getReportsByRevIdx(String revIdx);
+
+    /** 리뷰 삭제 (관련 답글 포함) */
+    int deleteReview(String revIdx);
+
+    /** 관리자 답글 수정 */
+    int updateAdminReply(Map<String, Object> map);
+
+    /** 관리자 답글 삭제 */
+    int deleteAdminReply(String revIdx);
 }

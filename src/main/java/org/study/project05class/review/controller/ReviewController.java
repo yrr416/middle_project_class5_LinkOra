@@ -30,8 +30,6 @@ public class ReviewController {
 
     /**
      * 리뷰 관리 메인 페이지
-     * - 신고 대기 목록 (PENDING) 우선 표시
-     * - 전체 리뷰 목록 (별점/블라인드 필터)
      * GET /admin/review/list
      */
     @GetMapping("/list")
@@ -39,6 +37,9 @@ public class ReviewController {
                        @RequestParam(defaultValue = "1") int reportPage,
                        ReviewVO reviewVO,
                        Model model) {
+
+        // ── 답변완료 수 ───────────────────────────────────────────
+        int answeredCount = reviewService.getAnsweredReviewCount();
 
         // ── 리뷰 목록 페이징 계산 ──────────────────────────────────
         int totalRecord = reviewService.getReviewCount(reviewVO);
@@ -68,6 +69,7 @@ public class ReviewController {
         // ── 모델 바인딩 ───────────────────────────────────────────
         model.addAttribute("reviewList",      reviewList);
         model.addAttribute("totalRecord",     totalRecord);
+        model.addAttribute("answeredCount",   answeredCount);
         model.addAttribute("totalPage",       totalPage);
         model.addAttribute("nowPage",         nowPage);
         model.addAttribute("beginBlock",      beginBlock);
@@ -83,82 +85,162 @@ public class ReviewController {
     }
 
     /**
+     * 리뷰 상세 페이지
+     * GET /admin/review/detail
+     */
+    @GetMapping("/detail")
+    public String detail(@RequestParam("revIdx")                              String revIdx,
+                         @RequestParam(name = "nowPage", defaultValue = "1")  int nowPage,
+                         ReviewVO reviewVO,
+                         Model model) {
+
+        ReviewVO review = reviewService.getReviewDetail(revIdx);
+        if (review == null) {
+            return "redirect:/admin/review/list?nowPage=" + nowPage;
+        }
+
+        List<ReviewReportVO> reportList = reviewService.getReportsByRevIdx(revIdx);
+
+        model.addAttribute("review",     review);
+        model.addAttribute("reportList", reportList);
+        model.addAttribute("nowPage",    nowPage);
+        model.addAttribute("reviewVO",   reviewVO);
+
+        return "review/detail";
+    }
+
+    /**
      * 관리자 답글 등록
-     * - 답글 INSERT → 원본 리뷰 v_active = 1 (처리완료, 관리자 페이지 숨김)
      * POST /admin/review/reply
      */
     @PostMapping("/reply")
-    public String reply(@RequestParam("v_idx")        String v_idx,
-                        @RequestParam("reply_content") String replyContent,
-                        @RequestParam(defaultValue = "1") int nowPage,
+    public String reply(@RequestParam("revIdx")                                      String revIdx,
+                        @RequestParam("reply_content")                                String replyContent,
+                        @RequestParam(name = "nowPage", defaultValue = "1")          int nowPage,
+                        @RequestParam(name = "fromDetail", defaultValue = "") String fromDetail,
                         ReviewVO reviewVO) {
 
-        int result = reviewService.insertAdminReply(v_idx, replyContent);
-        log.info("관리자 답글 등록 - v_idx: {}, 결과: {}", v_idx, result);
+        int result = reviewService.insertAdminReply(revIdx, replyContent);
+        log.info("관리자 답글 등록 - revIdx: {}, 결과: {}", revIdx, result);
 
+        if ("1".equals(fromDetail)) {
+            return "redirect:/admin/review/detail?revIdx=" + revIdx + "&nowPage=" + nowPage;
+        }
         return buildRedirect(nowPage, reviewVO);
     }
 
     /**
-     * 리뷰 블라인드 처리 (v_active = 2)
-     * POST /admin/review/blind
+     * 관리자 답글 수정
+     * POST /admin/review/replyUpdate
      */
-    @PostMapping("/blind")
-    public String blind(@RequestParam("v_idx") String v_idx,
-                        @RequestParam(defaultValue = "1") int nowPage,
-                        ReviewVO reviewVO) {
+    @PostMapping("/replyUpdate")
+    public String replyUpdate(@RequestParam("revIdx")                              String revIdx,
+                              @RequestParam("reply_content")                        String replyContent,
+                              @RequestParam(name = "nowPage", defaultValue = "1")  int nowPage) {
 
-        reviewService.blindReview(v_idx);
-        log.info("리뷰 블라인드 처리 - v_idx: {}", v_idx);
+        reviewService.updateAdminReply(revIdx, replyContent);
+        log.info("관리자 답글 수정 - revIdx: {}", revIdx);
 
-        return buildRedirect(nowPage, reviewVO);
+        return "redirect:/admin/review/detail?revIdx=" + revIdx + "&nowPage=" + nowPage;
     }
 
     /**
-     * 리뷰 블라인드 해제 (v_active = 0)
-     * POST /admin/review/unblind
+     * 관리자 답글 삭제
+     * POST /admin/review/replyDelete
      */
-    @PostMapping("/unblind")
-    public String unblind(@RequestParam("v_idx") String v_idx,
-                          @RequestParam(defaultValue = "1") int nowPage,
-                          ReviewVO reviewVO) {
+    @PostMapping("/replyDelete")
+    public String replyDelete(@RequestParam("revIdx")                             String revIdx,
+                              @RequestParam(name = "nowPage", defaultValue = "1") int nowPage) {
 
-        reviewService.unblindReview(v_idx);
-        log.info("리뷰 블라인드 해제 - v_idx: {}", v_idx);
+        reviewService.deleteAdminReply(revIdx);
+        log.info("관리자 답글 삭제 - revIdx: {}", revIdx);
 
-        return buildRedirect(nowPage, reviewVO);
+        return "redirect:/admin/review/detail?revIdx=" + revIdx + "&nowPage=" + nowPage;
     }
 
     /**
-     * 신고 블라인드 처리
-     * - 신고 상태 = BLINDED + 관리자 알림 메시지 저장
-     * - 대상 리뷰 v_active = 2
-     * POST /admin/review/reportBlind
+     * 리뷰 삭제 (관련 답글 포함)
+     * POST /admin/review/delete
      */
-    @PostMapping("/reportBlind")
-    public String reportBlind(@RequestParam("rr_idx")       String rr_idx,
-                              @RequestParam("v_idx")         String v_idx,
-                              @RequestParam("rr_admin_reply") String adminReply,
-                              @RequestParam(defaultValue = "1") int nowPage) {
+    @PostMapping("/delete")
+    public String delete(@RequestParam("revIdx")                              String revIdx,
+                         @RequestParam(name = "nowPage", defaultValue = "1")  int nowPage) {
 
-        reviewService.processReportBlind(rr_idx, v_idx, adminReply);
-        log.info("신고 블라인드 처리 - rr_idx: {}, v_idx: {}", rr_idx, v_idx);
+        reviewService.deleteReview(revIdx);
+        log.info("리뷰 삭제 - revIdx: {}", revIdx);
 
         return "redirect:/admin/review/list?nowPage=" + nowPage;
     }
 
     /**
+     * 리뷰 블라인드 처리 (vActive = 2)
+     * POST /admin/review/blind
+     */
+    @PostMapping("/blind")
+    public String blind(@RequestParam("revIdx")                                      String revIdx,
+                        @RequestParam(name = "nowPage", defaultValue = "1")          int nowPage,
+                        @RequestParam(name = "fromDetail", defaultValue = "") String fromDetail,
+                        ReviewVO reviewVO) {
+
+        reviewService.blindReview(revIdx);
+        log.info("리뷰 블라인드 처리 - revIdx: {}", revIdx);
+
+        if ("1".equals(fromDetail)) {
+            return "redirect:/admin/review/detail?revIdx=" + revIdx + "&nowPage=" + nowPage;
+        }
+        return buildRedirect(nowPage, reviewVO);
+    }
+
+    /**
+     * 리뷰 블라인드 해제 (vActive = 0)
+     * POST /admin/review/unblind
+     */
+    @PostMapping("/unblind")
+    public String unblind(@RequestParam("revIdx")                                      String revIdx,
+                          @RequestParam(name = "nowPage", defaultValue = "1")          int nowPage,
+                          @RequestParam(name = "fromDetail", defaultValue = "") String fromDetail,
+                          ReviewVO reviewVO) {
+
+        reviewService.unblindReview(revIdx);
+        log.info("리뷰 블라인드 해제 - revIdx: {}", revIdx);
+
+        if ("1".equals(fromDetail)) {
+            return "redirect:/admin/review/detail?revIdx=" + revIdx + "&nowPage=" + nowPage;
+        }
+        return buildRedirect(nowPage, reviewVO);
+    }
+
+    /**
+     * 신고 블라인드 처리
+     * POST /admin/review/reportBlind
+     */
+    @PostMapping("/reportBlind")
+    public String reportBlind(@RequestParam("rvrIdx")                                      String rvrIdx,
+                              @RequestParam("revIdx")                                       String revIdx,
+                              @RequestParam("rvrAdminReply")                                String adminReply,
+                              @RequestParam(name = "nowPage", defaultValue = "1")           int nowPage,
+                              @RequestParam(name = "fromDetail", defaultValue = "") String fromDetail) {
+
+        reviewService.processReportBlind(rvrIdx, revIdx, adminReply);
+        log.info("신고 블라인드 처리 - rvrIdx: {}, revIdx: {}", rvrIdx, revIdx);
+
+        if ("1".equals(fromDetail)) {
+            return "redirect:/admin/review/detail?revIdx=" + revIdx + "&nowPage=" + nowPage;
+        }
+        return "redirect:/admin/review/list?nowPage=" + nowPage;
+    }
+
+    /**
      * 신고 반려 처리 (문제없음)
-     * - 신고 상태 = DISMISSED + 관리자 알림 메시지 저장
      * POST /admin/review/reportDismiss
      */
     @PostMapping("/reportDismiss")
-    public String reportDismiss(@RequestParam("rr_idx")        String rr_idx,
-                                @RequestParam("rr_admin_reply") String adminReply,
-                                @RequestParam(defaultValue = "1") int nowPage) {
+    public String reportDismiss(@RequestParam("rvrIdx")                              String rvrIdx,
+                                @RequestParam("rvrAdminReply")                        String adminReply,
+                                @RequestParam(name = "nowPage", defaultValue = "1")  int nowPage) {
 
-        reviewService.processReportDismiss(rr_idx, adminReply);
-        log.info("신고 반려 처리 - rr_idx: {}", rr_idx);
+        reviewService.processReportDismiss(rvrIdx, adminReply);
+        log.info("신고 반려 처리 - rvrIdx: {}", rvrIdx);
 
         return "redirect:/admin/review/list?nowPage=" + nowPage;
     }
@@ -168,14 +250,14 @@ public class ReviewController {
      */
     private String buildRedirect(int nowPage, ReviewVO reviewVO) {
         StringBuilder sb = new StringBuilder("redirect:/admin/review/list?nowPage=").append(nowPage);
-        if (reviewVO.getRating_filter() != null && !reviewVO.getRating_filter().isEmpty()) {
-            sb.append("&rating_filter=").append(reviewVO.getRating_filter());
+        if (reviewVO.getRatingFilter() != null && !reviewVO.getRatingFilter().isEmpty()) {
+            sb.append("&ratingFilter=").append(reviewVO.getRatingFilter());
         }
-        if (reviewVO.getBlind_filter() != null && !reviewVO.getBlind_filter().isEmpty()) {
-            sb.append("&blind_filter=").append(reviewVO.getBlind_filter());
+        if (reviewVO.getBlindFilter() != null && !reviewVO.getBlindFilter().isEmpty()) {
+            sb.append("&blindFilter=").append(reviewVO.getBlindFilter());
         }
-        if (reviewVO.getSearch_word() != null && !reviewVO.getSearch_word().isEmpty()) {
-            sb.append("&search_word=").append(reviewVO.getSearch_word());
+        if (reviewVO.getSearchWord() != null && !reviewVO.getSearchWord().isEmpty()) {
+            sb.append("&searchWord=").append(reviewVO.getSearchWord());
         }
         return sb.toString();
     }

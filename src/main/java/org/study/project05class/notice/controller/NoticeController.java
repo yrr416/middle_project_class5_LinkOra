@@ -34,8 +34,6 @@ public class NoticeController {
 
     /**
      * 공지 목록 페이지
-     * - 고정 공지(n_active=1) 우선 정렬
-     * - 제목 검색, 고정 필터 지원
      * GET /admin/notice/list
      */
     @GetMapping("/list")
@@ -43,7 +41,6 @@ public class NoticeController {
                        NoticeVO noticeVO,
                        Model model) {
 
-        // ── 페이징 계산 ────────────────────────────────────────────
         int totalRecord = noticeService.getNoticeCount(noticeVO);
         int totalPage   = (totalRecord <= 0) ? 1
                 : (int) Math.ceil((double) totalRecord / NUM_PER_PAGE);
@@ -57,7 +54,6 @@ public class NoticeController {
 
         List<NoticeVO> noticeList = noticeService.getNoticeList(NUM_PER_PAGE, offset, noticeVO);
 
-        // ── 모델 바인딩 ────────────────────────────────────────────
         model.addAttribute("noticeList",   noticeList);
         model.addAttribute("totalRecord",  totalRecord);
         model.addAttribute("totalPage",    totalPage);
@@ -80,15 +76,14 @@ public class NoticeController {
 
     /**
      * 공지 수정 폼 (기존 공지 불러오기)
-     * GET /admin/notice/update?n_idx=...
+     * GET /admin/notice/update?nIdx=...
      */
     @GetMapping("/update")
-    public String updateForm(@RequestParam String n_idx,
+    public String updateForm(@RequestParam String ntcIdx,
                              @RequestParam(defaultValue = "1") int nowPage,
                              Model model) {
 
-        // 기존 공지 데이터 조회
-        NoticeVO notice = noticeService.getNoticeDetail(n_idx);
+        NoticeVO notice = noticeService.getNoticeDetail(ntcIdx);
         if (notice == null) {
             return "redirect:/admin/notice/list";
         }
@@ -108,11 +103,11 @@ public class NoticeController {
                              @RequestParam(defaultValue = "1") int nowPage,
                              RedirectAttributes rttr) {
 
-        // a_idx = 1 (관리자 고정값; 실제 세션에서 가져올 경우 교체)
-        noticeVO.setA_idx("1");
+        // admIdx = 1 (관리자 고정값; 실제 세션에서 가져올 경우 교체)
+        noticeVO.setAdmIdx("1");
 
         int result = noticeService.insertNotice(noticeVO);
-        log.info("공지 등록 - 제목: {}, 결과: {}", noticeVO.getN_title(), result);
+        log.info("공지 등록 - 제목: {}, 결과: {}", noticeVO.getNtcTitle(), result);
 
         rttr.addFlashAttribute("msg", "공지가 등록되었습니다.");
         return "redirect:/admin/notice/list?nowPage=" + nowPage;
@@ -128,7 +123,7 @@ public class NoticeController {
                            RedirectAttributes rttr) {
 
         int result = noticeService.updateNotice(noticeVO);
-        log.info("공지 수정 - n_idx: {}, 결과: {}", noticeVO.getN_idx(), result);
+        log.info("공지 수정 - ntcIdx: {}, 결과: {}", noticeVO.getNtcIdx(), result);
 
         rttr.addFlashAttribute("msg", "공지가 수정되었습니다.");
         return "redirect:/admin/notice/list?nowPage=" + nowPage;
@@ -139,12 +134,12 @@ public class NoticeController {
      * POST /admin/notice/toggle
      */
     @PostMapping("/toggle")
-    public String toggle(@RequestParam String n_idx,
+    public String toggle(@RequestParam String ntcIdx,
                          @RequestParam(defaultValue = "1") int nowPage,
                          NoticeVO noticeVO) {
 
-        noticeService.toggleNoticeActive(n_idx);
-        log.info("공지 고정 토글 - n_idx: {}", n_idx);
+        noticeService.toggleNoticeActive(ntcIdx);
+        log.info("공지 고정 토글 - ntcIdx: {}", ntcIdx);
 
         return buildRedirect(nowPage, noticeVO);
     }
@@ -154,12 +149,12 @@ public class NoticeController {
      * POST /admin/notice/delete
      */
     @PostMapping("/delete")
-    public String delete(@RequestParam String n_idx,
+    public String delete(@RequestParam String ntcIdx,
                          @RequestParam(defaultValue = "1") int nowPage,
                          RedirectAttributes rttr) {
 
-        noticeService.deleteNotice(n_idx);
-        log.info("공지 삭제 - n_idx: {}", n_idx);
+        noticeService.deleteNotice(ntcIdx);
+        log.info("공지 삭제 - ntcIdx: {}", ntcIdx);
 
         rttr.addFlashAttribute("msg", "공지가 삭제되었습니다.");
         return "redirect:/admin/notice/list?nowPage=" + nowPage;
@@ -174,18 +169,15 @@ public class NoticeController {
     public String imageUpload(@RequestParam("upload") MultipartFile file,
                               HttpServletRequest request) {
         try {
-            // 저장 경로: 웹앱 루트 /static/img/notice/
             String uploadPath = request.getServletContext().getRealPath("/static/img/notice");
             File dir = new File(uploadPath);
             if (!dir.exists()) dir.mkdirs();
 
-            // UUID 파일명으로 저장
             String ext      = file.getOriginalFilename().substring(
                                 file.getOriginalFilename().lastIndexOf("."));
             String fileName = UUID.randomUUID().toString() + ext;
             file.transferTo(new File(dir, fileName));
 
-            // CKEditor 5 응답 형식 반환
             String url = request.getContextPath() + "/static/img/notice/" + fileName;
             return "{\"url\":\"" + url + "\"}";
 
@@ -200,11 +192,11 @@ public class NoticeController {
      */
     private String buildRedirect(int nowPage, NoticeVO noticeVO) {
         StringBuilder sb = new StringBuilder("redirect:/admin/notice/list?nowPage=").append(nowPage);
-        if (noticeVO.getSearch_word() != null && !noticeVO.getSearch_word().isEmpty()) {
-            sb.append("&search_word=").append(noticeVO.getSearch_word());
+        if (noticeVO.getSearchWord() != null && !noticeVO.getSearchWord().isEmpty()) {
+            sb.append("&searchWord=").append(noticeVO.getSearchWord());
         }
-        if (noticeVO.getActive_filter() != null && !noticeVO.getActive_filter().isEmpty()) {
-            sb.append("&active_filter=").append(noticeVO.getActive_filter());
+        if (noticeVO.getActiveFilter() != null && !noticeVO.getActiveFilter().isEmpty()) {
+            sb.append("&activeFilter=").append(noticeVO.getActiveFilter());
         }
         return sb.toString();
     }

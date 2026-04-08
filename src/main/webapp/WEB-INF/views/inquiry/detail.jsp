@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -48,15 +49,17 @@
         <div class="sidebar-brand"><i class="bi bi-building me-2"></i>오피스 예약</div>
         <nav class="nav flex-column mt-2">
             <span class="nav-link text-white-50 small px-3 pt-3 pb-1">관리자 메뉴</span>
-            <a class="nav-link" href="/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
-            <a class="nav-link" href="/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
-            <a class="nav-link" href="/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
-            <a class="nav-link" href="/admin/space/list"><i class="bi bi-building"></i>오피스 관리</a>
-            <a class="nav-link" href="/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
-            <a class="nav-link" href="/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
-            <a class="nav-link active" href="/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
+            <a class="nav-link" href="${ctx}/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
+            <a class="nav-link" href="${ctx}/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
+            <a class="nav-link" href="${ctx}/admin/space/list"><i class="bi bi-building"></i>오피스 관리</a>
+            <a class="nav-link" href="${ctx}/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
+            <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
+            <a class="nav-link active" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
+            <a class="nav-link" href="${ctx}/partner/register/step1"><i class="bi bi-person-badge me-1"></i>파트너 등록</a>
             <hr class="border-secondary mx-3">
-            <a class="nav-link" href="/admin/settings"><i class="bi bi-gear"></i>설정</a>
+            <a class="nav-link" href="${ctx}/admin/settings"><i class="bi bi-gear"></i>설정</a>
         </nav>
     </div>
 
@@ -78,7 +81,7 @@
                 <small class="text-muted">고객 문의 내용을 확인하고 답변을 작성합니다.</small>
             </div>
             <!-- 목록으로 돌아가기 (필터 유지) -->
-            <a href="/admin/inquiry/list?nowPage=${nowPage}&status_filter=${status_filter}&search_word=${search_word}"
+            <a href="${ctx}/admin/inquiry/list?nowPage=${nowPage}&statusFilter=${statusFilter}&searchWord=${searchWord}"
                class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>목록
             </a>
@@ -88,9 +91,9 @@
         <div class="detail-card">
             <!-- 제목 + 상태 배지 -->
             <div class="d-flex justify-content-between align-items-start mb-3">
-                <h5 class="fw-bold mb-0">${inquiry.i_title}</h5>
+                <h5 class="fw-bold mb-0">${inquiry.inqTitle}</h5>
                 <c:choose>
-                    <c:when test="${inquiry.i_status == '대기중'}">
+                    <c:when test="${inquiry.inqStatus == 'PENDING'}">
                         <span class="badge badge-pending ms-3">대기중</span>
                     </c:when>
                     <c:otherwise>
@@ -102,17 +105,17 @@
             <!-- 문의 메타 정보 -->
             <div class="row g-2 mb-4 text-muted small">
                 <div class="col-auto">
-                    <i class="bi bi-person me-1"></i>작성자: <strong class="text-dark">${inquiry.u_name}</strong>
+                    <i class="bi bi-person me-1"></i>작성자: <strong class="text-dark">${inquiry.userName}</strong>
                 </div>
                 <div class="col-auto">
-                    <i class="bi bi-tag me-1"></i>유형: <strong class="text-dark">${inquiry.i_category}</strong>
+                    <i class="bi bi-tag me-1"></i>유형: <strong class="text-dark">${inquiry.inqCategory}</strong>
                 </div>
                 <div class="col-auto">
-                    <i class="bi bi-clock me-1"></i>작성일: <strong class="text-dark">${inquiry.i_created}</strong>
+                    <i class="bi bi-clock me-1"></i>작성일: <strong class="text-dark">${inquiry.inqCreated}</strong>
                 </div>
-                <c:if test="${not empty inquiry.i_answered}">
+                <c:if test="${not empty inquiry.inqAnswered}">
                     <div class="col-auto">
-                        <i class="bi bi-check-circle me-1 text-success"></i>답변일: <strong class="text-dark">${inquiry.i_answered}</strong>
+                        <i class="bi bi-check-circle me-1 text-success"></i>답변일: <strong class="text-dark">${inquiry.inqAnswered}</strong>
                     </div>
                 </c:if>
             </div>
@@ -122,17 +125,17 @@
                 <label class="form-label fw-semibold text-muted small">
                     <i class="bi bi-chat-quote me-1"></i>문의 내용
                 </label>
-                <div class="inquiry-box">${inquiry.i_content}</div>
+                <div class="inquiry-box">${inquiry.inqContent}</div>
             </div>
 
             <!-- 첨부 파일 (있는 경우) -->
-            <c:if test="${not empty inquiry.i_file_url}">
+            <c:if test="${not empty inquiry.inqFileUrl}">
                 <div class="mb-4">
                     <label class="form-label fw-semibold text-muted small">
                         <i class="bi bi-paperclip me-1"></i>첨부 파일
                     </label>
                     <div>
-                        <a href="${inquiry.i_file_url}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                        <a href="${inquiry.inqFileUrl}" target="_blank" class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-download me-1"></i>첨부 파일 다운로드
                         </a>
                     </div>
@@ -140,13 +143,13 @@
             </c:if>
 
             <!-- ── 기존 답변 표시 (답변완료인 경우) ─────────────── -->
-            <c:if test="${inquiry.i_status == '답변완료' and not empty inquiry.i_answer}">
+            <c:if test="${inquiry.inqStatus == 'COMPLETE' and not empty inquiry.inqAnswer}">
                 <div class="mb-4">
                     <label class="form-label fw-semibold text-muted small">
                         <i class="bi bi-check-circle text-success me-1"></i>기존 답변
-                        <span class="text-muted fw-normal">(${inquiry.i_answered})</span>
+                        <span class="text-muted fw-normal">(${inquiry.inqAnswered})</span>
                     </label>
-                    <div class="answer-box">${inquiry.i_answer}</div>
+                    <div class="answer-box">${inquiry.inqAnswer}</div>
                 </div>
             </c:if>
         </div><!-- /.detail-card -->
@@ -155,7 +158,7 @@
         <div class="detail-card">
             <h6 class="fw-bold mb-3">
                 <i class="bi bi-pencil-square me-2 text-primary"></i>
-                ${inquiry.i_status == '답변완료' ? '답변 수정' : '답변 작성'}
+                ${inquiry.inqStatus == 'COMPLETE' ? '답변 수정' : '답변 작성'}
             </h6>
 
             <!-- 답변 템플릿 선택 버튼 -->
@@ -180,23 +183,23 @@
             </div>
 
             <!-- 답변 폼 -->
-            <form method="post" action="/admin/inquiry/answer" id="answerForm">
-                <input type="hidden" name="i_idx"         value="${inquiry.i_idx}">
+            <form method="post" action="${ctx}/admin/inquiry/answer" id="answerForm">
+                <input type="hidden" name="inqIdx"         value="${inquiry.inqIdx}">
                 <input type="hidden" name="nowPage"       value="${nowPage}">
-                <input type="hidden" name="status_filter" value="${status_filter}">
-                <input type="hidden" name="search_word"   value="${search_word}">
+                <input type="hidden" name="statusFilter" value="${statusFilter}">
+                <input type="hidden" name="searchWord"   value="${searchWord}">
                 <!-- 수정 여부 구분 플래그: 이미 답변완료 상태면 수정 -->
-                <input type="hidden" name="isUpdate" value="${inquiry.i_status == '답변완료' ? 'true' : 'false'}">
+                <input type="hidden" name="isUpdate" value="${inquiry.inqStatus == 'COMPLETE' ? 'true' : 'false'}">
 
                 <div class="mb-3">
-                    <textarea name="i_answer" id="answerTextarea" class="form-control"
+                    <textarea name="inqAnswer" id="answerTextarea" class="form-control"
                               rows="8" placeholder="답변 내용을 입력하세요..."
-                              required>${inquiry.i_answer}</textarea>
+                              required>${inquiry.inqAnswer}</textarea>
                     <div class="d-flex justify-content-between mt-1">
                         <small class="text-muted">
                             <i class="bi bi-info-circle me-1"></i>
                             <c:choose>
-                                <c:when test="${inquiry.i_status == '답변완료'}">
+                                <c:when test="${inquiry.inqStatus == 'COMPLETE'}">
                                     수정 저장 시 <strong>i_answer</strong>(답변 내용)와 <strong>i_answered</strong>(답변 시각)가 함께 갱신됩니다.
                                 </c:when>
                                 <c:otherwise>
@@ -212,11 +215,11 @@
 
                 <div class="d-flex gap-2 justify-content-end">
                     <!-- 목록으로 이동 -->
-                    <a href="/admin/inquiry/list?nowPage=${nowPage}&status_filter=${status_filter}&search_word=${search_word}"
+                    <a href="${ctx}/admin/inquiry/list?nowPage=${nowPage}&statusFilter=${statusFilter}&searchWord=${searchWord}"
                        class="btn btn-outline-secondary">취소</a>
                     <!-- 답변 저장 / 수정 버튼 -->
                     <c:choose>
-                        <c:when test="${inquiry.i_status == '답변완료'}">
+                        <c:when test="${inquiry.inqStatus == 'COMPLETE'}">
                             <!-- 수정: 기존 답변 덮어쓰기 + i_answered 갱신 -->
                             <button type="submit" class="btn btn-warning"
                                     onclick="return confirm('답변을 수정하시겠습니까?\n답변 내용(i_answer)과 답변 시각(i_answered)이 갱신됩니다.');">

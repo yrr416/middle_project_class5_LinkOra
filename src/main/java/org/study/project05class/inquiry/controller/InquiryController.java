@@ -30,9 +30,6 @@ public class InquiryController {
 
     /**
      * 문의 목록 페이지
-     * - 미답변(PENDING) 우선 정렬
-     * - 상태 필터 (전체 / 미답변 / 답변완료)
-     * - 제목/작성자 검색
      * GET /admin/inquiry/list
      */
     @GetMapping({"/list", "", "/"})
@@ -40,7 +37,6 @@ public class InquiryController {
                        InquiryVO inquiryVO,
                        Model model) {
 
-        // ── 페이징 계산 ────────────────────────────────────────────
         int totalRecord = inquiryService.getInquiryCount(inquiryVO);
         int totalPage   = (totalRecord <= 0) ? 1
                 : (int) Math.ceil((double) totalRecord / NUM_PER_PAGE);
@@ -54,10 +50,8 @@ public class InquiryController {
 
         List<InquiryVO> inquiryList = inquiryService.getInquiryList(NUM_PER_PAGE, offset, inquiryVO);
 
-        // ── 미답변 건수 (상단 알림용) ──────────────────────────────
         int pendingCount = inquiryService.getPendingCount();
 
-        // ── 모델 바인딩 ────────────────────────────────────────────
         model.addAttribute("inquiryList",  inquiryList);
         model.addAttribute("totalRecord",  totalRecord);
         model.addAttribute("totalPage",    totalPage);
@@ -72,63 +66,58 @@ public class InquiryController {
 
     /**
      * 문의 상세 조회 페이지
-     * - 문의 내용 + 답변 입력창 표시
-     * GET /admin/inquiry/detail?i_idx=...
+     * GET /admin/inquiry/detail?iIdx=...
      */
     @GetMapping("/detail")
-    public String detail(@RequestParam String i_idx,
+    public String detail(@RequestParam String inqIdx,
                          @RequestParam(defaultValue = "1") int nowPage,
-                         @RequestParam(defaultValue = "") String status_filter,
-                         @RequestParam(defaultValue = "") String search_word,
+                         @RequestParam(defaultValue = "") String statusFilter,
+                         @RequestParam(defaultValue = "") String searchWord,
                          Model model) {
 
-        // 문의 상세 데이터 조회
-        InquiryVO inquiry = inquiryService.getInquiryDetail(i_idx);
+        InquiryVO inquiry = inquiryService.getInquiryDetail(inqIdx);
         if (inquiry == null) {
             return "redirect:/admin/inquiry/list";
         }
 
         model.addAttribute("inquiry",       inquiry);
         model.addAttribute("nowPage",       nowPage);
-        model.addAttribute("status_filter", status_filter);
-        model.addAttribute("search_word",   search_word);
+        model.addAttribute("statusFilter",  statusFilter);
+        model.addAttribute("searchWord",    searchWord);
 
         return "inquiry/detail";
     }
 
     /**
      * 답변 저장
-     * - i_answer 저장
-     * - i_status 자동 COMPLETE 변경
-     * - 답변 저장 후 목록으로 이동
      * POST /admin/inquiry/answer
      */
     @PostMapping("/answer")
-    public String answer(@RequestParam String i_idx,
-                         @RequestParam String i_answer,
+    public String answer(@RequestParam String inqIdx,
+                         @RequestParam String inqAnswer,
                          @RequestParam(defaultValue = "false") boolean isUpdate,
                          @RequestParam(defaultValue = "1") int nowPage,
-                         @RequestParam(defaultValue = "") String status_filter,
-                         @RequestParam(defaultValue = "") String search_word,
+                         @RequestParam(defaultValue = "") String statusFilter,
+                         @RequestParam(defaultValue = "") String searchWord,
                          RedirectAttributes rttr) {
 
-        // i_answer 저장 + i_status='답변완료' + i_answered=NOW() 업데이트
-        int result = inquiryService.saveAnswer(i_idx, i_answer);
+        int result = inquiryService.saveAnswer(inqIdx, inqAnswer);
 
         if (isUpdate) {
-            // 수정: 해당 문의 상세 페이지(답변 폼)로 복귀
-            log.info("문의 답변 수정 - i_idx: {}, 결과: {}", i_idx, result);
+            log.info("문의 답변 수정 - inqIdx: {}, 결과: {}", inqIdx, result);
             rttr.addFlashAttribute("msg", "답변이 수정되었습니다.");
-            return "redirect:/admin/inquiry/detail?i_idx=" + i_idx
-                    + "&nowPage=" + nowPage
-                    + "&status_filter=" + status_filter
-                    + "&search_word=" + search_word
-                    + "#answerForm";
         } else {
-            // 신규 저장: 답변완료 탭 1페이지로 이동
-            log.info("문의 답변 저장 - i_idx: {}, 결과: {}", i_idx, result);
+            log.info("문의 답변 저장 - inqIdx: {}, 결과: {}", inqIdx, result);
             rttr.addFlashAttribute("msg", "답변이 저장되었습니다.");
-            return "redirect:/admin/inquiry/list?nowPage=1&status_filter=답변완료";
         }
+
+        rttr.addAttribute("nowPage", nowPage);
+        if (statusFilter != null && !statusFilter.isEmpty()) {
+            rttr.addAttribute("statusFilter", statusFilter);
+        }
+        if (searchWord != null && !searchWord.isEmpty()) {
+            rttr.addAttribute("searchWord", searchWord);
+        }
+        return "redirect:/admin/inquiry/list";
     }
 }

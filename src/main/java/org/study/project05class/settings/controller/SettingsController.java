@@ -74,15 +74,15 @@ public class SettingsController {
      * POST /admin/settings/account
      */
     @PostMapping("/account")
-    public String updateAccount(@RequestParam String a_name,
-                                @RequestParam String a_email,
-                                @RequestParam String a_phone,
+    public String updateAccount(@RequestParam String aName,
+                                @RequestParam String aEmail,
+                                @RequestParam String aPhone,
                                 HttpServletRequest request,
                                 RedirectAttributes rttr) {
 
-        settingsService.updateAdminInfo("1", a_name, a_email, a_phone);
+        settingsService.updateAdminInfo("1", aName, aEmail, aPhone);
         // 활동 로그 기록
-        settingsService.writeLog("1", a_name, "계정 정보 수정",
+        settingsService.writeLog("1", aName, "계정 정보 수정",
                 "이름·이메일·연락처 변경", request.getRemoteAddr());
 
         rttr.addFlashAttribute("msg", "계정 정보가 수정되었습니다.");
@@ -94,19 +94,19 @@ public class SettingsController {
      * POST /admin/settings/password
      */
     @PostMapping("/password")
-    public String changePassword(@RequestParam String current_pwd,
-                                 @RequestParam String new_pwd,
-                                 @RequestParam String new_pwd_confirm,
+    public String changePassword(@RequestParam String currentPwd,
+                                 @RequestParam String newPwd,
+                                 @RequestParam String newPwdConfirm,
                                  HttpServletRequest request,
                                  RedirectAttributes rttr) {
 
         // 새 비밀번호 확인 일치 검사
-        if (!new_pwd.equals(new_pwd_confirm)) {
+        if (!newPwd.equals(newPwdConfirm)) {
             rttr.addFlashAttribute("pwdMsg", "새 비밀번호가 일치하지 않습니다.");
             return "redirect:/admin/settings?tab=account";
         }
 
-        boolean result = settingsService.changePassword("1", current_pwd, new_pwd);
+        boolean result = settingsService.changePassword("1", currentPwd, newPwd);
         if (result) {
             settingsService.writeLog("1", "", "비밀번호 변경", "", request.getRemoteAddr());
             rttr.addFlashAttribute("pwdMsg", "비밀번호가 변경되었습니다.");
@@ -203,7 +203,7 @@ public class SettingsController {
                                HttpServletRequest request,
                                RedirectAttributes rttr) {
 
-        if (templateVO.getT_idx() != null && !templateVO.getT_idx().isEmpty()) {
+        if (templateVO.getTplIdx() != null && !templateVO.getTplIdx().isEmpty()) {
             // 수정
             settingsService.updateTemplate(templateVO);
             rttr.addFlashAttribute("msg", "템플릿이 수정되었습니다.");
@@ -213,7 +213,7 @@ public class SettingsController {
             rttr.addFlashAttribute("msg", "템플릿이 등록되었습니다.");
         }
         settingsService.writeLog("1", "", "답변 템플릿 변경",
-                templateVO.getT_title(), request.getRemoteAddr());
+                templateVO.getTplTitle(), request.getRemoteAddr());
 
         return "redirect:/admin/settings?tab=service";
     }
@@ -223,12 +223,12 @@ public class SettingsController {
      * POST /admin/settings/template/delete
      */
     @PostMapping("/template/delete")
-    public String deleteTemplate(@RequestParam String t_idx,
+    public String deleteTemplate(@RequestParam String tplIdx,
                                  HttpServletRequest request,
                                  RedirectAttributes rttr) {
 
-        settingsService.deleteTemplate(t_idx);
-        settingsService.writeLog("1", "", "답변 템플릿 삭제", "t_idx=" + t_idx, request.getRemoteAddr());
+        settingsService.deleteTemplate(tplIdx);
+        settingsService.writeLog("1", "", "답변 템플릿 삭제", "tplIdx=" + tplIdx, request.getRemoteAddr());
 
         rttr.addFlashAttribute("msg", "템플릿이 삭제되었습니다.");
         return "redirect:/admin/settings?tab=service";
@@ -238,11 +238,11 @@ public class SettingsController {
      * 템플릿 단건 조회 (수정 모달용 AJAX)
      * GET /admin/settings/template/{t_idx}
      */
-    @GetMapping("/template/{t_idx}")
+    @GetMapping("/template/{tplIdx}")
     @ResponseBody
-    public TemplateVO getTemplate(@PathVariable String t_idx) {
+    public TemplateVO getTemplate(@PathVariable String tplIdx) {
         return settingsService.getTemplateList().stream()
-                .filter(t -> t.getT_idx().equals(t_idx))
+                .filter(t -> t.getTplIdx().equals(tplIdx))
                 .findFirst().orElse(null);
     }
 }

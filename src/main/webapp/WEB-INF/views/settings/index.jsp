@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -55,15 +56,17 @@
         <div class="sidebar-brand"><i class="bi bi-building me-2"></i>오피스 예약</div>
         <nav class="nav flex-column mt-2">
             <span class="nav-link text-white-50 small px-3 pt-3 pb-1">관리자 메뉴</span>
-            <a class="nav-link" href="/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
-            <a class="nav-link" href="/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
-            <a class="nav-link" href="/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
-            <a class="nav-link" href="/admin/space/list"><i class="bi bi-building"></i>오피스 관리</a>
-            <a class="nav-link" href="/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
-            <a class="nav-link" href="/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
-            <a class="nav-link" href="/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
+            <a class="nav-link" href="${ctx}/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
+            <a class="nav-link" href="${ctx}/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
+            <a class="nav-link" href="${ctx}/admin/space/list"><i class="bi bi-building"></i>오피스 관리</a>
+            <a class="nav-link" href="${ctx}/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
+            <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
+            <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
+            <a class="nav-link" href="${ctx}/partner/register/step1"><i class="bi bi-person-badge me-1"></i>파트너 등록</a>
             <hr class="border-secondary mx-3">
-            <a class="nav-link active" href="/admin/settings"><i class="bi bi-gear"></i>설정</a>
+            <a class="nav-link active" href="${ctx}/admin/settings"><i class="bi bi-gear"></i>설정</a>
         </nav>
     </div>
 
@@ -88,25 +91,25 @@
         <ul class="nav settings-nav gap-2 mb-4" id="settingsTabs">
             <li class="nav-item">
                 <a class="nav-link ${tab == 'account' || tab == '' ? 'active' : ''}"
-                   href="/admin/settings?tab=account">
+                   href="${ctx}/admin/settings?tab=account">
                     <i class="bi bi-person-circle"></i>계정 관리
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link ${tab == 'policy' ? 'active' : ''}"
-                   href="/admin/settings?tab=policy">
+                   href="${ctx}/admin/settings?tab=policy">
                     <i class="bi bi-shield-check"></i>서비스 정책
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link ${tab == 'service' ? 'active' : ''}"
-                   href="/admin/settings?tab=service">
+                   href="${ctx}/admin/settings?tab=service">
                     <i class="bi bi-sliders"></i>서비스 설정
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link ${tab == 'system' ? 'active' : ''}"
-                   href="/admin/settings?tab=system">
+                   href="${ctx}/admin/settings?tab=system">
                     <i class="bi bi-cpu"></i>시스템
                 </a>
             </li>
@@ -128,27 +131,27 @@
             <!-- 관리자 계정 정보 -->
             <div class="set-card">
                 <h6><i class="bi bi-person me-2"></i>관리자 계정 정보</h6>
-                <form method="post" action="/admin/settings/account">
+                <form method="post" action="${ctx}/admin/settings/account">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">관리자 ID</label>
                             <!-- ID는 변경 불가, 읽기 전용 -->
-                            <input type="text" class="form-control" value="${adminInfo.a_id}" readonly>
+                            <input type="text" class="form-control" value="${adminInfo.aId}" readonly>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">이름 <span class="text-danger">*</span></label>
-                            <input type="text" name="a_name" class="form-control"
-                                   value="${adminInfo.a_name}" required>
+                            <input type="text" name="aName" class="form-control"
+                                   value="${adminInfo.admName}" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">이메일 <span class="text-danger">*</span></label>
-                            <input type="email" name="a_email" class="form-control"
-                                   value="${adminInfo.a_email}" required>
+                            <input type="email" name="aEmail" class="form-control"
+                                   value="${adminInfo.aEmail}" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">연락처</label>
-                            <input type="text" name="a_phone" class="form-control"
-                                   value="${adminInfo.a_phone}">
+                            <input type="text" name="aPhone" class="form-control"
+                                   value="${adminInfo.aPhone}">
                         </div>
                     </div>
                     <div class="d-flex justify-content-end mt-3">
@@ -162,19 +165,19 @@
             <!-- 비밀번호 변경 -->
             <div class="set-card">
                 <h6><i class="bi bi-lock me-2"></i>비밀번호 변경</h6>
-                <form method="post" action="/admin/settings/password">
+                <form method="post" action="${ctx}/admin/settings/password">
                     <div class="row g-3" style="max-width:480px;">
                         <div class="col-12">
                             <label class="form-label fw-semibold small">현재 비밀번호</label>
-                            <input type="password" name="current_pwd" class="form-control" required>
+                            <input type="password" name="currentPwd" class="form-control" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold small">새 비밀번호</label>
-                            <input type="password" name="new_pwd" id="newPwd" class="form-control" required>
+                            <input type="password" name="newPwd" id="newPwd" class="form-control" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold small">새 비밀번호 확인</label>
-                            <input type="password" name="new_pwd_confirm" id="newPwdConfirm"
+                            <input type="password" name="newPwdConfirm" id="newPwdConfirm"
                                    class="form-control" oninput="checkPwdMatch()" required>
                             <small id="pwdMatchMsg" class="text-muted"></small>
                         </div>
@@ -192,7 +195,7 @@
              TAB 2: 서비스 정책
              ══════════════════════════════════════════════════════ -->
         <c:if test="${tab == 'policy'}">
-            <form method="post" action="/admin/settings/policy">
+            <form method="post" action="${ctx}/admin/settings/policy">
 
                 <!-- 등급 기준 -->
                 <div class="set-card">
@@ -309,7 +312,7 @@
         <c:if test="${tab == 'service'}">
 
             <!-- 운영 시간 + 팝업 + 알림 -->
-            <form method="post" action="/admin/settings/service">
+            <form method="post" action="${ctx}/admin/settings/service">
                 <!-- 운영 시간 -->
                 <div class="set-card">
                     <h6><i class="bi bi-clock me-2"></i>운영 시간 설정</h6>
@@ -424,20 +427,20 @@
                         <c:forEach var="tmpl" items="${templateList}">
                             <div class="template-item d-flex justify-content-between align-items-start">
                                 <div>
-                                    <div class="fw-semibold small">${tmpl.t_title}</div>
+                                    <div class="fw-semibold small">${tmpl.tplTitle}</div>
                                     <div class="text-muted" style="font-size:.82rem; white-space:pre-wrap; max-height:60px; overflow:hidden;">
-                                        ${tmpl.t_content}
+                                        ${tmpl.tplContent}
                                     </div>
-                                    <div class="text-muted" style="font-size:.75rem;">${tmpl.t_created}</div>
+                                    <div class="text-muted" style="font-size:.75rem;">${tmpl.tplCreated}</div>
                                 </div>
                                 <div class="d-flex gap-1 ms-3 flex-shrink-0">
                                     <button type="button" class="btn btn-outline-primary btn-sm"
-                                            onclick="openTemplateModal('${tmpl.t_idx}','${tmpl.t_title}',`${tmpl.t_content}`)">
+                                            onclick="openTemplateModal('${tmpl.tplIdx}','${tmpl.tplTitle}',`${tmpl.tplContent}`)">
                                         수정
                                     </button>
-                                    <form method="post" action="/admin/settings/template/delete"
+                                    <form method="post" action="${ctx}/admin/settings/template/delete"
                                           onsubmit="return confirm('템플릿을 삭제하시겠습니까?');">
-                                        <input type="hidden" name="t_idx" value="${tmpl.t_idx}">
+                                        <input type="hidden" name="tplIdx" value="${tmpl.tplIdx}">
                                         <button type="submit" class="btn btn-outline-danger btn-sm">삭제</button>
                                     </form>
                                 </div>
@@ -451,21 +454,21 @@
             <div class="modal fade" id="templateModal" tabindex="-1">
                 <div class="modal-dialog">
                     <div class="modal-content">
-                        <form method="post" action="/admin/settings/template/save">
+                        <form method="post" action="${ctx}/admin/settings/template/save">
                             <div class="modal-header">
                                 <h6 class="modal-title fw-bold" id="templateModalTitle">템플릿 등록</h6>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
-                                <input type="hidden" name="t_idx" id="modal_t_idx">
+                                <input type="hidden" name="tplIdx" id="modal_t_idx">
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold small">템플릿 제목</label>
-                                    <input type="text" name="t_title" id="modal_t_title"
+                                    <input type="text" name="tplTitle" id="modal_t_title"
                                            class="form-control" placeholder="예: 환불 안내" required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold small">템플릿 내용</label>
-                                    <textarea name="t_content" id="modal_t_content"
+                                    <textarea name="tplContent" id="modal_t_content"
                                               class="form-control" rows="7"
                                               placeholder="답변 내용을 입력하세요..." required></textarea>
                                 </div>
@@ -484,7 +487,7 @@
              TAB 4: 시스템
              ══════════════════════════════════════════════════════ -->
         <c:if test="${tab == 'system'}">
-            <form method="post" action="/admin/settings/system">
+            <form method="post" action="${ctx}/admin/settings/system">
 
                 <!-- 수수료율 -->
                 <div class="set-card">
@@ -552,13 +555,13 @@
                                 <c:otherwise>
                                     <c:forEach var="log" items="${logList}">
                                         <tr>
-                                            <td class="text-muted">${log.l_created}</td>
-                                            <td>${log.a_name}</td>
+                                            <td class="text-muted">${log.alogCreated}</td>
+                                            <td>${log.admName}</td>
                                             <td>
-                                                <span class="badge bg-secondary">${log.l_action}</span>
+                                                <span class="badge bg-secondary">${log.alogAction}</span>
                                             </td>
-                                            <td class="text-muted">${log.l_detail}</td>
-                                            <td class="text-muted">${log.l_ip}</td>
+                                            <td class="text-muted">${log.alogDetail}</td>
+                                            <td class="text-muted">${log.alogIp}</td>
                                         </tr>
                                     </c:forEach>
                                 </c:otherwise>
@@ -573,19 +576,19 @@
                         <ul class="pagination pagination-sm mb-0">
                             <c:if test="${logPage > 1}">
                                 <li class="page-item">
-                                    <a class="page-link" href="/admin/settings?tab=system&logPage=${logPage - 1}">
+                                    <a class="page-link" href="${ctx}/admin/settings?tab=system&logPage=${logPage - 1}">
                                         <i class="bi bi-chevron-left"></i>
                                     </a>
                                 </li>
                             </c:if>
                             <c:forEach begin="1" end="${totalPage}" var="p">
                                 <li class="page-item ${p == logPage ? 'active' : ''}">
-                                    <a class="page-link" href="/admin/settings?tab=system&logPage=${p}">${p}</a>
+                                    <a class="page-link" href="${ctx}/admin/settings?tab=system&logPage=${p}">${p}</a>
                                 </li>
                             </c:forEach>
                             <c:if test="${logPage < totalPage}">
                                 <li class="page-item">
-                                    <a class="page-link" href="/admin/settings?tab=system&logPage=${logPage + 1}">
+                                    <a class="page-link" href="${ctx}/admin/settings?tab=system&logPage=${logPage + 1}">
                                         <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>
@@ -629,13 +632,13 @@
     }
 
     // ── 템플릿 모달 열기 (등록 or 수정) ────────────────────────
-    function openTemplateModal(t_idx, t_title, t_content) {
-        const isEdit = !!t_idx;
+    function openTemplateModal(tIdx, tTitle, tContent) {
+        const isEdit = !!tIdx;
         document.getElementById('templateModalTitle').textContent = isEdit ? '템플릿 수정' : '템플릿 등록';
         document.getElementById('templateModalBtn').textContent   = isEdit ? '수정' : '등록';
-        document.getElementById('modal_t_idx').value    = t_idx    || '';
-        document.getElementById('modal_t_title').value  = t_title  || '';
-        document.getElementById('modal_t_content').value = t_content || '';
+        document.getElementById('modal_t_idx').value    = tIdx    || '';
+        document.getElementById('modal_t_title').value  = tTitle  || '';
+        document.getElementById('modal_t_content').value = tContent || '';
         new bootstrap.Modal(document.getElementById('templateModal')).show();
     }
 
@@ -652,7 +655,7 @@
     function submitSystem() {
         document.getElementById('terms_content_hidden').value   = termsEditor?.getData()   || '';
         document.getElementById('privacy_content_hidden').value = privacyEditor?.getData() || '';
-        document.querySelector('form[action="/admin/settings/system"]').submit();
+        document.querySelector('form[action="${ctx}/admin/settings/system"]').submit();
     }
     </c:if>
 </script>

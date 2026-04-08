@@ -1,6 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -60,15 +62,17 @@
         <div class="sidebar-brand"><i class="bi bi-building me-2"></i>오피스 예약</div>
         <nav class="nav flex-column mt-2">
             <span class="nav-link text-white-50 small px-3 pt-3 pb-1">관리자 메뉴</span>
-            <a class="nav-link" href="/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
-            <a class="nav-link" href="/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
-            <a class="nav-link" href="/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
-            <a class="nav-link" href="/admin/space/list"><i class="bi bi-building"></i>오피스 관리</a>
-            <a class="nav-link" href="/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
-            <a class="nav-link" href="/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
-            <a class="nav-link active" href="/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
+            <a class="nav-link" href="${ctx}/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
+            <a class="nav-link" href="${ctx}/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
+            <a class="nav-link" href="${ctx}/admin/space/list"><i class="bi bi-building"></i>오피스 관리</a>
+            <a class="nav-link" href="${ctx}/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
+            <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
+            <a class="nav-link active" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
+            <a class="nav-link" href="${ctx}/partner/register/step1"><i class="bi bi-person-badge me-1"></i>파트너 등록</a>
             <hr class="border-secondary mx-3">
-            <a class="nav-link" href="/admin/settings"><i class="bi bi-gear"></i>설정</a>
+            <a class="nav-link" href="${ctx}/admin/settings"><i class="bi bi-gear"></i>설정</a>
         </nav>
     </div>
 
@@ -124,19 +128,19 @@
             <!-- 상태 필터 탭 -->
             <div class="section-header p-0">
                 <div class="d-flex">
-                    <a href="/admin/inquiry/list?nowPage=1&search_word=${inquiryVO.search_word}"
-                       class="filter-tab ${inquiryVO.status_filter == '' || inquiryVO.status_filter == null ? 'active' : ''}">
+                    <a href="${ctx}/admin/inquiry/list?nowPage=1&search_word=${inquiryVO.searchWord}"
+                       class="filter-tab ${inquiryVO.statusFilter == '' || inquiryVO.statusFilter == null ? 'active' : ''}">
                         전체
                     </a>
-                    <a href="/admin/inquiry/list?nowPage=1&status_filter=대기중&search_word=${inquiryVO.search_word}"
-                       class="filter-tab ${inquiryVO.status_filter == '대기중' ? 'active' : ''}">
+                    <a href="${ctx}/admin/inquiry/list?nowPage=1&statusFilter=PENDING&search_word=${inquiryVO.searchWord}"
+                       class="filter-tab ${inquiryVO.statusFilter == 'PENDING' ? 'active' : ''}">
                         <i class="bi bi-hourglass-split me-1 text-warning"></i>대기중
                         <c:if test="${pendingCount > 0}">
                             <span class="badge bg-danger rounded-pill ms-1" style="font-size:.7rem;">${pendingCount}</span>
                         </c:if>
                     </a>
-                    <a href="/admin/inquiry/list?nowPage=1&status_filter=답변완료&search_word=${inquiryVO.search_word}"
-                       class="filter-tab ${inquiryVO.status_filter == '답변완료' ? 'active' : ''}">
+                    <a href="${ctx}/admin/inquiry/list?nowPage=1&statusFilter=COMPLETE&search_word=${inquiryVO.searchWord}"
+                       class="filter-tab ${inquiryVO.statusFilter == 'COMPLETE' ? 'active' : ''}">
                         <i class="bi bi-check-circle me-1 text-success"></i>답변완료
                     </a>
                 </div>
@@ -144,20 +148,20 @@
 
             <!-- 검색 바 -->
             <div class="filter-bar">
-                <form method="get" action="/admin/inquiry/list" class="row g-2 align-items-end">
-                    <input type="hidden" name="status_filter" value="${inquiryVO.status_filter}">
+                <form method="get" action="${ctx}/admin/inquiry/list" class="row g-2 align-items-end">
+                    <input type="hidden" name="statusFilter" value="${inquiryVO.statusFilter}">
                     <div class="col-auto">
                         <div class="input-group input-group-sm">
-                            <input type="text" name="search_word" class="form-control"
+                            <input type="text" name="searchWord" class="form-control"
                                    placeholder="제목 또는 작성자 검색"
-                                   value="${inquiryVO.search_word}">
+                                   value="${inquiryVO.searchWord}">
                             <button class="btn btn-outline-secondary" type="submit">
                                 <i class="bi bi-search"></i>
                             </button>
                         </div>
                     </div>
                     <div class="col-auto">
-                        <a href="/admin/inquiry/list?status_filter=${inquiryVO.status_filter}"
+                        <a href="${ctx}/admin/inquiry/list?statusFilter=${inquiryVO.statusFilter}"
                            class="btn btn-outline-secondary btn-sm">초기화</a>
                     </div>
                 </form>
@@ -189,23 +193,23 @@
                             <c:otherwise>
                                 <c:forEach var="inq" items="${inquiryList}">
                                     <!-- 미답변 행은 배경 강조 -->
-                                    <tr class="${inq.i_status == '대기중' ? 'pending-row' : ''}"
-                                        onclick="location.href='/admin/inquiry/detail?i_idx=${inq.i_idx}&nowPage=${nowPage}&status_filter=${inquiryVO.status_filter}&search_word=${inquiryVO.search_word}'">
-                                        <td class="text-muted small">${inq.i_idx}</td>
+                                    <tr class="${inq.inqStatus == 'PENDING' ? 'pending-row' : ''}"
+                                        onclick="location.href='${ctx}/admin/inquiry/detail?inqIdx=${inq.inqIdx}&nowPage=${nowPage}&statusFilter=${inquiryVO.statusFilter}&searchWord=${inquiryVO.searchWord}'">
+                                        <td class="text-muted small">${inq.inqIdx}</td>
                                         <td>
-                                            <span class="badge bg-secondary">${inq.i_category}</span>
+                                            <span class="badge bg-secondary">${inq.inqCategory}</span>
                                         </td>
                                         <td>
                                             <!-- 미답변 강조 아이콘 -->
-                                            <c:if test="${inq.i_status == '대기중'}">
+                                            <c:if test="${inq.inqStatus == 'PENDING'}">
                                                 <i class="bi bi-exclamation-circle-fill text-warning me-1"></i>
                                             </c:if>
-                                            ${inq.i_title}
+                                            ${inq.inqTitle}
                                         </td>
-                                        <td class="small">${inq.u_name}</td>
+                                        <td class="small">${inq.userName}</td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${inq.i_status == '대기중'}">
+                                                <c:when test="${inq.inqStatus == 'PENDING'}">
                                                     <span class="badge badge-pending">대기중</span>
                                                 </c:when>
                                                 <c:otherwise>
@@ -213,10 +217,10 @@
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
-                                        <td class="text-muted small">${inq.i_created}</td>
+                                        <td class="text-muted small">${inq.inqCreated}</td>
                                         <td class="text-muted small">
                                             <c:choose>
-                                                <c:when test="${not empty inq.i_answered}">${inq.i_answered}</c:when>
+                                                <c:when test="${not empty inq.inqAnswered}">${inq.inqAnswered}</c:when>
                                                 <c:otherwise>-</c:otherwise>
                                             </c:choose>
                                         </td>
@@ -234,21 +238,21 @@
                     <ul class="pagination pagination-sm mb-0">
                         <c:if test="${beginBlock > 1}">
                             <li class="page-item">
-                                <a class="page-link" href="/admin/inquiry/list?nowPage=${beginBlock - 1}&status_filter=${inquiryVO.status_filter}&search_word=${inquiryVO.search_word}">
+                                <a class="page-link" href="${ctx}/admin/inquiry/list?nowPage=${beginBlock - 1}&statusFilter=${inquiryVO.statusFilter}&searchWord=${inquiryVO.searchWord}">
                                     <i class="bi bi-chevron-left"></i>
                                 </a>
                             </li>
                         </c:if>
                         <c:forEach begin="${beginBlock}" end="${endBlock}" var="page">
                             <li class="page-item ${page == nowPage ? 'active' : ''}">
-                                <a class="page-link" href="/admin/inquiry/list?nowPage=${page}&status_filter=${inquiryVO.status_filter}&search_word=${inquiryVO.search_word}">
+                                <a class="page-link" href="${ctx}/admin/inquiry/list?nowPage=${page}&statusFilter=${inquiryVO.statusFilter}&searchWord=${inquiryVO.searchWord}">
                                     ${page}
                                 </a>
                             </li>
                         </c:forEach>
                         <c:if test="${endBlock < totalPage}">
                             <li class="page-item">
-                                <a class="page-link" href="/admin/inquiry/list?nowPage=${endBlock + 1}&status_filter=${inquiryVO.status_filter}&search_word=${inquiryVO.search_word}">
+                                <a class="page-link" href="${ctx}/admin/inquiry/list?nowPage=${endBlock + 1}&statusFilter=${inquiryVO.statusFilter}&searchWord=${inquiryVO.searchWord}">
                                     <i class="bi bi-chevron-right"></i>
                                 </a>
                             </li>

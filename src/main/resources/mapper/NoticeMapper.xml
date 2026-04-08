@@ -4,79 +4,63 @@
 
 <mapper namespace="org.study.project05class.notice.mapper.NoticeMapper">
 
-    <!-- ─────────────────────────────────────────────────────────────
-         공통 검색 조건
-         ───────────────────────────────────────────────────────────── -->
+    <!-- 공통 검색 조건 -->
     <sql id="noticeSearchCondition">
         <where>
-            <!-- 제목 검색 -->
-            <if test="noticeVO.search_word != null and noticeVO.search_word != ''">
-                n_title LIKE CONCAT('%', #{noticeVO.search_word}, '%')
+            <if test="noticeVO.searchWord != null and noticeVO.searchWord != ''">
+                n_title LIKE CONCAT('%', #{noticeVO.searchWord}, '%')
             </if>
-            <!-- 고정 필터 (""=전체, "1"=고정만) -->
-            <if test="noticeVO.active_filter != null and noticeVO.active_filter != ''">
-                AND n_active = #{noticeVO.active_filter}
+            <if test="noticeVO.activeFilter != null and noticeVO.activeFilter != ''">
+                AND n_active = #{noticeVO.activeFilter}
             </if>
         </where>
     </sql>
 
-    <!-- ─────────────────────────────────────────────────────────────
-         전체 공지 수
-         ───────────────────────────────────────────────────────────── -->
+    <!-- 전체 공지 수 -->
     <select id="getNoticeCount" parameterType="map" resultType="int">
         SELECT COUNT(*)
           FROM notice
         <include refid="noticeSearchCondition"/>
     </select>
 
-    <!-- ─────────────────────────────────────────────────────────────
-         공지 목록 조회
-         - 고정 공지(n_active=1) 우선 정렬 → 최신순
-         - 예약 발행 처리: 관리자는 모든 공지 표시
-         ───────────────────────────────────────────────────────────── -->
+    <!-- 공지 목록 조회 -->
     <select id="getNoticeList" parameterType="map" resultType="NoticeVO">
-        SELECT n_idx,
-               n_title,
-               n_active,
-               DATE_FORMAT(n_created, '%Y-%m-%d %H:%i') AS n_created,
-               DATE_FORMAT(n_updated, '%Y-%m-%d %H:%i') AS n_updated,
-               a_idx
+        SELECT n_idx    AS ntc_idx,
+               n_title  AS ntc_title,
+               n_active AS ntc_active,
+               DATE_FORMAT(n_created, '%Y-%m-%d %H:%i') AS ntc_created,
+               DATE_FORMAT(n_updated, '%Y-%m-%d %H:%i') AS ntc_updated,
+               a_idx    AS adm_idx
           FROM notice
         <include refid="noticeSearchCondition"/>
          ORDER BY n_active DESC, n_created DESC
          LIMIT #{numPerPage} OFFSET #{offset}
     </select>
 
-    <!-- ─────────────────────────────────────────────────────────────
-         공지 단건 조회 (수정 폼용 - n_content 포함)
-         ───────────────────────────────────────────────────────────── -->
+    <!-- 공지 단건 조회 (수정 폼용 - n_content 포함) -->
     <select id="getNoticeDetail" parameterType="String" resultType="NoticeVO">
-        SELECT n_idx,
-               n_title,
-               n_content,
-               n_active,
-               DATE_FORMAT(n_created, '%Y-%m-%dT%H:%i') AS n_created,
-               DATE_FORMAT(n_updated, '%Y-%m-%d %H:%i') AS n_updated,
-               a_idx
+        SELECT n_idx     AS ntc_idx,
+               n_title   AS ntc_title,
+               n_content AS ntc_content,
+               n_active  AS ntc_active,
+               DATE_FORMAT(n_created, '%Y-%m-%dT%H:%i') AS ntc_created,
+               DATE_FORMAT(n_updated, '%Y-%m-%d %H:%i') AS ntc_updated,
+               a_idx     AS adm_idx
           FROM notice
-         WHERE n_idx = #{n_idx}
+         WHERE n_idx = #{ntcIdx}
     </select>
 
-    <!-- ─────────────────────────────────────────────────────────────
-         공지 등록
-         - n_created: 즉시 발행 = NOW(), 예약 발행 = 입력된 미래 날짜
-         ───────────────────────────────────────────────────────────── -->
+    <!-- 공지 등록 -->
     <insert id="insertNotice" parameterType="NoticeVO">
         INSERT INTO notice (a_idx, n_title, n_content, n_active, n_created, n_updated)
         VALUES (
-            #{a_idx},
-            #{n_title},
-            #{n_content},
-            #{n_active},
-            <!-- n_created 가 입력됐으면 그 값 사용(예약 발행), 없으면 NOW()(즉시 발행) -->
+            #{admIdx},
+            #{ntcTitle},
+            #{ntcContent},
+            #{ntcActive},
             <choose>
-                <when test="n_created != null and n_created != ''">
-                    #{n_created}
+                <when test="ntcCreated != null and ntcCreated != ''">
+                    #{ntcCreated}
                 </when>
                 <otherwise>
                     NOW()
@@ -86,37 +70,31 @@
         )
     </insert>
 
-    <!-- ─────────────────────────────────────────────────────────────
-         공지 수정
-         ───────────────────────────────────────────────────────────── -->
+    <!-- 공지 수정 -->
     <update id="updateNotice" parameterType="NoticeVO">
         UPDATE notice
-           SET n_title   = #{n_title},
-               n_content = #{n_content},
-               n_active  = #{n_active},
+           SET n_title   = #{ntcTitle},
+               n_content = #{ntcContent},
+               n_active  = #{ntcActive},
                n_created = <choose>
-                               <when test="n_created != null and n_created != ''">#{n_created}</when>
+                               <when test="ntcCreated != null and ntcCreated != ''">#{ntcCreated}</when>
                                <otherwise>n_created</otherwise>
                            </choose>,
                n_updated = NOW()
-         WHERE n_idx = #{n_idx}
+         WHERE n_idx = #{ntcIdx}
     </update>
 
-    <!-- ─────────────────────────────────────────────────────────────
-         고정 여부 토글 (n_active: 0→1, 1→0)
-         ───────────────────────────────────────────────────────────── -->
+    <!-- 고정 여부 토글 (n_active: 0→1, 1→0) -->
     <update id="toggleNoticeActive" parameterType="String">
         UPDATE notice
            SET n_active  = CASE WHEN n_active = 1 THEN 0 ELSE 1 END,
                n_updated = NOW()
-         WHERE n_idx = #{n_idx}
+         WHERE n_idx = #{ntcIdx}
     </update>
 
-    <!-- ─────────────────────────────────────────────────────────────
-         공지 삭제
-         ───────────────────────────────────────────────────────────── -->
+    <!-- 공지 삭제 -->
     <delete id="deleteNotice" parameterType="String">
-        DELETE FROM notice WHERE n_idx = #{n_idx}
+        DELETE FROM notice WHERE n_idx = #{ntcIdx}
     </delete>
 
 </mapper>

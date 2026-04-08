@@ -1,6 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -67,15 +69,17 @@
         <div class="sidebar-brand"><i class="bi bi-building me-2"></i>오피스 예약</div>
         <nav class="nav flex-column mt-2">
             <span class="nav-link text-white-50 small px-3 pt-3 pb-1">관리자 메뉴</span>
-            <a class="nav-link" href="/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
-            <a class="nav-link" href="/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
-            <a class="nav-link" href="/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
-            <a class="nav-link" href="/admin/space/list"><i class="bi bi-building"></i>오피스 관리</a>
-            <a class="nav-link active" href="/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
-            <a class="nav-link" href="/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
-            <a class="nav-link" href="/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
+            <a class="nav-link" href="${ctx}/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
+            <a class="nav-link" href="${ctx}/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
+            <a class="nav-link" href="${ctx}/admin/space/list"><i class="bi bi-building"></i>오피스 관리</a>
+            <a class="nav-link active" href="${ctx}/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
+            <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
+            <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
+            <a class="nav-link" href="${ctx}/partner/register/step1"><i class="bi bi-person-badge me-1"></i>파트너 등록</a>
             <hr class="border-secondary mx-3">
-            <a class="nav-link" href="/admin/settings"><i class="bi bi-gear"></i>설정</a>
+            <a class="nav-link" href="${ctx}/admin/settings"><i class="bi bi-gear"></i>설정</a>
         </nav>
     </div>
 
@@ -102,7 +106,7 @@
                 <div class="stats-card">
                     <c:set var="blindCnt" value="0"/>
                     <c:forEach var="r" items="${reviewList}">
-                        <c:if test="${r.v_active == '2'}"><c:set var="blindCnt" value="${blindCnt+1}"/></c:if>
+                        <c:if test="${r.revActive == '2'}"><c:set var="blindCnt" value="${blindCnt+1}"/></c:if>
                     </c:forEach>
                     <div class="number text-danger">${blindCnt}</div>
                     <div class="text-muted small mt-1">블라인드 (이 페이지)</div>
@@ -116,8 +120,8 @@
             </div>
             <div class="col-md-3">
                 <div class="stats-card">
-                    <div class="number text-secondary">${totalPage}</div>
-                    <div class="text-muted small mt-1">전체 페이지</div>
+                    <div class="number text-success">${answeredCount}</div>
+                    <div class="text-muted small mt-1">답변완료</div>
                 </div>
             </div>
         </div>
@@ -161,22 +165,22 @@
                             <tbody>
                                 <c:forEach var="rp" items="${reportList}">
                                     <tr>
-                                        <td class="ps-3">${rp.rr_idx}</td>
+                                        <td class="ps-3">${rp.rvrIdx}</td>
                                         <td>
                                             <span class="d-inline-block text-truncate" style="max-width:220px;"
-                                                  title="${rp.v_content}">
-                                                ${rp.v_content}
+                                                  title="${rp.revContent}">
+                                                ${rp.revContent}
                                             </span>
                                             <br>
                                             <small class="text-muted">
-                                                <i class="bi bi-building me-1"></i>${rp.s_name}
-                                                <c:if test="${rp.v_active == '2'}">
+                                                <i class="bi bi-building me-1"></i>${rp.spcName}
+                                                <c:if test="${rp.revActive == '2'}">
                                                     &nbsp;<span class="badge badge-blind rounded-pill">블라인드됨</span>
                                                 </c:if>
                                             </small>
                                         </td>
                                         <td>
-                                            <c:set var="rating" value="${rp.v_rating}"/>
+                                            <c:set var="rating" value="${rp.revRating}"/>
                                             <span class="stars">
                                                 <c:forEach begin="1" end="5" var="i">
                                                     <c:choose>
@@ -186,21 +190,21 @@
                                                 </c:forEach>
                                             </span>
                                         </td>
-                                        <td>${rp.writer_name}</td>
-                                        <td><strong>${rp.u_name}</strong></td>
+                                        <td>${rp.writerName}</td>
+                                        <td><strong>${rp.userName}</strong></td>
                                         <td>
                                             <span class="d-inline-block text-truncate" style="max-width:180px;"
-                                                  title="${rp.rr_reason}">${rp.rr_reason}</span>
+                                                  title="${rp.rvrReason}">${rp.rvrReason}</span>
                                         </td>
                                         <td>
-                                            <small>${rp.rr_created}</small>
+                                            <small>${rp.rvrCreated}</small>
                                         </td>
                                         <td class="text-center" onclick="event.stopPropagation()">
                                             <!-- 신고 처리 모달 열기 버튼 -->
                                             <button class="btn btn-sm btn-outline-danger py-0 px-2"
-                                                    onclick="openReportModal('${rp.rr_idx}','${rp.v_idx}',
-                                                        `${rp.v_content}`, '${rp.rr_reason}',
-                                                        '${rp.u_name}', '${rp.writer_name}')">
+                                                    onclick="openReportModal('${rp.rvrIdx}','${rp.revIdx}',
+                                                        `${rp.revContent}`, '${rp.rvrReason}',
+                                                        '${rp.userName}', '${rp.writerName}')">
                                                 <i class="bi bi-shield-exclamation me-1"></i>처리
                                             </button>
                                         </td>
@@ -217,7 +221,7 @@
                                     <c:forEach var="p" begin="1" end="${reportTotalPage}">
                                         <li class="page-item ${reportPage == p ? 'active' : ''}">
                                             <a class="page-link"
-                                               href="/admin/review/list?reportPage=${p}&nowPage=${nowPage}&rating_filter=${reviewVO.rating_filter}&blind_filter=${reviewVO.blind_filter}&search_word=${reviewVO.search_word}">
+                                               href="${ctx}/admin/review/list?reportPage=${p}&nowPage=${nowPage}&rating_filter=${reviewVO.ratingFilter}&blind_filter=${reviewVO.blindFilter}&searchWord=${reviewVO.searchWord}">
                                                 ${p}
                                             </a>
                                         </li>
@@ -236,14 +240,14 @@
         <div class="section-card">
             <!-- 필터 바 -->
             <div class="filter-bar">
-                <form method="get" action="/admin/review/list" class="row g-2 align-items-end">
+                <form method="get" action="${ctx}/admin/review/list" class="row g-2 align-items-end">
                     <!-- 별점 필터 -->
                     <div class="col-auto">
                         <label class="form-label small mb-1">별점</label>
-                        <select name="rating_filter" class="form-select form-select-sm">
+                        <select name="ratingFilter" class="form-select form-select-sm">
                             <option value="">전체</option>
                             <c:forEach begin="1" end="5" var="i">
-                                <option value="${i}" ${reviewVO.rating_filter == i.toString() ? 'selected':''}>
+                                <option value="${i}" ${reviewVO.ratingFilter == i.toString() ? 'selected':''}>
                                     ${i}점
                                 </option>
                             </c:forEach>
@@ -252,32 +256,41 @@
                     <!-- 블라인드 여부 필터 -->
                     <div class="col-auto">
                         <label class="form-label small mb-1">상태</label>
-                        <select name="blind_filter" class="form-select form-select-sm">
+                        <select name="blindFilter" class="form-select form-select-sm">
                             <option value="">전체</option>
-                            <option value="0" ${reviewVO.blind_filter == '0' ? 'selected':''}>정상</option>
-                            <option value="2" ${reviewVO.blind_filter == '2' ? 'selected':''}>블라인드</option>
+                            <option value="0" ${reviewVO.blindFilter == '0' ? 'selected':''}>정상</option>
+                            <option value="2" ${reviewVO.blindFilter == '2' ? 'selected':''}>블라인드</option>
+                        </select>
+                    </div>
+                    <!-- 답변 여부 필터 -->
+                    <div class="col-auto">
+                        <label class="form-label small mb-1">답변</label>
+                        <select name="answerFilter" class="form-select form-select-sm">
+                            <option value="">전체</option>
+                            <option value="Y" ${reviewVO.answerFilter == 'Y' ? 'selected':''}>답변완료</option>
+                            <option value="N" ${reviewVO.answerFilter == 'N' ? 'selected':''}>미답변</option>
                         </select>
                     </div>
                     <!-- 신고 우선 정렬 -->
                     <div class="col-auto d-flex align-items-end pb-1">
                         <div class="form-check mb-0">
-                            <input class="form-check-input" type="checkbox" name="sort_reported"
+                            <input class="form-check-input" type="checkbox" name="sortReported"
                                    id="sortReported" value="1"
-                                   ${reviewVO.sort_reported == '1' ? 'checked':''}>
+                                   ${reviewVO.sortReported == '1' ? 'checked':''}>
                             <label class="form-check-label small" for="sortReported">신고 많은 순</label>
                         </div>
                     </div>
                     <!-- 검색어 -->
                     <div class="col">
                         <label class="form-label small mb-1">검색 (작성자 / 내용)</label>
-                        <input type="text" name="search_word" value="${reviewVO.search_word}"
-                               class="form-control form-control-sm" placeholder="검색어를 입력하세요">
+                        <input type="text" name="searchWord" value="${reviewVO.searchWord}"
+                               class="form-control form-control-sm" placeholder="작성자 이름 또는 공간명">
                     </div>
                     <div class="col-auto">
                         <button type="submit" class="btn btn-primary btn-sm">
                             <i class="bi bi-search me-1"></i>검색
                         </button>
-                        <a href="/admin/review/list" class="btn btn-outline-secondary btn-sm ms-1">
+                        <a href="${ctx}/admin/review/list" class="btn btn-outline-secondary btn-sm ms-1">
                             <i class="bi bi-arrow-counterclockwise me-1"></i>초기화
                         </a>
                     </div>
@@ -288,9 +301,8 @@
             <div class="section-header">
                 <span class="small text-muted">
                     총 <strong>${totalRecord}</strong>개 리뷰
-                    (처리완료 제외)
-                    <c:if test="${not empty reviewVO.search_word}">
-                        · 검색: <strong>${reviewVO.search_word}</strong>
+                    <c:if test="${not empty reviewVO.searchWord}">
+                        · 검색: <strong>${reviewVO.searchWord}</strong>
                     </c:if>
                 </span>
                 <span class="small text-muted">${nowPage} / ${totalPage} 페이지</span>
@@ -316,24 +328,27 @@
                                     <th style="width:120px;">공간</th>
                                     <th style="width:70px;">신고</th>
                                     <th style="width:80px;">상태</th>
+                                    <th style="width:85px;">답변</th>
                                     <th style="width:95px;">작성일</th>
                                     <th class="text-center" style="width:180px;">관리</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <c:forEach var="r" items="${reviewList}">
-                                    <tr class="${r.report_cnt > 0 ? 'has-report' : ''}">
-                                        <td class="ps-3">${r.v_idx}</td>
+                                    <tr class="${r.reportCnt > 0 ? 'has-report' : ''}"
+                                        onclick="location.href='${ctx}/admin/review/detail?revIdx=${r.revIdx}&nowPage=${nowPage}&ratingFilter=${reviewVO.ratingFilter}&blindFilter=${reviewVO.blindFilter}&searchWord=${reviewVO.searchWord}'"
+                                        style="cursor:pointer;">
+                                        <td class="ps-3">${r.revIdx}</td>
                                         <td>
                                             <span class="d-inline-block text-truncate" style="max-width:260px;"
-                                                  title="${r.v_content}">${r.v_content}</span>
+                                                  title="${r.revContent}">${r.revContent}</span>
                                             <!-- 관리자 답글 표시 -->
-                                            <c:if test="${not empty r.admin_reply}">
+                                            <c:if test="${not empty r.adminReply}">
                                                 <br>
                                                 <small class="text-primary">
                                                     <i class="bi bi-reply-fill me-1"></i>
                                                     <span class="d-inline-block text-truncate" style="max-width:240px;"
-                                                          title="${r.admin_reply}">${r.admin_reply}</span>
+                                                          title="${r.adminReply}">${r.adminReply}</span>
                                                 </small>
                                             </c:if>
                                         </td>
@@ -342,21 +357,21 @@
                                             <span class="stars">
                                                 <c:forEach begin="1" end="5" var="i">
                                                     <c:choose>
-                                                        <c:when test="${i <= r.v_rating}">★</c:when>
+                                                        <c:when test="${i <= r.revRating}">★</c:when>
                                                         <c:otherwise><span class="stars-empty">★</span></c:otherwise>
                                                     </c:choose>
                                                 </c:forEach>
                                             </span>
-                                            <small class="text-muted ms-1">${r.v_rating}점</small>
+                                            <small class="text-muted ms-1">${r.revRating}점</small>
                                         </td>
-                                        <td>${r.u_name}</td>
+                                        <td>${r.userName}</td>
                                         <td>
-                                            <small>${r.s_name}</small>
+                                            <small>${r.spcName}</small>
                                         </td>
                                         <td class="text-center">
                                             <c:choose>
-                                                <c:when test="${r.report_cnt > 0}">
-                                                    <span class="badge bg-danger rounded-pill">${r.report_cnt}</span>
+                                                <c:when test="${r.reportCnt > 0}">
+                                                    <span class="badge bg-danger rounded-pill">${r.reportCnt}</span>
                                                 </c:when>
                                                 <c:otherwise>
                                                     <span class="text-muted small">-</span>
@@ -366,7 +381,7 @@
                                         <td>
                                             <!-- v_active: 0=정상, 2=블라인드 -->
                                             <c:choose>
-                                                <c:when test="${r.v_active == '2'}">
+                                                <c:when test="${r.revActive == '2'}">
                                                     <span class="badge badge-blind rounded-pill">블라인드</span>
                                                 </c:when>
                                                 <c:otherwise>
@@ -374,23 +389,33 @@
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
-                                        <td><small>${r.v_created_at}</small></td>
+                                        <td>
+                                            <c:choose>
+                                                <c:when test="${not empty r.adminReply}">
+                                                    <span class="badge badge-done rounded-pill">답변완료</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge badge-pending rounded-pill">미답변</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td><small>${r.revCreatedAt}</small></td>
                                         <td class="text-center" onclick="event.stopPropagation()">
                                             <!-- 답글 버튼 -->
                                             <button class="btn btn-outline-primary btn-sm py-0 px-2"
-                                                    onclick="openReplyModal('${r.v_idx}', `${r.v_content}`, '${r.u_name}')">
+                                                    onclick="openReplyModal('${r.revIdx}', `${r.revContent}`, '${r.userName}')">
                                                 <i class="bi bi-reply"></i>
                                             </button>
                                             <!-- 블라인드 처리/해제 버튼 -->
                                             <c:choose>
-                                                <c:when test="${r.v_active == '2'}">
+                                                <c:when test="${r.revActive == '2'}">
                                                     <!-- 블라인드 해제 -->
-                                                    <form method="post" action="/admin/review/unblind" class="d-inline ms-1">
-                                                        <input type="hidden" name="v_idx" value="${r.v_idx}">
+                                                    <form method="post" action="${ctx}/admin/review/unblind" class="d-inline ms-1">
+                                                        <input type="hidden" name="revIdx" value="${r.revIdx}">
                                                         <input type="hidden" name="nowPage" value="${nowPage}">
-                                                        <input type="hidden" name="rating_filter" value="${reviewVO.rating_filter}">
-                                                        <input type="hidden" name="blind_filter"  value="${reviewVO.blind_filter}">
-                                                        <input type="hidden" name="search_word"   value="${reviewVO.search_word}">
+                                                        <input type="hidden" name="ratingFilter" value="${reviewVO.ratingFilter}">
+                                                        <input type="hidden" name="blindFilter"  value="${reviewVO.blindFilter}">
+                                                        <input type="hidden" name="searchWord" value="${reviewVO.searchWord}">
                                                         <button type="submit" class="btn btn-outline-success btn-sm py-0 px-2"
                                                                 title="블라인드 해제"
                                                                 onclick="return confirm('블라인드를 해제하시겠습니까?')">
@@ -400,12 +425,12 @@
                                                 </c:when>
                                                 <c:otherwise>
                                                     <!-- 블라인드 처리 -->
-                                                    <form method="post" action="/admin/review/blind" class="d-inline ms-1">
-                                                        <input type="hidden" name="v_idx" value="${r.v_idx}">
+                                                    <form method="post" action="${ctx}/admin/review/blind" class="d-inline ms-1">
+                                                        <input type="hidden" name="revIdx" value="${r.revIdx}">
                                                         <input type="hidden" name="nowPage" value="${nowPage}">
-                                                        <input type="hidden" name="rating_filter" value="${reviewVO.rating_filter}">
-                                                        <input type="hidden" name="blind_filter"  value="${reviewVO.blind_filter}">
-                                                        <input type="hidden" name="search_word"   value="${reviewVO.search_word}">
+                                                        <input type="hidden" name="ratingFilter" value="${reviewVO.ratingFilter}">
+                                                        <input type="hidden" name="blindFilter"  value="${reviewVO.blindFilter}">
+                                                        <input type="hidden" name="searchWord" value="${reviewVO.searchWord}">
                                                         <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2"
                                                                 title="블라인드 처리"
                                                                 onclick="return confirm('이 리뷰를 블라인드 처리하시겠습니까?')">
@@ -430,7 +455,7 @@
                         <c:if test="${beginBlock > 1}">
                             <li class="page-item">
                                 <a class="page-link"
-                                   href="/admin/review/list?nowPage=${beginBlock-1}&rating_filter=${reviewVO.rating_filter}&blind_filter=${reviewVO.blind_filter}&search_word=${reviewVO.search_word}&sort_reported=${reviewVO.sort_reported}">
+                                   href="${ctx}/admin/review/list?nowPage=${beginBlock-1}&rating_filter=${reviewVO.ratingFilter}&blind_filter=${reviewVO.blindFilter}&searchWord=${reviewVO.searchWord}&sort_reported=${reviewVO.sortReported}">
                                     <i class="bi bi-chevron-left"></i>
                                 </a>
                             </li>
@@ -438,7 +463,7 @@
                         <c:forEach var="p" begin="${beginBlock}" end="${endBlock}">
                             <li class="page-item ${nowPage == p ? 'active' : ''}">
                                 <a class="page-link"
-                                   href="/admin/review/list?nowPage=${p}&rating_filter=${reviewVO.rating_filter}&blind_filter=${reviewVO.blind_filter}&search_word=${reviewVO.search_word}&sort_reported=${reviewVO.sort_reported}">
+                                   href="${ctx}/admin/review/list?nowPage=${p}&rating_filter=${reviewVO.ratingFilter}&blind_filter=${reviewVO.blindFilter}&searchWord=${reviewVO.searchWord}&sort_reported=${reviewVO.sortReported}">
                                     ${p}
                                 </a>
                             </li>
@@ -446,7 +471,7 @@
                         <c:if test="${endBlock < totalPage}">
                             <li class="page-item">
                                 <a class="page-link"
-                                   href="/admin/review/list?nowPage=${endBlock+1}&rating_filter=${reviewVO.rating_filter}&blind_filter=${reviewVO.blind_filter}&search_word=${reviewVO.search_word}&sort_reported=${reviewVO.sort_reported}">
+                                   href="${ctx}/admin/review/list?nowPage=${endBlock+1}&rating_filter=${reviewVO.ratingFilter}&blind_filter=${reviewVO.blindFilter}&searchWord=${reviewVO.searchWord}&sort_reported=${reviewVO.sortReported}">
                                     <i class="bi bi-chevron-right"></i>
                                 </a>
                             </li>
@@ -473,12 +498,12 @@
                 </h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="post" action="/admin/review/reply">
-                <input type="hidden" name="v_idx" id="reply_v_idx">
+            <form method="post" action="${ctx}/admin/review/reply">
+                <input type="hidden" name="revIdx" id="reply_rev_idx">
                 <input type="hidden" name="nowPage" value="${nowPage}">
-                <input type="hidden" name="rating_filter" value="${reviewVO.rating_filter}">
-                <input type="hidden" name="blind_filter"  value="${reviewVO.blind_filter}">
-                <input type="hidden" name="search_word"   value="${reviewVO.search_word}">
+                <input type="hidden" name="ratingFilter" value="${reviewVO.ratingFilter}">
+                <input type="hidden" name="blindFilter"  value="${reviewVO.blindFilter}">
+                <input type="hidden" name="searchWord" value="${reviewVO.searchWord}">
                 <div class="modal-body">
                     <!-- 원본 리뷰 미리보기 -->
                     <p class="small text-muted mb-2">작성자: <strong id="reply_writer"></strong></p>
@@ -547,9 +572,9 @@
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">취소</button>
                 <div class="d-flex gap-2">
                     <!-- 반려 처리 폼 -->
-                    <form method="post" action="/admin/review/reportDismiss" id="dismissForm">
-                        <input type="hidden" name="rr_idx" id="dismiss_rr_idx">
-                        <input type="hidden" name="rr_admin_reply" id="dismiss_reply">
+                    <form method="post" action="${ctx}/admin/review/reportDismiss" id="dismissForm">
+                        <input type="hidden" name="rvrIdx" id="dismiss_rr_idx">
+                        <input type="hidden" name="rvrAdminReply" id="dismiss_reply">
                         <input type="hidden" name="nowPage" value="${nowPage}">
                         <button type="button" class="btn btn-outline-secondary btn-sm"
                                 onclick="submitReport('dismiss')">
@@ -557,10 +582,10 @@
                         </button>
                     </form>
                     <!-- 블라인드 처리 폼 -->
-                    <form method="post" action="/admin/review/reportBlind" id="blindForm">
-                        <input type="hidden" name="rr_idx" id="blind_rr_idx">
-                        <input type="hidden" name="v_idx"  id="blind_v_idx">
-                        <input type="hidden" name="rr_admin_reply" id="blind_reply">
+                    <form method="post" action="${ctx}/admin/review/reportBlind" id="blindForm">
+                        <input type="hidden" name="rvrIdx" id="blind_rr_idx">
+                        <input type="hidden" name="revIdx"  id="blind_rev_idx">
+                        <input type="hidden" name="rvrAdminReply" id="blind_reply">
                         <input type="hidden" name="nowPage" value="${nowPage}">
                         <button type="button" class="btn btn-danger btn-sm"
                                 onclick="submitReport('blind')">
@@ -582,7 +607,7 @@
        - writer    : 리뷰 작성자명
     ───────────────────────────────────────────────────────── */
     function openReplyModal(v_idx, content, writer) {
-        document.getElementById('reply_v_idx').value = v_idx;
+        document.getElementById('reply_rev_idx').value = v_idx;
         document.getElementById('reply_writer').textContent = writer;
         document.getElementById('reply_content_box').textContent = content;
         new bootstrap.Modal(document.getElementById('replyModal')).show();
@@ -601,7 +626,7 @@
         /* 신고 폼 값 주입 */
         document.getElementById('dismiss_rr_idx').value = rr_idx;
         document.getElementById('blind_rr_idx').value   = rr_idx;
-        document.getElementById('blind_v_idx').value    = v_idx;
+        document.getElementById('blind_rev_idx').value    = v_idx;
 
         /* 모달 내용 표시 */
         document.getElementById('rp_writer').textContent  = writer;

@@ -38,21 +38,21 @@ public class InquiryServiceImpl implements InquiryService {
 
     /** 문의 단건 상세 조회 */
     @Override
-    public InquiryVO getInquiryDetail(String i_idx) {
-        return inquiryMapper.getInquiryDetail(i_idx);
+    public InquiryVO getInquiryDetail(String iIdx) {
+        return inquiryMapper.getInquiryDetail(iIdx);
     }
 
     /**
      * 답변 저장
-     * - i_answer 저장
-     * - i_status = 'COMPLETE' 자동 변경
-     * - i_answered = NOW()
+     * - iAnswer 저장
+     * - iStatus = 'COMPLETE' 자동 변경
+     * - iAnswered = NOW()
      */
     @Override
-    public int saveAnswer(String i_idx, String answer) {
+    public int saveAnswer(String iIdx, String answer) {
         Map<String, Object> map = new HashMap<>();
-        map.put("i_idx",   i_idx);
-        map.put("i_answer", answer);
+        map.put("inqIdx",    iIdx);
+        map.put("inqAnswer", answer);
         return inquiryMapper.saveAnswer(map);
     }
 

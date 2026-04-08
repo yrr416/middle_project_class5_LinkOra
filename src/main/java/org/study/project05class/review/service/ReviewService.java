@@ -15,6 +15,9 @@ public interface ReviewService {
     /** 전체 리뷰 수 (필터 포함) */
     int getReviewCount(ReviewVO reviewVO);
 
+    /** 답변완료 리뷰 수 */
+    int getAnsweredReviewCount();
+
     /** 리뷰 목록 조회 (페이징 + 필터) */
     List<ReviewVO> getReviewList(int numPerPage, int offset, ReviewVO reviewVO);
 
@@ -59,4 +62,16 @@ public interface ReviewService {
      * - review_report.rr_status = 'DISMISSED' + rr_admin_reply 저장
      */
     int processReportDismiss(String rr_idx, String adminReply);
+
+    /** 특정 리뷰의 전체 신고 목록 조회 */
+    List<ReviewReportVO> getReportsByRevIdx(String revIdx);
+
+    /** 리뷰 삭제 (관련 답글 포함) */
+    int deleteReview(String revIdx);
+
+    /** 관리자 답글 수정 */
+    int updateAdminReply(String revIdx, String replyContent);
+
+    /** 관리자 답글 삭제 */
+    int deleteAdminReply(String revIdx);
 }

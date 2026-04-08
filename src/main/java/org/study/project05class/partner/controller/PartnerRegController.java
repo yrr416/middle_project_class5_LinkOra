@@ -1,0 +1,173 @@
+package org.study.project05class.partner.controller;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.support.SessionStatus;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.study.project05class.partner.service.PartnerRegService;
+import org.study.project05class.partner.vo.BranchRegVO;
+import org.study.project05class.partner.vo.SpaceRegVO;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+// 파트너 오피스 등록 5단계 위자드 컨트롤러
+@Controller
+@RequestMapping("/partner/register")
+@SessionAttributes({"branchVO", "spaceList"})
+@RequiredArgsConstructor
+public class PartnerRegController {
+
+    private final PartnerRegService partnerRegService;
+    private final ObjectMapper objectMapper;
+
+    /* ──────────────────────────────────────────────
+       Step1 : 기본 정보 입력
+    ────────────────────────────────────────────── */
+    @GetMapping("/step1")
+    public String step1Get(Model model) {
+        // 세션에 없으면 새 VO 세팅
+        if (!model.containsAttribute("branchVO")) {
+            model.addAttribute("branchVO", new BranchRegVO());
+        }
+        return "partner/step1";
+    }
+
+    @PostMapping("/step1")
+    public String step1Post(@ModelAttribute("branchVO") BranchRegVO branchVO,
+                            @RequestParam String brnName,
+                            @RequestParam String brnDescription,
+                            @RequestParam String roadAddress,
+                            @RequestParam String detailAddress,
+                            @RequestParam String brnPhone,
+                            @RequestParam(required = false, defaultValue = "") String brnSns) {
+        // 폼 값 세팅
+        branchVO.setPtnIdx(1); // 임시 고정 파트너 (실제 서비스에서는 세션 로그인 파트너 ptnIdx 사용)
+        branchVO.setBrnName(brnName);
+        branchVO.setBrnDescription(brnDescription);
+        branchVO.setRoadAddress(roadAddress);
+        branchVO.setDetailAddress(detailAddress);
+        branchVO.setBrnAddress(roadAddress + " " + detailAddress);
+        branchVO.setBrnPhone(brnPhone);
+        branchVO.setBrnSns(brnSns);
+
+        // DB 저장 (useGeneratedKeys 로 bIdx 자동 세팅)
+        partnerRegService.saveBranchBasic(branchVO);
+
+        return "redirect:/partner/register/step2";
+    }
+
+    /* ──────────────────────────────────────────────
+       Step2 : 운영 정보 입력
+    ────────────────────────────────────────────── */
+    @GetMapping("/step2")
+    public String step2Get(@ModelAttribute("branchVO") BranchRegVO branchVO) {
+        return "partner/step2";
+    }
+
+    @PostMapping("/step2")
+    public String step2Post(@ModelAttribute("branchVO") BranchRegVO branchVO,
+                            @RequestParam String operDays,
+                            @RequestParam String operStart,
+                            @RequestParam String operEnd,
+                            @RequestParam(required = false, defaultValue = "false") boolean holidayOp,
+                            @RequestParam String minUnit,
+                            @RequestParam int maxDays) {
+        branchVO.setOperDays(operDays);
+        branchVO.setOperStart(operStart);
+        branchVO.setOperEnd(operEnd);
+        branchVO.setHolidayOp(holidayOp);
+        branchVO.setMinUnit(minUnit);
+        branchVO.setMaxDays(maxDays);
+
+        // 운영시간 문자열 조합
+        branchVO.setBrnHours(operDays + " " + operStart + "~" + operEnd);
+
+        partnerRegService.saveBranchOper(branchVO);
+
+        return "redirect:/partner/register/step3";
+    }
+
+    /* ──────────────────────────────────────────────
+       Step3 : 공간(룸) 등록
+    ────────────────────────────────────────────── */
+    @GetMapping("/step3")
+    public String step3Get(@ModelAttribute("branchVO") BranchRegVO branchVO, Model model) {
+        if (!model.containsAttribute("spaceList")) {
+            model.addAttribute("spaceList", new ArrayList<SpaceRegVO>());
+        }
+        return "partner/step3";
+    }
+
+    @PostMapping("/step3")
+    public String step3Post(@ModelAttribute("branchVO") BranchRegVO branchVO,
+                            @RequestParam String spacesJson) throws Exception {
+        // JSON 으로 전달된 공간 목록 파싱
+        List<SpaceRegVO> spaceList = objectMapper.readValue(spacesJson,
+                new TypeReference<List<SpaceRegVO>>() {});
+
+        partnerRegService.saveSpaces(spaceList, branchVO.getBrnIdx());
+
+        return "redirect:/partner/register/step4";
+    }
+
+    /* ──────────────────────────────────────────────
+       Step4 : 사진 업로드
+    ────────────────────────────────────────────── */
+    @GetMapping("/step4")
+    public String step4Get(@ModelAttribute("branchVO") BranchRegVO branchVO, Model model) {
+        // 등록된 공간 목록 조회
+        List<SpaceRegVO> spaceList = partnerRegService.getSpacesByBranchId(branchVO.getBrnIdx());
+        model.addAttribute("spaceList", spaceList);
+        return "partner/step4";
+    }
+
+    @PostMapping("/step4")
+    public String step4Post(@ModelAttribute("branchVO") BranchRegVO branchVO,
+                            @RequestParam String branchImgsJson,
+                            @RequestParam String spaceImgsJson) throws Exception {
+        List<Map<String, Object>> branchImgs = objectMapper.readValue(branchImgsJson,
+                new TypeReference<List<Map<String, Object>>>() {});
+        List<Map<String, Object>> spaceImgs = objectMapper.readValue(spaceImgsJson,
+                new TypeReference<List<Map<String, Object>>>() {});
+
+        partnerRegService.saveImages(branchVO.getBrnIdx(), branchImgs, spaceImgs);
+
+        return "redirect:/partner/register/step5";
+    }
+
+    /* ──────────────────────────────────────────────
+       Step5 : 최종 검토 및 제출
+    ────────────────────────────────────────────── */
+    @GetMapping("/step5")
+    public String step5Get(@ModelAttribute("branchVO") BranchRegVO branchVO, Model model) {
+        BranchRegVO branch = partnerRegService.getBranchById(branchVO.getBrnIdx());
+        List<SpaceRegVO> spaceList = partnerRegService.getSpacesByBranchId(branchVO.getBrnIdx());
+        model.addAttribute("branch", branch);
+        model.addAttribute("spaceList", spaceList);
+        return "partner/step5";
+    }
+
+    @PostMapping("/submit")
+    public String submit(@ModelAttribute("branchVO") BranchRegVO branchVO,
+                         SessionStatus sessionStatus,
+                         RedirectAttributes ra) {
+        partnerRegService.submitRegistration(branchVO.getBrnIdx());
+        sessionStatus.setComplete(); // 세션 정리
+        ra.addFlashAttribute("msg", "오피스 등록 신청이 완료되었습니다. 관리자 승인 후 게시됩니다.");
+        return "redirect:/partner/register/complete";
+    }
+
+    /* ──────────────────────────────────────────────
+       완료 페이지
+    ────────────────────────────────────────────── */
+    @GetMapping("/complete")
+    public String complete() {
+        return "partner/complete";
+    }
+}

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05class.partner.mapper.PartnerRegMapper">
+
+    <!-- 지점 INSERT (useGeneratedKeys 로 PK 자동 반환) -->
+    <insert id="insertBranch" parameterType="org.study.project05class.partner.vo.BranchRegVO"
+            useGeneratedKeys="true" keyProperty="brnIdx">
+        INSERT INTO branch (p_idx, b_name, b_description, b_file, b_address, b_phone, b_sns, b_hours, b_active, b_created)
+        VALUES (#{ptnIdx}, #{brnName}, #{brnDescription}, '', #{brnAddress}, #{brnPhone}, #{brnSns}, '', 0, NOW())
+    </insert>
+
+    <!-- 운영 정보 UPDATE (Step2) -->
+    <update id="updateBranchOper" parameterType="org.study.project05class.partner.vo.BranchRegVO">
+        UPDATE branch
+        SET b_hours = #{brnHours}
+        WHERE b_idx = #{brnIdx}
+    </update>
+
+    <!-- 공간 INSERT -->
+    <insert id="insertSpace" parameterType="org.study.project05class.partner.vo.SpaceRegVO"
+            useGeneratedKeys="true" keyProperty="spcIdx">
+        INSERT INTO space (b_idx, s_type, s_name, s_price, s_max_capacity, s_description, s_active, s_created)
+        VALUES (#{brnIdx}, #{spcType}, #{spcName}, #{spcPrice}, #{spcMaxCapacity}, #{spcDescription}, 0, NOW())
+    </insert>
+
+    <!-- 시설 정보 INSERT -->
+    <insert id="insertFacilities" parameterType="org.study.project05class.partner.vo.SpaceRegVO">
+        INSERT INTO facilities (s_idx, f_cafe, f_desk, f_delivery, f_water, f_24hours,
+                                f_kitchen, f_display, f_storage, f_parking, f_fax, f_pet, f_lounge)
+        VALUES (#{spcIdx}, #{facCafe}, #{facDesk}, #{facDelivery}, #{facWater}, #{fac24hours},
+                #{facKitchen}, #{facDisplay}, #{facStorage}, #{facParking}, #{facFax}, #{facPet}, #{facLounge})
+    </insert>
+
+    <!-- 지점 대표 이미지 URL 업데이트 -->
+    <update id="updateBranchImgUrl">
+        UPDATE branch SET b_url = #{brnUrl} WHERE b_idx = #{brnIdx}
+    </update>
+
+    <!-- 지점 이미지 INSERT -->
+    <insert id="insertBranchImg" parameterType="map">
+        INSERT INTO branch_img (b_idx, bi_url, bi_order, bi_is_main, bi_created)
+        VALUES (#{brnIdx}, #{briUrl}, #{briOrder}, #{briIsMain}, NOW())
+    </insert>
+
+    <!-- 공간 이미지 INSERT -->
+    <insert id="insertSpaceImg" parameterType="map">
+        INSERT INTO space_img (s_idx, si_url, si_order, si_is_main, si_created)
+        VALUES (#{spcIdx}, #{spiUrl}, #{spiOrder}, #{spiIsMain}, NOW())
+    </insert>
+
+    <!-- 지점 활성화 -->
+    <update id="activateBranch">
+        UPDATE branch SET b_active = 1 WHERE b_idx = #{brnIdx}
+    </update>
+
+    <!-- 지점 단건 조회 -->
+    <select id="selectBranchById" resultType="org.study.project05class.partner.vo.BranchRegVO">
+        SELECT b_idx         AS brn_idx,
+               p_idx         AS ptn_idx,
+               b_name        AS brn_name,
+               b_description AS brn_description,
+               b_address     AS brn_address,
+               b_phone       AS brn_phone,
+               b_sns         AS brn_sns,
+               b_hours       AS brn_hours,
+               b_active      AS brn_active,
+               b_url         AS brn_url
+        FROM branch
+        WHERE b_idx = #{brnIdx}
+    </select>
+
+    <!-- 지점 소속 공간 목록 조회 -->
+    <select id="selectSpacesByBranchId" resultType="org.study.project05class.partner.vo.SpaceRegVO">
+        SELECT s_idx          AS spc_idx,
+               b_idx          AS brn_idx,
+               s_type         AS spc_type,
+               s_name         AS spc_name,
+               s_price        AS spc_price,
+               s_max_capacity AS spc_max_capacity,
+               s_description  AS spc_description,
+               s_img          AS spc_img,
+               s_active       AS spc_active
+        FROM space
+        WHERE b_idx = #{brnIdx}
+        ORDER BY s_idx
+    </select>
+
+</mapper>

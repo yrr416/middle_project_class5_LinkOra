@@ -27,7 +27,7 @@ public class SettingsServiceImpl implements SettingsService {
         Map<String, String> result = new HashMap<>();
         List<Map<String, String>> list = settingsMapper.getAllSettings();
         for (Map<String, String> row : list) {
-            result.put(row.get("s_key"), row.get("s_value"));
+            result.put(row.get("sKey"), row.get("sValue"));
         }
         return result;
     }
@@ -36,8 +36,8 @@ public class SettingsServiceImpl implements SettingsService {
     @Override
     public int saveSetting(String key, String value) {
         Map<String, String> map = new HashMap<>();
-        map.put("s_key", key);
-        map.put("s_value", value);
+        map.put("sKey", key);
+        map.put("sValue", value);
         return settingsMapper.upsertSetting(map);
     }
 
@@ -63,10 +63,10 @@ public class SettingsServiceImpl implements SettingsService {
     @Override
     public int updateAdminInfo(String a_idx, String a_name, String a_email, String a_phone) {
         Map<String, Object> map = new HashMap<>();
-        map.put("a_idx",   a_idx);
-        map.put("a_name",  a_name);
-        map.put("a_email", a_email);
-        map.put("a_phone", a_phone);
+        map.put("aIdx",   a_idx);
+        map.put("aName",  a_name);
+        map.put("aEmail", a_email);
+        map.put("aPhone", a_phone);
         return settingsMapper.updateAdminInfo(map);
     }
 
@@ -80,12 +80,12 @@ public class SettingsServiceImpl implements SettingsService {
         Map<String, Object> adminInfo = settingsMapper.getAdminInfo(a_idx);
         if (adminInfo == null) return false;
 
-        String storedPwd = String.valueOf(adminInfo.get("a_pwd"));
+        String storedPwd = String.valueOf(adminInfo.get("aPwd"));
         if (!storedPwd.equals(currentPwd)) return false; // 현재 비밀번호 불일치
 
         Map<String, Object> map = new HashMap<>();
-        map.put("a_idx",  a_idx);
-        map.put("a_pwd",  newPwd);
+        map.put("aIdx", a_idx);
+        map.put("aPwd", newPwd);
         settingsMapper.updateAdminPassword(map);
         return true;
     }
@@ -131,11 +131,11 @@ public class SettingsServiceImpl implements SettingsService {
     @Override
     public void writeLog(String a_idx, String a_name, String action, String detail, String ip) {
         AdminLogVO log = new AdminLogVO();
-        log.setA_idx(a_idx);
-        log.setA_name(a_name);
-        log.setL_action(action);
-        log.setL_detail(detail);
-        log.setL_ip(ip);
+        log.setAdmIdx(a_idx);
+        log.setAdmName(a_name);
+        log.setAlogAction(action);
+        log.setAlogDetail(detail);
+        log.setAlogIp(ip);
         settingsMapper.insertLog(log);
     }
 }

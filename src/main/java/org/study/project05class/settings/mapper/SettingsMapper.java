@@ -1,6 +1,7 @@
 package org.study.project05class.settings.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.study.project05class.settings.vo.AdminLogVO;
 import org.study.project05class.settings.vo.TemplateVO;
 
@@ -44,7 +45,7 @@ public interface SettingsMapper {
     int updateTemplate(TemplateVO templateVO);
 
     /** 템플릿 삭제 */
-    int deleteTemplate(String t_idx);
+    int deleteTemplate(@Param("tplIdx") String tplIdx);
 
     // ── 관리자 활동 로그 ─────────────────────────────────────────
     /** 활동 로그 전체 수 */
