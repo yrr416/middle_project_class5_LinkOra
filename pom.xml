@@ -101,6 +101,7 @@
     </dependencies>
 
     <build>
+        <finalName>project05</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

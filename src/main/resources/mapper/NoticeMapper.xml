@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.study.project05class.notice.mapper.NoticeMapper">
+<mapper namespace="org.study.project05.notice.mapper.NoticeMapper">
 
     <!-- 공통 검색 조건 -->
     <sql id="noticeSearchCondition">

@@ -259,18 +259,35 @@
                 </div>
 
                 <!-- 저장 버튼 -->
-                <div class="form-section d-flex justify-content-end gap-2">
-                    <a href="${ctx}/admin/space/list" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-circle me-1"></i>취소
-                    </a>
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="bi bi-check-circle me-1"></i>
-                        ${mode == 'register' ? '등록 완료' : '수정 완료'}
-                    </button>
+                <div class="form-section d-flex justify-content-between align-items-center gap-2">
+                    <div>
+                        <c:if test="${mode == 'update'}">
+                            <button type="button" class="btn btn-outline-danger"
+                                    onclick="if(confirm('정말 삭제하시겠습니까? 삭제된 공간은 복구할 수 없습니다.')) document.getElementById('deleteForm').submit();">
+                                <i class="bi bi-trash me-1"></i>삭제
+                            </button>
+                        </c:if>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="${ctx}/admin/space/list" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-1"></i>취소
+                        </a>
+                        <button type="submit" form="spaceForm" class="btn btn-primary px-4">
+                            <i class="bi bi-check-circle me-1"></i>
+                            ${mode == 'register' ? '등록 완료' : '수정 완료'}
+                        </button>
+                    </div>
                 </div>
 
             </div><!-- /form-card -->
         </form>
+
+        <!-- 삭제 전용 form (main form 밖에 위치) -->
+        <c:if test="${mode == 'update'}">
+            <form id="deleteForm" method="post" action="${ctx}/admin/space/delete">
+                <input type="hidden" name="spcIdx" value="${svo.spcIdx}">
+            </form>
+        </c:if>
 
     </div><!-- /main-content -->
 </div>

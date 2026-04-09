@@ -81,7 +81,7 @@
             <div class="mb-3">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="holidayOp" name="holidayOp"
-                           value="true" ${branchVO.holidayOp ? 'checked' : ''}>
+                           value="1" ${branchVO.holidayOp == 1 ? 'checked' : ''}>
                     <label class="form-check-label fw-semibold" for="holidayOp">공휴일 운영</label>
                 </div>
             </div>

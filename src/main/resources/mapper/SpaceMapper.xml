@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.study.project05class.space.mapper.SpaceMapper">
+<mapper namespace="org.study.project05.space.mapper.SpaceMapper">
 
     <!-- 공간 목록 검색 조건 (활성/비활성만: s_active IN (1,2)) -->
     <sql id="searchCondition">
@@ -122,8 +122,18 @@
          WHERE s_idx = #{spcIdx}
     </update>
 
-    <!-- 파트너 매물 거부 → DELETE -->
+    <!-- 공간 삭제 전처리: facilities 삭제 -->
+    <delete id="deleteFacilitiesBySpcIdx" parameterType="String">
+        DELETE FROM facilities WHERE s_idx = #{spcIdx}
+    </delete>
+
+    <!-- 파트너 매물 거부 → DELETE space -->
     <delete id="rejectSpace" parameterType="String">
+        DELETE FROM space WHERE s_idx = #{spcIdx}
+    </delete>
+
+    <!-- 공간 삭제 (수정 페이지 삭제 버튼) -->
+    <delete id="deleteSpace" parameterType="String">
         DELETE FROM space WHERE s_idx = #{spcIdx}
     </delete>
 

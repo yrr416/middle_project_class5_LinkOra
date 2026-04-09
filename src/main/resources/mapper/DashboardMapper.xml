@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.study.project05class.dashboard.mapper.DashboardMapper">
+<mapper namespace="org.study.project05.dashboard.mapper.DashboardMapper">
 
     <!-- 오늘 예약 건수 -->
     <select id="getTodayReserveCnt" resultType="int">
@@ -67,7 +67,7 @@
     </select>
 
     <!-- 최근 예약 5건 -->
-    <select id="getRecentReserves" resultType="org.study.project05class.dashboard.vo.RecentReserveVO">
+    <select id="getRecentReserves" resultType="org.study.project05.dashboard.vo.RecentReserveVO">
         SELECT r.r_idx       AS res_idx,
                u.u_name      AS user_name,
                s.s_name      AS spc_name,

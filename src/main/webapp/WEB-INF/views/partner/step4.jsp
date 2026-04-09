@@ -104,35 +104,38 @@
     const branchImgs = [];
     const spaceImgs  = [];
 
-    // 파일 선택 → 미리보기 + base64 저장
+    // 파일 선택 → 서버 업로드 후 경로 저장
     function previewImages(input, previewId, type, sIdx) {
         const preview = document.getElementById(previewId);
         const files   = Array.from(input.files);
 
-        files.forEach((file, i) => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const url    = e.target.result; // base64 (실제 운영 시 서버 업로드 URL로 대체)
-                const isMain = (type === 'branch' ? branchImgs.length : spaceImgs.length) === 0;
+        files.forEach(file => {
+            const localUrl = URL.createObjectURL(file);
+            const formData = new FormData();
+            formData.append('file', file);
 
-                // 미리보기 DOM
-                const div = document.createElement('div');
-                div.className = 'preview-item';
-                div.innerHTML = `<img src="${url}" alt="preview">
-                    ${isMain ? '<span class="main-badge">대표</span>' : ''}
-                    <button type="button" class="remove-btn" onclick="removeImg(this, '${type}', ${sIdx || 0})">
-                        <i class="bi bi-x"></i>
-                    </button>`;
-                preview.appendChild(div);
+            fetch('${ctx}/partner/register/uploadImg', { method: 'POST', body: formData })
+                .then(res => res.text())
+                .then(serverUrl => {
+                    if (!serverUrl) return;
+                    const isMain = (type === 'branch' ? branchImgs.length : spaceImgs.length) === 0;
 
-                // 데이터 저장
-                if (type === 'branch') {
-                    branchImgs.push({ briUrl: url });
-                } else {
-                    spaceImgs.push({ spcIdx: sIdx, spiUrl: url });
-                }
-            };
-            reader.readAsDataURL(file);
+                    // 미리보기 DOM
+                    const div = document.createElement('div');
+                    div.className = 'preview-item';
+                    div.innerHTML = '<img src="' + localUrl + '" alt="preview">'
+                        + (isMain ? '<span class="main-badge">대표</span>' : '')
+                        + '<button type="button" class="remove-btn" onclick="removeImg(this,\'' + type + '\',' + (sIdx || 0) + ')">'
+                        + '<i class="bi bi-x"></i></button>';
+                    preview.appendChild(div);
+
+                    // 서버 경로만 저장
+                    if (type === 'branch') {
+                        branchImgs.push({ briUrl: serverUrl });
+                    } else {
+                        spaceImgs.push({ spcIdx: sIdx, spiUrl: serverUrl });
+                    }
+                });
         });
     }
 
