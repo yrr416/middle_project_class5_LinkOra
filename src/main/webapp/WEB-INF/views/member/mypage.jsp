@@ -532,6 +532,19 @@
 </div>
 <%@include file="../layout/footer.jsp"%>
 <script>
+    (function updateHeaderButtonForOauthMypage() {
+        var oauthLogin = '${oauthLogin}' === 'true';
+        if (!oauthLogin) {
+            return;
+        }
+        var headerButton = document.querySelector('.header-right .login-btn');
+        if (!headerButton) {
+            return;
+        }
+        headerButton.textContent = '홈페이지';
+        headerButton.setAttribute('onclick', "location.href='${pageContext.request.contextPath}/'");
+    })();
+
     var withdrawTargetForm = null;
     var withdrawModal = document.getElementById('withdrawModal');
     var withdrawModalInput = document.getElementById('withdrawModalPassword');
