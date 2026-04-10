@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.List;
 
 @Data
 @NoArgsConstructor  // 기본 생성자 생성함
@@ -32,13 +33,18 @@ public class BranchVO {
     private int brnActive;         // 활성화 여부 (b_active) 임
     private String brnUrl;         // 관련 URL (b_url) 임
 
-    // [편의 시설 정보] - 접두어 fac 사용함
-    private Integer facParking;    // 주차 가능 여부 (f_parking) 임
-    private Integer facH24;        // 24시간 여부 (f_h24) 임
-    private Integer facPet;        // 반려동물 여부 (f_pet) 임
-    private Integer facWifi;       // 와이파이 여부 (f_wifi) 임
-    private Integer facCoffee;     // 커피 제공 여부 (f_coffee) 임
-    private Integer facPrinter;    // 프린터 여부 (f_printer) 임
-    private Integer facLocker;     // 사물함 여부 (f_locker) 임
+    // [검색 필터용 편의시설 플래그] - BranchMapper.searchWithFilters 결과 매핑
+    private Integer facParking;
+    private Integer facH24;
+    private Integer facPet;
+    private Integer facWifi;
+    private Integer facCoffee;
+    private Integer facPrinter;
+    private Integer facLocker;
+
+    // [상세 조회용 — 서비스 레이어에서 조립]
+    private String partnerName;          // JOIN으로 가져오는 파트너 브랜드명
+    private List<SpaceVO> spaces;        // 지점 내 예약 가능 공간 목록
+    private List<BranchImgVO> images;    // 지점 이미지 목록
 
 }

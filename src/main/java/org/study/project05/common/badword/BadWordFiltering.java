@@ -1,5 +1,7 @@
 package org.study.project05.common.badword;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -17,12 +19,16 @@ public class BadWordFiltering extends HashSet<String> implements BadWords, ReadU
         this.substituteValue = substituteValue;
     }
 
-    //비속어 있다면 대체
+    //비속어 있다면 대체 (긴 단어 먼저 처리 → 겹치는 단어 누락 방지)
     public String change(String text) {
-        String[] words = stream().filter(text::contains).toArray(String[]::new);
+        List<String> words = new ArrayList<>(this);
+        // 길이 내림차순 정렬: "개새끼"(3)가 "개새"(2), "새끼"(2)보다 먼저 처리됨
+        words.sort(Comparator.comparingInt(String::length).reversed());
         for (String v : words) {
-            String sub = this.substituteValue.repeat(v.length());
-            text = text.replace(v, sub);
+            if (text.contains(v)) {
+                String sub = this.substituteValue.repeat(v.length());
+                text = text.replace(v, sub);
+            }
         }
         return text;
     }
@@ -33,8 +39,14 @@ public class BadWordFiltering extends HashSet<String> implements BadWords, ReadU
         singBuilder.append("]*");
         String patternText = singBuilder.toString();
 
-        for (String word : this) {
-            if (word.length() == 1) text = text.replace(word, substituteValue);
+        // 긴 단어 먼저 처리
+        List<String> words = new ArrayList<>(this);
+        words.sort(Comparator.comparingInt(String::length).reversed());
+        for (String word : words) {
+            if (word.length() == 1) {
+                text = text.replace(word, substituteValue);
+                continue;
+            }
             String[] chars = word.chars().mapToObj(Character::toString).toArray(String[]::new);
             text = Pattern.compile(String.join(patternText, chars))
                     .matcher(text)

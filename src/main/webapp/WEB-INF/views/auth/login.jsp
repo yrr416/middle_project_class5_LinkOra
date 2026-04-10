@@ -1,5 +1,4 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
-<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -254,18 +253,18 @@
     String resetParam = request.getParameter("reset");
     String findIdParam = request.getParameter("findId");
 %>
-<header class="top-bar">
-    <div class="top-left">
-        <img class="logo-image"
-             src="/assets/c__Users_ict-02_AppData_Roaming_Cursor_User_workspaceStorage_14eab3a244838b5187ba2f0dbb8a04dc_images_image-5bd41dfc-4c07-450b-9c64-6e9dc2724a93.png"
-             alt="Linkora 로고">
-    </div>
-    <div class="top-right">
-        <a class="home-btn" href="/">홈페이지</a>
-        <a class="mypage-btn" href="/mypage">마이페이지</a>
-    </div>
-</header>
-
+<%--<header class="top-bar">--%>
+<%--    <div class="top-left">--%>
+<%--        <img class="logo-image"--%>
+<%--             src="/assets/c__Users_ict-02_AppData_Roaming_Cursor_User_workspaceStorage_14eab3a244838b5187ba2f0dbb8a04dc_images_image-5bd41dfc-4c07-450b-9c64-6e9dc2724a93.png"--%>
+<%--             alt="Linkora 로고">--%>
+<%--    </div>--%>
+<%--    <div class="top-right">--%>
+<%--        <a class="home-btn" href="/">홈페이지</a>--%>
+<%--        <a class="mypage-btn" href="/mypage">마이페이지</a>--%>
+<%--    </div>--%>
+<%--</header>--%>
+<%@include file="../../views/layout/header.jsp"%>
 <main class="content">
     <section class="content-box">
         <div class="login-card">
@@ -342,7 +341,7 @@
         </div>
     </section>
 </main>
-<a class="chatbot-fab" href="/chatbot" title="챗봇">🤖</a>
+<%@include file="../../views/layout/footer.jsp" %>
 </body>
 </html>
 

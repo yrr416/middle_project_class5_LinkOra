@@ -5,16 +5,10 @@ package org.study.project05;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.mybatis.spring.annotation.MapperScan;
 
+// @Mapper 어노테이션만으로 Spring Bean 자동 등록됨 (mybatis-spring-boot-starter 자동설정)
+// @MapperScan 불필요
 @SpringBootApplication(scanBasePackages = "org.study.project05")
-@MapperScan(basePackages = {
-        "org.study.project05.member.mapper",
-        "org.study.project05.partner.mapper",
-        "org.study.project05.branch.mapper",
-        "org.study.project05.mainpage.mapper",
-        "org.study.project05.map.mapper"
-})
 public class Project05Application {
 
     public static void main(String[] args) {

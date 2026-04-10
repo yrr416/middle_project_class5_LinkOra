@@ -6,7 +6,7 @@ package org.study.project05.member.vo;
 import java.time.LocalDate;
 
 public class UserProfileVO {
-    private Long userIdx;
+    private int userIdx;
     private String userId;
     private String role;
     private String name;
@@ -19,11 +19,11 @@ public class UserProfileVO {
     /** 웹 경로 예: /uploads/profiles/uuid.png */
     private String profileImage;
 
-    public Long getUserIdx() {
+    public int getUserIdx() {
         return userIdx;
     }
 
-    public void setUserIdx(Long userIdx) {
+    public void setUserIdx(int userIdx) {
         this.userIdx = userIdx;
     }
 

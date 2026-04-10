@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05.contact.mapper.ContactMapper">
+
+    <!--
+        contactResultMap: DB 컬럼 → ContactVO 필드 매핑
+        - 모든 컬럼을 DB 컬럼명 그대로 매핑 (AS 불필요)
+        - 날짜 포맷은 JSP(fmt:formatDate) 에서 처리
+    -->
+    <resultMap id="contactResultMap" type="ContactVO">
+        <id     property="cntIdx"       column="ct_idx"/>
+        <result property="brnIdx"       column="b_idx"/>
+        <result property="userIdx"      column="u_idx"/>
+        <result property="cntStartDate" column="ct_start_date"/>
+        <result property="cntDuration"  column="ct_duration"/>
+        <result property="cntHeadcount" column="ct_headcount"/>
+        <result property="cntContent"   column="ct_content"/>
+        <result property="cntStatus"    column="ct_status"/>
+        <result property="cntCreatedAt" column="ct_created_at"/>
+        <result property="branchName"   column="b_name"/>
+        <result property="userName"     column="u_name"/>
+    </resultMap>
+
+    <!-- 문의 등록 -->
+    <insert id="insert" parameterType="ContactVO" useGeneratedKeys="true" keyProperty="cntIdx">
+        INSERT INTO contact (b_idx, u_idx, ct_start_date, ct_duration, ct_headcount, ct_content, ct_status)
+        VALUES (
+            #{brnIdx},
+            #{userIdx},
+            #{cntStartDate},
+            #{cntDuration},
+            #{cntHeadcount},
+            #{cntContent},
+            #{cntStatus}
+        )
+    </insert>
+
+    <!-- 전체 문의 목록 (최신순) -->
+    <select id="selectAll" resultMap="contactResultMap">
+        SELECT c.ct_idx, c.b_idx, c.u_idx,
+               c.ct_start_date, c.ct_duration, c.ct_headcount,
+               c.ct_content, c.ct_status,
+               c.ct_created_at,
+               b.b_name,
+               IFNULL(u.u_name, '알 수 없음')                  AS u_name
+        FROM contact c
+        LEFT JOIN branch b ON c.b_idx = b.b_idx
+        LEFT JOIN user   u ON c.u_idx = u.u_idx
+        ORDER BY c.ct_created_at DESC
+    </select>
+
+    <!-- 특정 지점의 문의 목록 -->
+    <select id="selectByBranch" resultMap="contactResultMap">
+        SELECT c.ct_idx, c.b_idx, c.u_idx,
+               c.ct_start_date, c.ct_duration, c.ct_headcount,
+               c.ct_content, c.ct_status,
+               c.ct_created_at,
+               b.b_name,
+               IFNULL(u.u_name, '알 수 없음')                  AS u_name
+        FROM contact c
+        LEFT JOIN branch b ON c.b_idx = b.b_idx
+        LEFT JOIN user   u ON c.u_idx = u.u_idx
+        WHERE c.b_idx = #{brnIdx}
+        ORDER BY c.ct_created_at DESC
+    </select>
+
+    <!-- 단건 조회 -->
+    <select id="selectById" resultMap="contactResultMap">
+        SELECT c.ct_idx, c.b_idx, c.u_idx,
+               c.ct_start_date, c.ct_duration, c.ct_headcount,
+               c.ct_content, c.ct_status,
+               c.ct_created_at,
+               b.b_name,
+               IFNULL(u.u_name, '알 수 없음')                  AS u_name
+        FROM contact c
+        LEFT JOIN branch b ON c.b_idx = b.b_idx
+        LEFT JOIN user   u ON c.u_idx = u.u_idx
+        WHERE c.ct_idx = #{cntIdx}
+    </select>
+
+    <!-- 상태 변경 -->
+    <update id="updateStatus">
+        UPDATE contact
+        SET ct_status = #{status}
+        WHERE ct_idx = #{cntIdx}
+    </update>
+
+</mapper>

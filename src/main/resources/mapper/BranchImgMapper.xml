@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05.branch.mapper.BranchImgMapper">
+
+    <resultMap id="branchImgResultMap" type="org.study.project05.branch.vo.BranchImgVO">
+        <id     property="biIdx"    column="bi_idx"/>
+        <result property="bIdx"     column="b_idx"/>
+        <result property="biUrl"    column="bi_url"/>
+        <result property="biOrder"  column="bi_order"/>
+        <result property="biIsMain" column="bi_is_main"/>
+    </resultMap>
+
+    <select id="selectByBranch" parameterType="int" resultMap="branchImgResultMap">
+        SELECT bi_idx, b_idx, bi_url, bi_order, bi_is_main
+        FROM branch_img
+        WHERE b_idx = #{bIdx}
+        ORDER BY bi_is_main DESC, bi_order ASC
+    </select>
+
+    <select id="selectMainByBranch" parameterType="int" resultMap="branchImgResultMap">
+        SELECT bi_idx, b_idx, bi_url, bi_order, bi_is_main
+        FROM branch_img
+        WHERE b_idx = #{bIdx}
+        ORDER BY bi_is_main DESC, bi_order ASC
+        LIMIT 1
+    </select>
+
+</mapper>

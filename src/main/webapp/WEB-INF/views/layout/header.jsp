@@ -93,7 +93,7 @@
 
         <%-- [우측 버튼] 예약하기 및 로그인 버튼임. --%>
         <div class="header-right">
-            <a href="${pageContext.request.contextPath}/reserve" class="btn-book">예약하기</a>
+            <a href="${pageContext.request.contextPath}/detail/list" class="btn-book">예약하기</a>
             <% if (loggedIn) { %>
             <button class="login-btn" onclick="location.href='<%= mypageUrl %>'">마이페이지</button>
             <% } else { %>

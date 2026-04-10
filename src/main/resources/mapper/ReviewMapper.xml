@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05.review.mapper.ReviewMapper">
+
+    <!--
+        reviewResultMap: DB 컬럼 → ReviewVO 필드 매핑
+        - 모든 컬럼을 DB 컬럼명 그대로 매핑 (AS 불필요)
+        - 날짜 포맷은 JSP(fmt:formatDate) / JS(substring) 에서 처리
+    -->
+    <resultMap id="reviewResultMap" type="ReviewVO">
+        <id     property="revIdx"       column="v_idx"/>
+        <result property="spcIdx"       column="s_idx"/>
+        <result property="userIdx"      column="u_idx"/>
+        <result property="revParentIdx" column="v_parent_idx"/>
+        <result property="revContent"   column="v_content"/>
+        <result property="revRating"    column="v_rating"/>
+        <result property="authorName"   column="u_name"/>
+        <result property="spaceName"    column="s_name"/>
+        <result property="revCreatedAt" column="v_created_at"/>
+        <result property="reportCount"  column="report_count"/>
+    </resultMap>
+
+    <!-- 지점 최상위 후기 목록 (페이징)
+         신고 누적 수(report_count)를 함께 조회 → JS에서 3회 이상이면 블라인드 UI 표시
+         (기존처럼 숨기지 않고 모두 포함) -->
+    <select id="selectParentsByBranch" resultMap="reviewResultMap">
+        SELECT r.v_idx,
+               r.s_idx,
+               r.u_idx,
+               r.v_parent_idx,
+               r.v_content,
+               r.v_rating,
+               IFNULL(u.u_name, '알 수 없음') AS u_name,
+               s.s_name,
+               r.v_created_at,
+               (SELECT COUNT(*) FROM review_report rr WHERE rr.v_idx = r.v_idx) AS report_count
+        FROM review r
+        LEFT JOIN user  u ON r.u_idx = u.u_idx
+        JOIN       space s ON r.s_idx = s.s_idx
+        WHERE s.b_idx        = #{bIdx}
+          AND r.v_parent_idx = 0
+        ORDER BY r.v_idx DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 지점 최상위 후기 총 개수 (블라인드 포함 전체) -->
+    <select id="countParentsByBranch" parameterType="int" resultType="int">
+        SELECT COUNT(*)
+        FROM review r
+        JOIN space s ON r.s_idx = s.s_idx
+        WHERE s.b_idx        = #{bIdx}
+          AND r.v_parent_idx = 0
+    </select>
+
+    <!-- 특정 후기의 답글 -->
+    <select id="selectRepliesByParent" parameterType="int" resultMap="reviewResultMap">
+        SELECT r.v_idx,
+               r.s_idx,
+               r.u_idx,
+               r.v_parent_idx,
+               r.v_content,
+               r.v_rating,
+               IFNULL(u.u_name, '알 수 없음')                 AS u_name,
+               s.s_name,
+               r.v_created_at
+        FROM review r
+        LEFT JOIN user  u ON r.u_idx = u.u_idx
+        JOIN       space s ON r.s_idx = s.s_idx
+        WHERE r.v_parent_idx = #{revParentIdx}
+        ORDER BY r.v_idx ASC
+    </select>
+
+    <!-- 지점 평균 별점 (최상위 후기만, 별점 0 제외) -->
+    <select id="avgRatingByBranch" parameterType="int" resultType="double">
+        SELECT IFNULL(AVG(r.v_rating), 0)
+        FROM review r
+        JOIN space s ON r.s_idx = s.s_idx
+        WHERE s.b_idx        = #{bIdx}
+          AND r.v_parent_idx = 0
+          AND r.v_rating     > 0
+    </select>
+
+    <!-- 리뷰 신고 저장 -->
+    <insert id="insertReport">
+        INSERT INTO review_report (v_idx, u_idx, rr_reason, rr_status)
+        VALUES (#{vIdx}, #{userIdx}, #{reason}, 'PENDING')
+    </insert>
+
+    <!-- 동일 사용자가 해당 리뷰를 이미 신고했는지 확인 (1 = 이미 신고함) -->
+    <select id="countReport" resultType="int">
+        SELECT COUNT(*) FROM review_report
+        WHERE v_idx = #{vIdx} AND u_idx = #{userIdx}
+    </select>
+
+    <!-- 본인 후기 삭제 (revIdx + userIdx 둘 다 일치해야 삭제 — 타인 삭제 방지) -->
+    <delete id="deleteByUser">
+        DELETE FROM review
+        WHERE v_idx  = #{revIdx}
+          AND u_idx  = #{userIdx}
+    </delete>
+
+    <!-- 후기/답글 등록 -->
+    <insert id="insert" parameterType="ReviewVO">
+        INSERT INTO review (s_idx, u_idx, v_parent_idx, v_content, v_rating, v_active, v_time, v_created_at, v_updated_at)
+        VALUES (
+                   #{spcIdx},
+                   #{userIdx},
+                   #{revParentIdx},
+                   #{revContent},
+                   #{revRating, jdbcType=TINYINT},
+                   0,
+                   NOW(),
+                   NOW(),
+                   NOW()
+               )
+    </insert>
+
+</mapper>

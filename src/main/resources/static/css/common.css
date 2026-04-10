@@ -28,6 +28,14 @@ body {
     color: var(--text-main);
     overflow-x: hidden;
     letter-spacing: -0.3px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* [레이아웃] 콘텐츠 영역이 남은 공간을 전부 차지해 footer를 항상 아래에 붙임. */
+main {
+    flex: 1;
 }
 
 /* [링크] 밑줄을 없애고 색상이 변하는 효과를 주는 규칙임. */

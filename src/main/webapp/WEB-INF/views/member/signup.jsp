@@ -1,5 +1,4 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
-<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -153,16 +152,11 @@
         }
     </style>
 </head>
+<%@include file="../layout/header.jsp"%>
 <body>
 <%
     String errorParam = request.getParameter("error");
 %>
-<header class="top-bar">
-    <img class="logo-image"
-         src="/assets/c__Users_ict-02_AppData_Roaming_Cursor_User_workspaceStorage_14eab3a244838b5187ba2f0dbb8a04dc_images_image-5bd41dfc-4c07-450b-9c64-6e9dc2724a93.png"
-         alt="Linkora 로고">
-    <a class="home-btn" href="/loginPage">홈으로</a>
-</header>
 
 <main class="content">
     <section class="wrap">
@@ -388,6 +382,7 @@
         document.getElementById('userAddr').value = merged;
     });
 </script>
+<%@include file="../layout/footer.jsp"%>
 </body>
 </html>
 

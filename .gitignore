@@ -1,3 +1,4 @@
+HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -31,11 +32,48 @@ build/
 ### VS Code ###
 .vscode/
 
-# macOS
-.DS_Store
+# ===== Build Output =====
+target/
+*.class
+*.jar
+*.war
+*.ear
 
-# 로컬 전용 비밀 설정
+# ===== IDE =====
+# IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse / STS
+.classpath
+.project
+.settings/
+.springBeans
+
+# VS Code
+.vscode/
+
+# ===== 환경 설정 (민감 정보) =====
 src/main/resources/application-local.properties
+src/main/resources/application-local.yml
+src/main/resources/db.properties
 
-# 업로드 파일
-uploads/
+# ===== 로그 =====
+logs/
+*.log
+log/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== 업로드 파일 =====
+src/main/webapp/upload/
+src/main/webapp/resources/upload/g
+
+# 팀원 담당 - User 기능 (임시 구현)
+src/main/java/org/study/project05/user/
+src/main/resources/mapper/UserMapper.xml

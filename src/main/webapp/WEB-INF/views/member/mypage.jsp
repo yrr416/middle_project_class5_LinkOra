@@ -1,7 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
-<!DOCTYPE html>
 <html lang="ko">
-<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>마이페이지 · LinkOra</title>
@@ -388,16 +386,8 @@
             color: #dc2626;
         }
     </style>
-</head>
+<%@include file="../layout/header.jsp"%>
 <body>
-<header class="top-bar">
-    <img class="logo-image"
-         src="/assets/c__Users_ict-02_AppData_Roaming_Cursor_User_workspaceStorage_14eab3a244838b5187ba2f0dbb8a04dc_images_image-5bd41dfc-4c07-450b-9c64-6e9dc2724a93.png"
-         alt="LinkOra 로고">
-    <nav class="nav-links">
-        <a class="nav-btn" href="/">홈</a>
-    </nav>
-</header>
 
 <main class="content">
     <section class="content-box">
@@ -529,7 +519,6 @@
     </section>
 </main>
 
-<a class="chatbot-fab" href="/chatbot" title="챗봇">🤖</a>
 <div id="withdrawModal" class="withdraw-modal" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="withdraw-modal-card">
         <h2 class="withdraw-modal-title">회원 탈퇴 확인</h2>
@@ -541,6 +530,7 @@
         </div>
     </div>
 </div>
+<%@include file="../layout/footer.jsp"%>
 <script>
     var withdrawTargetForm = null;
     var withdrawModal = document.getElementById('withdrawModal');
