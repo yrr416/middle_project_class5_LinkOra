@@ -130,6 +130,18 @@ public class ChatServiceImpl implements ChatService {
             botResponse = chatGPTService.chat(messages);
 
             // --- 지능형 예약 명령어 핸들링 ---
+            // [고도화] 인텐트 결정을 핸들링 전의 원본 botResponse 기준으로 미리 분석 (버그 수정)
+            String rawResponse = botResponse;
+            String determinedIntent = "AI_CONVERSATION";
+
+            if (rawResponse.contains("[[COMMIT_BOOKING:")) determinedIntent = "BOOKING_COMMIT";
+            else if (rawResponse.contains("[[CANCEL_BOOKING:")) determinedIntent = "BOOKING_CANCEL";
+            else if (rawResponse.contains("[[PREFILL:")) determinedIntent = "BOOKING_PREFILL";
+            else if (rawResponse.contains("[[CHECK_AVAILABILITY:")) determinedIntent = "AVAILABILITY_CHECK";
+            else if (rawResponse.contains("[[ACTIONS:")) determinedIntent = "RECOMMEND_SPACE";
+
+            chatVO.setChatIntent(determinedIntent);
+
             if (botResponse.contains("[[CHECK_AVAILABILITY:")) {
                 botResponse = handleAvailabilityCheck(botResponse);
             } else if (botResponse.contains("[[COMMIT_BOOKING:")) {
@@ -141,30 +153,15 @@ public class ChatServiceImpl implements ChatService {
         } catch (Exception e) {
             log.error("AI Service Error: {}", e.getMessage());
             botResponse = "[서비스 점검 중] 질문을 이해하지 못했습니다. 상단의 '직접 문의' 버튼을 이용해 주세요.";
+            chatVO.setChatIntent("AI_CONVERSATION");
         }
 
         // 4. 결과 세팅 및 DB 저장용 길이 제한
         chatVO.setChatResponse(botResponse);
-
-        // --- [고도화] 인텐트 세분화 분류 로직 ---
-        String intent = "AI_CONVERSATION"; // 기본값: 일반 대화
-        if (botResponse.contains("[[COMMIT_BOOKING:")) {
-            intent = "BOOKING_COMMIT";
-        } else if (botResponse.contains("[[CANCEL_BOOKING:")) {
-            intent = "BOOKING_CANCEL";
-        } else if (botResponse.contains("[[PREFILL:")) {
-            intent = "BOOKING_PREFILL";
-        } else if (botResponse.contains("[[CHECK_AVAILABILITY:")) {
-            intent = "AVAILABILITY_CHECK";
-        } else if (botResponse.contains("[[ACTIONS:")) {
-            intent = "RECOMMEND_SPACE";
-        }
-
-        chatVO.setChatIntent(intent);
-
         chatVO.setChatPage(currentPage);
 
         // --- DB 저장용 객체 전처리 (500자 Truncation) ---
+
         String safeMessage = (userMessage != null && userMessage.length() > 500)
                 ? userMessage.substring(0, 500)
                 : userMessage;

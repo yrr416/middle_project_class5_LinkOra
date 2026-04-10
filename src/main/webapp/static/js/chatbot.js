@@ -457,36 +457,52 @@ document.addEventListener('DOMContentLoaded', function() {
         chatMessages.appendChild(formDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // 가격 계산 핸들러
+        // 가격 계산 핸들러 (시간 x 인원 x 요금)
         const updatePriceDisplay = () => {
-            const start = document.getElementById('res-time-start').value;
-            const end = document.getElementById('res-time-end').value;
-            const display = document.getElementById('total-price-display');
+            const start = formDiv.querySelector('#res-time-start').value;
+            const end = formDiv.querySelector('#res-time-end').value;
+            const count = parseInt(formDiv.querySelector('#res-count').value);
+            const display = formDiv.querySelector('#total-price-display');
             
             if (start && end) {
                 const sH = parseInt(start.split(':')[0]);
                 const eH = parseInt(end.split(':')[0]);
                 const diff = eH - sH;
                 if (diff > 0) {
-                    const total = diff * parseInt(spcPrice);
-                    display.innerText = `${total.toLocaleString()}원 (${diff}시간)`;
+                    const total = diff * count * parseInt(spcPrice);
+                    display.innerText = `${total.toLocaleString()}원 (${diff}시간 x ${count}명)`;
                     display.classList.remove('error');
+                    return total;
                 } else {
                     display.innerText = "시간 확인 필";
                     display.classList.add('error');
                 }
             }
+            return 0;
         };
 
         const startSelect = formDiv.querySelector('#res-time-start');
         const endSelect = formDiv.querySelector('#res-time-end');
         startSelect.onchange = updatePriceDisplay;
         endSelect.onchange = updatePriceDisplay;
+        
+        const countInput = formDiv.querySelector('#res-count');
+        formDiv.querySelector('.minus').onclick = () => { 
+            if(countInput.value > 1) {
+                countInput.value--; 
+                updatePriceDisplay();
+            }
+        };
+        formDiv.querySelector('.plus').onclick = () => { 
+            if(countInput.value < 10) {
+                countInput.value++; 
+                updatePriceDisplay();
+            }
+        };
         updatePriceDisplay(); // 초기 계산
 
-        const countInput = formDiv.querySelector('#res-count');
-        formDiv.querySelector('.minus').onclick = () => { if(countInput.value > 1) countInput.value--; };
-        formDiv.querySelector('.plus').onclick = () => { if(countInput.value < 10) countInput.value++; };
+        // [고도화] 예약 단계 관리 (0:입력, 1:확인)
+        let formStep = 0;
 
         formDiv.querySelector('#submit-reserve').onclick = function() {
             const date = formDiv.querySelector('#res-date').value;
@@ -497,13 +513,42 @@ document.addEventListener('DOMContentLoaded', function() {
             if(!date || !startTimeVal || !endTimeVal) { alert("날짜와 시간을 선택해 주세요."); return; }
             if(startTimeVal >= endTimeVal) { alert("종료 시간은 시작 시간보다 늦어야 합니다."); return; }
 
+            const total = updatePriceDisplay();
+
+            if (formStep === 0) {
+                // 1단계: 입력 완료 -> 확인 화면으로 전환
+                formStep = 1;
+                this.innerText = "위 정보로 최종 확정하기";
+                this.classList.add('btn-confirm');
+                
+                // 입력 필드 비활성화 연출
+                formDiv.querySelectorAll('input, select, button.plus, button.minus').forEach(el => el.disabled = true);
+                formDiv.querySelector('.reserve-form-header').innerText = "📋 예약 내용을 확인해주세요";
+                
+                // 수정 버튼 추가
+                const backBtn = document.createElement('button');
+                backBtn.className = 'btn-form-back';
+                backBtn.innerText = "수정하기";
+                backBtn.onclick = () => {
+                    formStep = 0;
+                    this.innerText = "공간 예약하기";
+                    this.classList.remove('btn-confirm');
+                    formDiv.querySelectorAll('input, select, button.plus, button.minus').forEach(el => el.disabled = false);
+                    formDiv.querySelector('.reserve-form-header').innerText = `✨ ${spcName} 간편 예약`;
+                    backBtn.remove();
+                };
+                this.before(backBtn);
+                return;
+            }
+
+            // 2단계: 최종 확정 -> 전송
             const startTime = `${date}T${startTimeVal}`;
             const endTime = `${date}T${endTimeVal}`;
             const reserveMsg = `[[COMMIT_BOOKING:${spcIdx}|${startTime}|${endTime}|${count}]]`;
             
             this.disabled = true;
             this.innerText = "예약 처리 중...";
-            appendMessage('user', `${spcName} 공간 예약 요청 (인원: ${count}명)`);
+            appendMessage('user', `${spcName} 예약 요청 (인원: ${count}명, ${total.toLocaleString()}원)`);
             
             setTimeout(() => {
                 fetch(`${contextPath}/chat/send`, {
@@ -517,10 +562,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     prefillData = { date: '', startTime: '', endTime: '' }; // 데이터 초기화
                     appendMessage('bot', data.chatResponse);
                 })
-                .catch(err => { alert("오류가 발생했습니다."); this.disabled = false; });
+                .catch(err => { 
+                    alert("오류가 발생했습니다. 다시 시도해 주세요."); 
+                    this.disabled = false; 
+                    this.innerText = "최종 확정하기";
+                });
             }, 600);
         };
     };
+
 
     sendBtn.addEventListener('click', () => sendMessage());
     chatInput.addEventListener('keypress', (e) => {
