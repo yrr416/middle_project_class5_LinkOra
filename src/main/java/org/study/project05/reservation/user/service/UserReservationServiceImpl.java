@@ -61,15 +61,11 @@ public class UserReservationServiceImpl implements ReservaionService {
             throw new IllegalArgumentException("선택한 시간대에 이미 예약이 존재합니다.");
         }
 
-        // ③ 총액 계산
+        // ③ 총액 계산 (사용자 요청에 따라 무조건 '시간 x 인원 x 요금'으로 통일)
         long hours = ChronoUnit.HOURS.between(start, end);
         int price  = Integer.parseInt(space.getSpcPrice());
-        int total;
-        if ("INDIVIDUAL".equals(space.getSpcType())) {
-            total = price * vo.getResHeadcount() * (int) hours;
-        } else {
-            total = price * (int) hours;
-        }
+        int total  = price * vo.getResHeadcount() * (int) hours;
+
         vo.setResTotalPrice(String.valueOf(total));
 
         // ④ INSERT

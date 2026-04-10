@@ -424,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         formDiv.innerHTML = `
             <div class="reserve-form-header"> ✨ ${spcName} 간편 예약</div>
-            <div class="form-row"><label>이용 날짜</label><input type="date" id="res-date" value="${defDate}" class="${isDatePrefilled ? 'is-prefilled' : ''}"></div>
+            <div class="form-row"><label>이용 날짜</label><input type="date" id="res-date" value="${defDate}" style="width:100%; box-sizing:border-box;" class="${isDatePrefilled ? 'is-prefilled' : ''}"></div>
             <div class="form-row">
                 <label>시작 시간</label>
                 <select id="res-time-start" class="${isStartPrefilled ? 'is-prefilled' : ''}">
@@ -525,11 +525,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 formDiv.querySelectorAll('input, select, button.plus, button.minus').forEach(el => el.disabled = true);
                 formDiv.querySelector('.reserve-form-header').innerText = "📋 예약 내용을 확인해주세요";
                 
-                // 수정 버튼 추가
+                // [고도화] 수정 버튼 스타일링 (프리미엄 디자인 반영)
                 const backBtn = document.createElement('button');
                 backBtn.className = 'btn-form-back';
-                backBtn.innerText = "수정하기";
+                backBtn.innerText = "◀ 정보 수정하기";
+                Object.assign(backBtn.style, {
+                    background: "transparent",
+                    border: "1px solid #1e3a34",
+                    color: "#1e3a34",
+                    padding: "8px 12px",
+                    borderRadius: "12px",
+                    marginBottom: "10px",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                    fontWeight: "500",
+                    display: "block",
+                    width: "fit-content",
+                    transition: "all 0.2s ease"
+                });
+                backBtn.onmouseover = () => { backBtn.style.background = "#f0f7f5"; };
+                backBtn.onmouseout = () => { backBtn.style.background = "transparent"; };
+                
                 backBtn.onclick = () => {
+
                     formStep = 0;
                     this.innerText = "공간 예약하기";
                     this.classList.remove('btn-confirm');

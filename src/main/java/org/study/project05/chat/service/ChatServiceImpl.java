@@ -90,11 +90,16 @@ public class ChatServiceImpl implements ChatService {
                 "2. **예약 안내 (통합 관리 메뉴)**: 사용자가 '예약 안내'를 요청하면 즉시 다음 서브메뉴 카드를 보여줘:\n" +
                 "   - `[[WELCOME_MENU:예약하기|신규 예약하기|📅, 예약확인|예약 현황 확인|📝, 예약취소|진행 중인 예약 취소|❌]]`\n" +
                 "3. **말투**: 전문적이고 친절한 한국어. 마크다운(`*`, `-`, `#`) 사용 금지.\n" +
+                "\n[실시간 가용성 확인 지침]\n" +
+                "1. 사용자가 특정 공간의 '예약 가능 여부', '남은 자리', '가용성' 등을 물어보면 즉시 `[[CHECK_AVAILABILITY:공간ID|yyyy-MM-dd]]` 태그를 답변에 포함해.\n" +
+                "2. 이 태그를 통해 시스템이 해당 날짜의 시간대별 잔여 좌석표를 자동으로 생성하여 사용자에게 완벽한 정보를 제공할 수 있어.\n" +
                 "\n[공간 정보 컨텍스트]\n" +
                 reservationContext + "\n" +
                 "[사용자 예약 현황]\n" +
                 getUserReservationsContext(chatVO.getUserIdx()) + "\n" +
-                "환불 규정: 3일 전 100%, 1일 전 50%.");
+                "환불 규정: 3일 전 100%, 1일 전 50%.\n" +
+                "[중요 안내 지침]\n" +
+                "- 위 예약 현황이 비어 있다면 사용자에게 '현재 진행 중인 예약이 없다'고만 답변하고, 불필요하게 날짜나 시간을 다시 묻지 마세요.");
 
         messages.add(systemMsg);
 
@@ -130,17 +135,33 @@ public class ChatServiceImpl implements ChatService {
             botResponse = chatGPTService.chat(messages);
 
             // --- 지능형 예약 명령어 핸들링 ---
-            // [고도화] 인텐트 결정을 핸들링 전의 원본 botResponse 기준으로 미리 분석 (버그 수정)
-            String rawResponse = botResponse;
+            // [고도화] 인텐트 결정을 핸들링 전의 원본 botResponse 및 사용자 메시지 기준으로 분석 (우선순위 체계 적용)
+            String rawResponse = botResponse != null ? botResponse : "";
+            String rawUserMsg = userMessage != null ? userMessage : "";
             String determinedIntent = "AI_CONVERSATION";
 
-            if (rawResponse.contains("[[COMMIT_BOOKING:")) determinedIntent = "BOOKING_COMMIT";
-            else if (rawResponse.contains("[[CANCEL_BOOKING:")) determinedIntent = "BOOKING_CANCEL";
-            else if (rawResponse.contains("[[PREFILL:")) determinedIntent = "BOOKING_PREFILL";
-            else if (rawResponse.contains("[[CHECK_AVAILABILITY:")) determinedIntent = "AVAILABILITY_CHECK";
-            else if (rawResponse.contains("[[ACTIONS:")) determinedIntent = "RECOMMEND_SPACE";
+            // 1. 최우선 순위: 실제 예약 확정 및 취소
+            if (rawUserMsg.contains("[[COMMIT_BOOKING:") || rawResponse.contains("[[COMMIT_BOOKING:")) {
+                determinedIntent = "BOOKING_COMMIT";
+            } else if (rawUserMsg.contains("[[CANCEL_BOOKING:") || rawResponse.contains("[[CANCEL_BOOKING:")) {
+                determinedIntent = "BOOKING_CANCEL";
+            } 
+            // 2. 예약 프로세스 진입 및 가용성 확인
+            else if (rawResponse.contains("[[PREFILL:")) {
+                determinedIntent = "BOOKING_PREFILL";
+            } else if (rawResponse.contains("[[CHECK_AVAILABILITY:")) {
+                determinedIntent = "AVAILABILITY_CHECK";
+            } 
+            // 3. 공간 추천 및 FAQ 안내
+            else if (rawResponse.contains("[[ACTIONS:")) {
+                determinedIntent = "RECOMMEND_SPACE";
+            } else if (rawUserMsg.contains("자주 묻는 질문") || rawUserMsg.contains("FAQ") || rawResponse.contains("자주 묻는 질문")) {
+                determinedIntent = "FAQ_INQUIRY";
+            }
 
             chatVO.setChatIntent(determinedIntent);
+
+
 
             if (botResponse.contains("[[CHECK_AVAILABILITY:")) {
                 botResponse = handleAvailabilityCheck(botResponse);
@@ -209,11 +230,14 @@ public class ChatServiceImpl implements ChatService {
             java.util.Map<Integer, Integer> remaining = reservationService.getRemainingSeats(spcIdx, date, maxCap);
 
             StringBuilder sb = new StringBuilder();
-            sb.append("\n[ ").append(date).append(" 실시간 가용 현황 ]\n");
+            sb.append("\n📊 [ ").append(date).append(" 실시간 현황 ]\n");
+            sb.append("-----------------------------\n");
             for (int h = 9; h <= 21; h++) {
                 int seats = remaining.getOrDefault(h, maxCap);
-                sb.append(String.format("- %02d:00: %s\n", h, (seats > 0 ? seats + "석 남음" : "마감")));
+                String status = (seats > 0) ? "🟢 " + seats + "석" : "🔴 마감";
+                sb.append(String.format("%02d:00 | %s\n", h, status));
             }
+            sb.append("-----------------------------\n");
             return botResponse.replace(tag, sb.toString());
         } catch (Exception e) {
             return botResponse.replaceAll("\\[\\[CHECK_AVAILABILITY:.*?\\]\\]", "\n(현재 가용성 조회가 불가능합니다.)");
@@ -379,20 +403,48 @@ public class ChatServiceImpl implements ChatService {
         if (userIdx == null) return "로그인 정보 없음";
         try {
             List<org.study.project05.reservation.user.vo.ReservationVO> list = reservationService.getMyReservations(userIdx.intValue());
-            if (list == null || list.isEmpty()) return "현재 진행 중인 예약 내역이 없습니다.";
-
             StringBuilder sb = new StringBuilder();
-            sb.append("당신의 최근 예약 목록:\n");
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+            boolean hasActive = false;
             for (org.study.project05.reservation.user.vo.ReservationVO r : list) {
-                String statusKor = "PENDING".equals(r.getResStatus()) ? "대기중(취소가능)" : 
-                                   "CONFIRMED".equals(r.getResStatus()) ? "확정됨" : "취소됨";
-                
-                sb.append("- #").append(r.getResIdx())
-                  .append(": ").append(r.getSpaceName())
-                  .append(" (").append(r.getResStartTime()).append("~").append(r.getResEndTime().split(" ")[1]).append(")")
-                  .append(", 상태: ").append(statusKor).append("\n");
+                try {
+                    // 종료 시간이 현재보다 미래인 것만 포함 (지난 예약 제외)
+                    // ISO 형식(T)과 DB 형식(공백) 모두 대응
+                    String endTimeStr = r.getResEndTime().replace("T", " ");
+                    
+                    // 초(%s)가 누락된 경우(16자) 대응: :00 추가
+                    if (endTimeStr != null && endTimeStr.length() == 16) {
+                        endTimeStr += ":00";
+                    }
+                    
+                    java.time.LocalDateTime endTime = java.time.LocalDateTime.parse(endTimeStr, fmt);
+                    if (endTime.isBefore(now)) continue;
+
+                    if (!hasActive) {
+                        sb.append("당신의 진행 중인 예약 목록:\n");
+                        hasActive = true;
+                    }
+
+                    String statusKor = "PENDING".equals(r.getResStatus()) ? "대기중(취소가능)" : 
+                                       "CONFIRMED".equals(r.getResStatus()) ? "확정됨" : "취소됨";
+                    
+                    String startTimeStr = r.getResStartTime().replace("T", " ");
+                    if (startTimeStr != null && startTimeStr.length() == 16) {
+                        startTimeStr += ":00";
+                    }
+                    
+                    sb.append("- #").append(r.getResIdx())
+                      .append(": ").append(r.getSpaceName())
+                      .append(" (").append(startTimeStr).append("~").append(endTimeStr.split(" ")[1]).append(")")
+                      .append(", 상태: ").append(statusKor).append("\n");
+                } catch (Exception e) {
+                    log.warn("Reservation date parsing failed for ID #{}: {}", r.getResIdx(), e.getMessage());
+                    continue; // 개별 항목 파싱 실패 시 해당 항목만 스킵
+                }
             }
-            return sb.toString();
+            return hasActive ? sb.toString() : "현재 진행 중인 예약 내역이 없습니다.";
         } catch (Exception e) {
             return "내역 조회 오류: " + e.getMessage();
         }
