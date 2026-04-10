@@ -1,0 +1,122 @@
+/* =========================================
+   사이드바 및 오버레이 (강력 처방 버전임)
+========================================= */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -360px; /* 기본은 숨겨진 상태임. */
+    width: 360px;
+    height: 100vh;
+    background: var(--white);
+    z-index: 9999 !important; /* 최상위 계층으로 격상시킴. */
+    box-shadow: 5px 0 30px rgba(0,0,0,0.05);
+    transition: left 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    padding: 40px 30px;
+    overflow-y: auto;
+}
+
+/* ★ 중요: 활성화 상태 강제 집행함 ★ */
+.sidebar.active {
+    left: 0 !important;
+}
+
+.sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4); /* 조금 더 어둡게 처리함. */
+    backdrop-filter: blur(2px);
+    z-index: 9998 !important; /* 사이드바 바로 아래 위치함. */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+
+/* ★ 중요: 오버레이 활성화함 ★ */
+.sidebar-overlay.active {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+.sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+.sidebar-header h3 { font-size: 14px; font-weight: 600; letter-spacing: 1px; color: var(--text-muted); }
+.close-sidebar-btn { background: none; border: none; font-size: 26px; cursor: pointer; color: var(--text-main); transition: transform 0.2s;}
+.close-sidebar-btn:hover { transform: rotate(90deg); color: var(--point-main); }
+
+/* 사이드바 아코디언 메뉴임. */
+.sidebar-nav > li { border-bottom: 1px solid var(--bg-light); }
+.sidebar-nav a { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; font-size: 16px; color: var(--text-main); font-weight: 500; }
+.sidebar-nav a:hover { color: var(--point-main); }
+.acc-left { display: flex; align-items: center; gap: 15px; }
+.acc-left i { color: var(--point-main); width: 25px; text-align: center; font-size: 18px; }
+.accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background: var(--bg-light); border-radius: 6px; }
+.accordion-content li a { padding: 12px 15px 12px 40px; font-size: 14px; font-weight: 400; color: var(--text-muted); border: none;}
+.accordion-content li a:hover { color: var(--point-main); font-weight: 600; }
+
+/* 아코디언 활성화 시 높이 확보함. */
+.accordion-item.active .accordion-content { max-height: 500px; margin-bottom: 15px; }
+.accordion-item .acc-arrow { transition: transform 0.3s; font-size: 12px; color: var(--text-muted); }
+.accordion-item.active .acc-arrow { transform: rotate(180deg); color: var(--point-main); }
+
+/* =========================================
+   헤더 & 로고 디자인임.
+========================================= */
+.main-header { height: 80px; background: var(--white); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000; display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.02);}
+.header-content { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+.header-left { display: flex; align-items: center; gap: 20px; }
+
+/* ★ 햄버거 메뉴 잘림 현상 해결 & 강제 집행 통합함 ★ */
+.hamburger-menu {
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-main);
+    padding: 10px;        /* 넉넉한 클릭 영역을 유지함. */
+    margin: 0;            /* [수정됨] 음수 마진 제거로 상단 잘림 방지함. */
+    transition: color 0.2s;
+    position: relative !important;
+    z-index: 99999 !important;     /* 최상위 계급을 유지함. */
+    pointer-events: auto !important;
+}
+.hamburger-menu:hover {
+    color: var(--point-main);
+}
+
+.logo { display: flex; align-items: center; cursor: pointer; margin-top: 5px;}
+.header-right { display: flex; align-items: center; gap: 15px; }
+.btn-book { background: var(--point-main); color: var(--white); font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 6px; transition: background 0.2s; }
+.btn-book:hover { background: var(--point-hover); }
+.login-btn { background: none; border: none; font-weight: 600; cursor: pointer; font-size: 14px; color: var(--text-main); transition: color 0.2s; }
+.login-btn:hover { color: var(--point-main); }
+
+/* =========================================
+   푸터 & 챗봇 디자인임.
+========================================= */
+.main-footer { text-align: center; padding: 40px 0; background: var(--bg-light); border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted); letter-spacing: 0.5px;}
+.chatbot-floating { position: fixed; bottom: 35px; right: 35px; width: 64px; height: 64px; background: var(--point-main); color: var(--white); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 10px 25px rgba(47, 79, 79, 0.35); transition: transform 0.3s ease; z-index: 1000; }
+.chatbot-floating:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(47, 79, 79, 0.45); }
+
+/* =========================================
+   레이아웃 반응형 설정임.
+========================================= */
+@media (max-width: 768px) {
+    .sidebar { width: 300px; left: -300px; }
+    /* 모바일에서도 active 시 0으로 고정함. */
+    .sidebar.active { left: 0 !important; }
+}
+
+/* layout.css 추가분임. */
+.hamburger-menu {
+    /* background: red !important; [테스트용] 버튼 영역 확인용임. */
+    z-index: 99999 !important;
+    position: relative !important;
+    pointer-events: auto !important;
+}
+
+/* 사이드바도 강제로 제일 위로 올림. */
+.sidebar {
+    z-index: 100001 !important;
+}
+.sidebar-overlay {
+    z-index: 100000 !important;
+}

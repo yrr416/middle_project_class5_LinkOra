@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.study.project05.mainpage.mapper.SearchMapper">
+
+    <insert id="recordKeyword">
+        INSERT INTO search_log (keyword, hit_count)
+        VALUES (#{keyword}, 1)
+            ON DUPLICATE KEY UPDATE hit_count = hit_count + 1
+    </insert>
+
+    <select id="getTopKeywords" resultType="org.study.project05.mainpage.vo.SearchLogVO">
+        SELECT
+            keyword,
+            hit_count AS hitCount
+        FROM search_log
+        WHERE keyword != '' /* 빈 값은 제외함 */
+        ORDER BY hitCount DESC
+            LIMIT 5 /* 이 숫자가 5개로 제한해줌 */
+    </select>
+
+</mapper>

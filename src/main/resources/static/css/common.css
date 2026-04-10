@@ -1,0 +1,50 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+/* [설정] 프로젝트에서 공통으로 사용할 색상 주머니임. */
+:root {
+    --text-main: #2a2a2a;
+    --text-muted: #757575;
+    --bg-light: #f8f9fa;
+    --white: #ffffff;
+    --border: #e4e7ec;
+    --point-main: #2F4F4F;
+    --point-hover: #1e3333;
+    --point-light: #a3b8b8;
+    --gold: #d4af37;
+    --notice-red: #e74c3c; /* NEW 태그에 사용할 빨간색임. */
+}
+
+/* [기본] 모든 요소의 여백을 없애고 폰트를 통일하는 기본 규칙임. */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Pretendard', sans-serif;
+}
+
+/* [바탕] 전체 배경색과 글자색을 정하는 규칙임. */
+body {
+    background-color: var(--white);
+    color: var(--text-main);
+    overflow-x: hidden;
+    letter-spacing: -0.3px;
+}
+
+/* [링크] 밑줄을 없애고 색상이 변하는 효과를 주는 규칙임. */
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.2s;
+}
+
+/* [목록] 리스트 앞의 점을 없애주는 규칙임. */
+ul {
+    list-style: none;
+}
+
+/* [레이아웃] 화면 중앙에 내용을 모아주는 큰 바구니임. */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}

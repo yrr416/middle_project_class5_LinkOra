@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05.branch.mapper.BranchMapper">
+
+    <select id="searchWithFilters" resultType="org.study.project05.branch.vo.BranchVO">
+        SELECT
+        b.b_idx AS brnIdx,
+        b.b_name AS brnName,
+        b.b_address AS brnAddress,
+        b.b_description AS brnDescription,
+        b.b_latitude AS brnLatitude,
+        b.b_altitude AS brnLongitude,
+        b.b_phone AS brnPhone,
+        b.b_file AS brnFile,
+        b.b_active AS brnActive
+        <if test="lat != null and lng != null">
+            , (6371 * acos(cos(radians(#{lat})) * cos(radians(b.b_latitude))
+            * cos(radians(b.b_altitude) - radians(#{lng}))
+            + sin(radians(#{lat})) * sin(radians(b.b_latitude)))) AS distance
+        </if>
+        FROM branch b
+        <where>
+            b.b_active = 1
+
+            <if test="keyword != null and keyword != ''">
+                AND (
+                b.b_name LIKE CONCAT('%', #{keyword}, '%')
+                OR b.b_address LIKE CONCAT('%', #{keyword}, '%')
+                OR b.b_description LIKE CONCAT('%', #{keyword}, '%')
+                OR EXISTS (
+                SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_name LIKE CONCAT('%', #{keyword}, '%')
+                )
+                )
+            </if>
+
+            <if test="region != null and region != ''">
+                AND b.b_address LIKE CONCAT('%', #{region}, '%')
+            </if>
+
+            <if test="capacity != null and capacity != ''">
+                AND EXISTS (SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_max_capacity >= #{capacity})
+            </if>
+            <if test="parking != null and parking == 1">
+                AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_parking = 1)
+            </if>
+            <if test="h24 != null and h24 == 1">
+                AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_24hours = 1)
+            </if>
+            <if test="pet != null and pet == 1">
+                AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_pet = 1)
+            </if>
+            <if test="wifi != null and wifi == 1">
+                AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_wifi = 1)
+            </if>
+            <if test="coffee != null and coffee == 1">
+                AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_coffee = 1)
+            </if>
+            <if test="printer != null and printer == 1">
+                AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_printer = 1)
+            </if>
+            <if test="locker != null and locker == 1">
+                AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_locker = 1)
+            </if>
+
+            <if test="lat != null and lng != null">
+                AND (6371 * acos(cos(radians(#{lat})) * cos(radians(b.b_latitude))
+                * cos(radians(b.b_altitude) - radians(#{lng}))
+                + sin(radians(#{lat})) * sin(radians(b.b_latitude)))) &lt; 5
+            </if>
+        </where>
+        <if test="lat != null and lng != null">
+            ORDER BY distance ASC
+        </if>
+    </select>
+
+    <select id="getAllBranches" resultType="org.study.project05.branch.vo.BranchVO">
+        SELECT
+            b_idx AS brnIdx,
+            b_name AS brnName,
+            b_address AS brnAddress,
+            b_description AS brnDescription,
+            b_latitude AS brnLatitude,
+            b_altitude AS brnLongitude,
+            b_phone AS brnPhone,
+            b_file AS brnFile,
+            b_active AS brnActive
+        FROM branch
+        WHERE b_active = 1
+    </select>
+
+</mapper>
