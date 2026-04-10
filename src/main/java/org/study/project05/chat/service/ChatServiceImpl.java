@@ -145,7 +145,23 @@ public class ChatServiceImpl implements ChatService {
 
         // 4. 결과 세팅 및 DB 저장용 길이 제한
         chatVO.setChatResponse(botResponse);
-        chatVO.setChatIntent("AI_GENERATED");
+
+        // --- [고도화] 인텐트 세분화 분류 로직 ---
+        String intent = "AI_CONVERSATION"; // 기본값: 일반 대화
+        if (botResponse.contains("[[COMMIT_BOOKING:")) {
+            intent = "BOOKING_COMMIT";
+        } else if (botResponse.contains("[[CANCEL_BOOKING:")) {
+            intent = "BOOKING_CANCEL";
+        } else if (botResponse.contains("[[PREFILL:")) {
+            intent = "BOOKING_PREFILL";
+        } else if (botResponse.contains("[[CHECK_AVAILABILITY:")) {
+            intent = "AVAILABILITY_CHECK";
+        } else if (botResponse.contains("[[ACTIONS:")) {
+            intent = "RECOMMEND_SPACE";
+        }
+
+        chatVO.setChatIntent(intent);
+
         chatVO.setChatPage(currentPage);
 
         // --- DB 저장용 객체 전처리 (500자 Truncation) ---
