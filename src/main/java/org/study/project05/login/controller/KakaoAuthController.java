@@ -5,6 +5,7 @@ package org.study.project05.login.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +16,7 @@ import org.study.project05.login.service.SocialLoginCompletionService;
 import org.study.project05.login.util.KakaoUtil;
 import org.study.project05.login.vo.KakaoUserVO;
 import org.study.project05.member.service.UserProfileService;
+import org.study.project05.member.vo.UserProfileVO;
 
 import java.nio.charset.StandardCharsets;
 
@@ -45,7 +47,7 @@ public class KakaoAuthController {
     @GetMapping("/kakao/authorize")
     public String kakaoAuthorize() {
         if (clientId == null || clientId.isBlank()) {
-            return "redirect:/?error=kakao_config";
+            return "redirect:/loginPage?error=kakao_config";
         }
         String url = UriComponentsBuilder.fromUriString(KAKAO_AUTH)
                 .queryParam("client_id", clientId)
@@ -64,22 +66,23 @@ public class KakaoAuthController {
             @RequestParam(value = "code", required = false) String code,
             @RequestParam(value = "error", required = false) String error,
             HttpServletRequest request,
-            HttpServletResponse response
+            HttpServletResponse response,
+            HttpSession session
     ) {
         if (error != null) {
-            return "redirect:/?error=kakao_denied";
+            return "redirect:/loginPage?error=kakao_denied";
         }
         if (code == null || code.isBlank()) {
-            return "redirect:/?error=kakao_no_code";
+            return "redirect:/loginPage?error=kakao_no_code";
         }
         try {
             String accessToken = kakaoUtil.getAccessToken(code);
             if (accessToken == null || accessToken.isBlank()) {
-                return "redirect:/?error=kakao_token";
+                return "redirect:/loginPage?error=kakao_token";
             }
             KakaoUserVO user = kakaoUtil.getUserProfile(accessToken);
             if (user == null || user.getId() == null || user.getId().isBlank()) {
-                return "redirect:/?error=kakao_profile";
+                return "redirect:/loginPage?error=kakao_profile";
             }
             String phone = PhoneNumberUtil.normalizeKoreanMobile(user.getPhoneNumber());
             String address = mergeKakaoAddress(user.getBaseAddress(), user.getDetailAddress());
@@ -95,10 +98,17 @@ public class KakaoAuthController {
             );
             socialLoginCompletionService.signIn(request, response, siteUserId);
 
+            // 소셜 로그인 후 loginUser 세션 설정 (리뷰/예약 등 다른 기능에서 사용)
+            UserProfileVO loginUser = userProfileService.getByUserId(siteUserId);
+            if (loginUser != null) {
+                loginUser.setPassword(null);
+                session.setAttribute("loginUser", loginUser);
+            }
+
             return "redirect:/mypage";
         } catch (Exception e) {
             e.printStackTrace();
-            return "redirect:/?error=kakao_fail";
+            return "redirect:/loginPage?error=kakao_fail";
         }
     }
 

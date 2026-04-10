@@ -16,6 +16,7 @@ import org.study.project05.login.service.SocialLoginCompletionService;
 import org.study.project05.login.util.NaverUtil;
 import org.study.project05.login.vo.NaverUserVO;
 import org.study.project05.member.service.UserProfileService;
+import org.study.project05.member.vo.UserProfileVO;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -50,7 +51,7 @@ public class NaverAuthController {
     @GetMapping("/naver/authorize")
     public String naverAuthorize(HttpSession session) {
         if (clientId == null || clientId.isBlank()) {
-            return "redirect:/?error=naver_config";
+            return "redirect:/loginPage?error=naver_config";
         }
         String state = UUID.randomUUID().toString();
         session.setAttribute(SESSION_NAVER_STATE, state);
@@ -79,25 +80,25 @@ public class NaverAuthController {
     ) {
         if (error != null) {
             session.removeAttribute(SESSION_NAVER_STATE);
-            return "redirect:/?error=naver_denied";
+            return "redirect:/loginPage?error=naver_denied";
         }
         String savedState = (String) session.getAttribute(SESSION_NAVER_STATE);
         session.removeAttribute(SESSION_NAVER_STATE);
         if (savedState == null || state == null || !savedState.equals(state)) {
-            return "redirect:/?error=naver_state";
+            return "redirect:/loginPage?error=naver_state";
         }
         if (code == null || code.isBlank()) {
-            return "redirect:/?error=naver_no_code";
+            return "redirect:/loginPage?error=naver_no_code";
         }
         try {
             String accessToken = naverUtil.getAccessToken(code, state);
             if (accessToken == null || accessToken.isBlank()) {
-                return "redirect:/?error=naver_token";
+                return "redirect:/loginPage?error=naver_token";
             }
 
             NaverUserVO user = naverUtil.getUserProfile(accessToken);
             if (user == null || user.getId() == null) {
-                return "redirect:/?error=naver_profile";
+                return "redirect:/loginPage?error=naver_profile";
             }
 
             String phone = PhoneNumberUtil.normalizeKoreanMobile(
@@ -113,9 +114,16 @@ public class NaverAuthController {
             );
             socialLoginCompletionService.signIn(request, response, siteUserId);
 
+            // 소셜 로그인 후 loginUser 세션 설정 (리뷰/예약 등 다른 기능에서 사용)
+            UserProfileVO loginUser = userProfileService.getByUserId(siteUserId);
+            if (loginUser != null) {
+                loginUser.setPassword(null);
+                session.setAttribute("loginUser", loginUser);
+            }
+
             return "redirect:/mypage";
         } catch (Exception e) {
-            return "redirect:/?error=naver_fail";
+            return "redirect:/loginPage?error=naver_fail";
         }
     }
 }
