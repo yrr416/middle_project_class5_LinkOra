@@ -37,7 +37,7 @@
     <!--
         [예약 등록]
     -->
-    <insert id="insert" parameterType="org.study.project05.reservation.user.vo.ReservationVO">
+    <insert id="insert" parameterType="org.study.project05.reservation.user.vo.ReservationVO" useGeneratedKeys="true" keyProperty="resIdx">
         INSERT INTO reservation
             (s_idx, u_idx, r_start_time, r_end_time, r_headcount, r_total_price, r_status, r_content, r_created, r_updated)
         VALUES
@@ -74,7 +74,7 @@
         SET r_status = 'CANCELLED'
         WHERE r_idx  = #{resIdx}
           AND u_idx  = #{userIdx}
-          AND r_status = 'PENDING'
+          AND r_status != 'CANCELLED'
     </update>
 
 </mapper>

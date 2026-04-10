@@ -14,10 +14,10 @@ import java.util.List;
 public class BranchVO {
 
     private int    brnIdx;
-    private int    partnerIdx;
+    private int    ptnIdx;
     private String brnName;
     private String brnDescription;
-    private String brnImg;
+    private String brnFile;
     private String brnAddress;
     private String brnLatitude;
     private String brnLongitude;
@@ -25,10 +25,14 @@ public class BranchVO {
     private String brnSns;
     private String brnHours;
     private String brnNotice;
-    private String brnRefundPolicy;
+    private String brnRefundPoli;
+
+    /** [추가] 거리 계산 결과 (단위: km) */
+    private Double distance;
 
     /** JOIN 으로 가져오는 파트너 브랜드명 */
     private String partnerName;
+
 
     /** 서비스 레이어에서 조립 — 지점 내 예약 가능 공간 목록 */
     private List<SpaceVO> spaces;

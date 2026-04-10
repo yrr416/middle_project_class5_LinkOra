@@ -15,4 +15,20 @@ public interface BranchMapper {
 
     /** 특정 공간(space)이 속한 지점 조회 — 예약폼 상단 정보 표시용 */
     BranchVO selectBySpaceIdx(int sIdx);
+
+    /** [추가] 필터 및 위치 기반 복합 검색 (참조 프로젝트 로직 이식) */
+    List<BranchVO> searchWithFilters(
+            @org.apache.ibatis.annotations.Param("keyword") String keyword,
+            @org.apache.ibatis.annotations.Param("capacity") Integer capacity,
+            @org.apache.ibatis.annotations.Param("facParking") Integer facParking,
+            @org.apache.ibatis.annotations.Param("facHours24") Integer facHours24,
+            @org.apache.ibatis.annotations.Param("facPet") Integer facPet,
+            @org.apache.ibatis.annotations.Param("facWifi") Integer facWifi,
+            @org.apache.ibatis.annotations.Param("facCoffee") Integer facCoffee,
+            @org.apache.ibatis.annotations.Param("facPrinter") Integer facPrinter,
+            @org.apache.ibatis.annotations.Param("facLocker") Integer facLocker,
+            @org.apache.ibatis.annotations.Param("lat") Double lat,
+            @org.apache.ibatis.annotations.Param("lng") Double lng
+    );
 }
+

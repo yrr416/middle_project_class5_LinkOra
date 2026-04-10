@@ -18,4 +18,9 @@ public class ChatVO {
     private String chatIntent;     // 대화 의도
     private String chatPage;       // 발생한 페이지 위치
     private java.util.Date chatTime; // 대화 기록 시간
+
+    /** [추가] 사용자의 현재 위치 정보 (공간 추천용) */
+    private Double lat;
+    private Double lng;
 }
+

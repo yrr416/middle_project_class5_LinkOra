@@ -29,6 +29,9 @@ public class UserReservationServiceImpl implements ReservaionService {
     @Override
     public void reserve(ReservationVO vo) {
         SpaceVO space = spaceMapper.selectById(vo.getSpcIdx());
+        if (space == null) {
+            throw new IllegalArgumentException("선택하신 공간 정보를 찾을 수 없습니다. (ID: " + vo.getSpcIdx() + ")");
+        }
 
         // ① 인원 초과 체크
         int maxCapacity = Integer.parseInt(space.getSpcMaxCapacity());
@@ -38,9 +41,12 @@ public class UserReservationServiceImpl implements ReservaionService {
             );
         }
 
-        // 시간 파싱
-        LocalDateTime start = LocalDateTime.parse(vo.getResStartTime(), FORM_FMT);
-        LocalDateTime end   = LocalDateTime.parse(vo.getResEndTime(),   FORM_FMT);
+        // 시간 파싱 (공백이 포함된 경우 T로 치환하여 유연하게 대응)
+        String startTimeStr = vo.getResStartTime().replace(" ", "T");
+        String endTimeStr = vo.getResEndTime().replace(" ", "T");
+
+        LocalDateTime start = LocalDateTime.parse(startTimeStr, FORM_FMT);
+        LocalDateTime end   = LocalDateTime.parse(endTimeStr, FORM_FMT);
 
         if (!end.isAfter(start)) {
             throw new IllegalArgumentException("종료 시간은 시작 시간보다 늦어야 합니다.");
@@ -75,6 +81,7 @@ public class UserReservationServiceImpl implements ReservaionService {
         return reservationMapper.selectByUser(userIdx);
     }
 
+    @Transactional
     @Override
     public void cancelReservation(int resIdx, int userIdx) {
         reservationMapper.cancel(resIdx, userIdx);

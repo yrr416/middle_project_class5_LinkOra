@@ -21,15 +21,7 @@
             <!-- 메시지는 JS를 통해 동적으로 추가됩니다 -->
         </div>
 
-        <!-- 추천 칩 영역 -->
-        <div id="chatbot-chips-container">
-            <div class="chips-title">무엇을 도와드릴까요?</div>
-            <div id="chatbot-chips">
-                <button class="chip" data-msg="🏢 공간 추천">🏢 공간 추천</button>
-                <button class="chip" data-msg="📅 예약 안내">📅 예약 안내</button>
-                <button class="chip" data-msg="❓ 자주 묻는 질문">❓ 자주 묻는 질문</button>
-            </div>
-        </div>
+        <!-- 추천 칩 영역 제거됨 -->
         
         <div class="chatbot-input-area">
             <input type="text" id="chatbot-input" placeholder="메시지를 입력하거나 버튼을 선택하세요..." autocomplete="off">
@@ -59,5 +51,5 @@
 <script>
     window.contextPath = '${pageContext.request.contextPath}';
 </script>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/chatbot.css">
-<script src="${pageContext.request.contextPath}/static/js/chatbot.js?v=1.1"></script>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/chatbot.css?v=1.2">
+<script src="${pageContext.request.contextPath}/static/js/chatbot.js?v=1.2"></script>
