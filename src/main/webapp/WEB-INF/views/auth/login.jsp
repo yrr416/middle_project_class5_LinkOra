@@ -342,6 +342,16 @@
     </section>
 </main>
 <%@include file="../../views/layout/footer.jsp" %>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var root = '${pageContext.request.contextPath}';
+    var btn = document.querySelector('.header-right .login-btn');
+    if (!btn || btn.tagName !== 'BUTTON') return;
+    if ((btn.textContent || '').trim() !== 'LOGIN') return;
+    btn.textContent = '홈페이지';
+    btn.onclick = function () { location.href = root + '/'; };
+});
+</script>
 </body>
 </html>
 
