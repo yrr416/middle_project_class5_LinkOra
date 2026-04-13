@@ -16,9 +16,9 @@ import org.study.project05.member.service.UserProfileService;
 import org.study.project05.member.vo.UserProfileVO;
 import org.study.project05.reservation.user.mapper.UserReservationMapper;
 
-@Controller("branchSpaceController")
+@Controller
 @RequestMapping("/detail")
-public class SpaceController {
+public class BranchDetailController {
 
     @Value("${kakao.map.key}")
     private String kakaoMapKey;

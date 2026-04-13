@@ -9,7 +9,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.study.project05.reservation.user.service.ReservaionService;
 import org.study.project05.reservation.user.vo.ReservationVO;
 import org.study.project05.branch.service.SpaceBranchService;
-import org.study.project05.branch.service.SpaceService;
+import org.study.project05.branch.service.BranchSpaceService;
 import org.study.project05.member.vo.UserProfileVO;
 
 import java.util.List;
@@ -23,14 +23,14 @@ public class UserReservationController {
     @Autowired
     private ReservaionService reservationService;
     @Autowired
-    private SpaceService spaceService;
+    private BranchSpaceService branchSpaceService;
     @Autowired
     private SpaceBranchService branchService;
 
     /** 예약 폼 — spcIdx 기반 */
     @GetMapping("/form")
     public String form(@RequestParam int spcIdx, Model model) {
-        model.addAttribute("space",  spaceService.getSpaceById(spcIdx));
+        model.addAttribute("space",  branchSpaceService.getSpaceById(spcIdx));
         model.addAttribute("branch", branchService.getBranchBySpaceIdx(spcIdx));
         return "reservation/form";
     }
@@ -50,7 +50,7 @@ public class UserReservationController {
             return "redirect:/reservation/complete";
         } catch (IllegalArgumentException e) {
             model.addAttribute("errorMsg", e.getMessage());
-            model.addAttribute("space",  spaceService.getSpaceById(vo.getSpcIdx()));
+            model.addAttribute("space",  branchSpaceService.getSpaceById(vo.getSpcIdx()));
             model.addAttribute("branch", branchService.getBranchBySpaceIdx(vo.getSpcIdx()));
             return "reservation/form";
         }

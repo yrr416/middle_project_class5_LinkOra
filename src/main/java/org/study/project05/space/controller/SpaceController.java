@@ -19,7 +19,7 @@ import java.util.UUID;
  * /admin/space/** 요청 처리
  */
 @Slf4j
-@Controller("adminSpaceController")
+@Controller
 @RequestMapping("/admin/space")
 public class SpaceController {
 

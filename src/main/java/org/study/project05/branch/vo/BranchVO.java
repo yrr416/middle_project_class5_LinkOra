@@ -49,7 +49,7 @@ public class BranchVO {
 
     // [상세 조회 및 연관 데이터]
     private String partnerName;          // 파트너 브랜드명
-    private List<SpaceVO> spaces;        // 지점 내 공간 목록
+    private List<BranchSpaceVO> spaces;        // 지점 내 공간 목록
     private List<BranchImgVO> images;    // 지점 이미지 목록
 
 }

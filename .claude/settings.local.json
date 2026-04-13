@@ -68,7 +68,9 @@
       "Bash(find D:/dev/springmvc/test/project05class -path */work/* -name *step4*)",
       "Bash(\"D:/dev/springmvc/test/project05/.gitignore\":*)",
       "Bash(\"D:/dev/springmvc/test/project05/pom.xml\":*)",
-      "Bash(\"D:/dev/springmvc/test/project05/src/main/resources/application.properties\":*)"
+      "Bash(\"D:/dev/springmvc/test/project05/src/main/resources/application.properties\":*)",
+      "Bash(xargs -I{} basename {} .java)",
+      "Bash(find src/main/java -name \"$f.java\")"
     ]
   }
 }

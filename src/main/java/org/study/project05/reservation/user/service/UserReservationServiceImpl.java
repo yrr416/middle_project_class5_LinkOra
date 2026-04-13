@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.study.project05.reservation.user.mapper.UserReservationMapper;
 import org.study.project05.reservation.user.vo.ReservationVO;
-import org.study.project05.branch.mapper.SpaceMapper;
-import org.study.project05.branch.vo.SpaceVO;
+import org.study.project05.branch.mapper.BranchSpaceMapper;
+import org.study.project05.branch.vo.BranchSpaceVO;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,7 +21,7 @@ public class UserReservationServiceImpl implements ReservaionService {
     private UserReservationMapper reservationMapper;
 
     @Autowired
-    private SpaceMapper spaceMapper;
+    private BranchSpaceMapper branchSpaceMapper;
 
     private static final DateTimeFormatter FORM_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     private static final DateTimeFormatter DB_FMT   = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -29,7 +29,7 @@ public class UserReservationServiceImpl implements ReservaionService {
     @Transactional
     @Override
     public void reserve(ReservationVO vo) {
-        SpaceVO space = spaceMapper.selectById(vo.getSpcIdx());
+        BranchSpaceVO space = branchSpaceMapper.selectById(vo.getSpcIdx());
 
         // ① 인원 초과 체크 (spcMaxCapacity는 int 타입이므로 parseInt 불필요)
         int maxCapacity = space.getSpcMaxCapacity();

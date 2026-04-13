@@ -5,9 +5,9 @@ import org.springframework.stereotype.Service;
 import org.study.project05.branch.mapper.BranchImgMapper;
 import org.study.project05.branch.mapper.FacilityMapper;
 import org.study.project05.branch.mapper.SpaceBranchMapper;
-import org.study.project05.branch.mapper.SpaceMapper;
+import org.study.project05.branch.mapper.BranchSpaceMapper;
 import org.study.project05.branch.vo.BranchVO;
-import org.study.project05.branch.vo.SpaceVO;
+import org.study.project05.branch.vo.BranchSpaceVO;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import java.util.List;
 public class SpaceBranchServiceImpl implements SpaceBranchService {
 
     @Autowired private SpaceBranchMapper spaceBranchMapper;
-    @Autowired private SpaceMapper       spaceMapper;
+    @Autowired private BranchSpaceMapper branchSpaceMapper;
     @Autowired private FacilityMapper    facilityMapper;
     @Autowired private BranchImgMapper   branchImgMapper;
 
@@ -32,8 +32,8 @@ public class SpaceBranchServiceImpl implements SpaceBranchService {
     public BranchVO getBranchWithSpaces(int bIdx) {
         BranchVO branch = spaceBranchMapper.selectById(bIdx);
         if (branch != null) {
-            List<SpaceVO> spaces = spaceMapper.selectByBranch(bIdx);
-            for (SpaceVO s : spaces) {
+            List<BranchSpaceVO> spaces = branchSpaceMapper.selectByBranch(bIdx);
+            for (BranchSpaceVO s : spaces) {
                 // spcIdx를 spaIdx 파라미터로 전달
                 s.setFacilities(facilityMapper.selectBySpaceIdx(s.getSpcIdx()));
             }
