@@ -46,8 +46,20 @@ public class  UserReservationController {
 
         try {
             reservationService.reserve(vo);
+
+            /* ── 결제 기능 보류 중 ──────────────────────────────────────────
+             * 팀 합치기 완료 후 아래 주석을 해제하고 위 두 줄(reserve + redirect)을 교체할 것
+             *
+             * reservationService.reserve(vo);
+             * session.setAttribute("pendingResIdx",    vo.getResIdx());
+             * session.setAttribute("pendingAmount",    Integer.parseInt(vo.getResTotalPrice()));
+             * session.setAttribute("pendingSpaceName", spaceService.getSpaceById(vo.getSpcIdx()).getSpcName());
+             * return "redirect:/payment/checkout";
+             * ────────────────────────────────────────────────────────────── */
+
             redirectAttributes.addFlashAttribute("reservation", vo);
             return "redirect:/reservation/complete";
+
         } catch (IllegalArgumentException e) {
             model.addAttribute("errorMsg", e.getMessage());
             model.addAttribute("space",  spaceService.getSpaceById(vo.getSpcIdx()));

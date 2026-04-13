@@ -3,17 +3,82 @@
 
 <mapper namespace="org.study.project05.branch.mapper.BranchMapper">
 
-    <select id="searchWithFilters" resultType="org.study.project05.branch.vo.BranchVO">
+    <resultMap id="BranchListMap" type="org.study.project05.branch.vo.BranchVO">
+        <id property="brnIdx" column="b_idx"/>
+        <result property="brnName" column="b_name"/>
+        <result property="brnAddress" column="b_address"/>
+        <result property="brnDescription" column="b_description"/>
+        <result property="brnLatitude" column="b_latitude"/>
+        <result property="brnLongitude" column="b_altitude"/>
+        <result property="brnPhone" column="b_phone"/>
+        <result property="brnFile" column="b_file"/>
+        <result property="brnActive" column="b_active"/>
+        <result property="distance" column="distance"/>
+
+        <result property="facParking" column="fac_parking"/>
+        <result property="facHours24" column="fac_hours24"/>
+        <result property="facPet" column="fac_pet"/>
+        <result property="facWifi" column="fac_wifi"/>
+        <result property="facCoffee" column="fac_coffee"/>
+        <result property="facPrinter" column="fac_printer"/>
+        <result property="facLocker" column="fac_locker"/>
+    </resultMap>
+
+    <sql id="branchFilters">
+        b.b_active = 1
+
+        <if test="keyword != null and keyword != ''">
+            AND (
+            b.b_name LIKE CONCAT('%', #{keyword}, '%')
+            OR b.b_address LIKE CONCAT('%', #{keyword}, '%')
+            OR b.b_description LIKE CONCAT('%', #{keyword}, '%')
+            OR EXISTS (
+            SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_name LIKE CONCAT('%', #{keyword}, '%')
+            )
+            )
+        </if>
+
+        <if test="region != null and region != ''">
+            AND b.b_address LIKE CONCAT('%', #{region}, '%')
+        </if>
+
+        <if test="capacity != null">
+            <choose>
+                <when test="capacity == 1"> AND EXISTS (SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_max_capacity = 1) </when>
+                <when test="capacity == 5"> AND EXISTS (SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_max_capacity BETWEEN 2 AND 5) </when>
+                <when test="capacity == 10"> AND EXISTS (SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_max_capacity BETWEEN 6 AND 10) </when>
+                <when test="capacity == 20"> AND EXISTS (SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_max_capacity BETWEEN 11 AND 20) </when>
+                <when test="capacity == 21"> AND EXISTS (SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_max_capacity > 20) </when>
+                <when test="capacity == 100"> AND EXISTS (SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_max_capacity >= 100) </when>
+            </choose>
+        </if>
+
+        <if test="facParking != null and facParking == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_parking = 1) </if>
+        <if test="facHours24 != null and facHours24 == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_hours24 = 1) </if>
+        <if test="facPet != null and facPet == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_pet = 1) </if>
+        <if test="facWifi != null and facWifi == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_desk = 1) </if>
+        <if test="facCoffee != null and facCoffee == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_cafe = 1) </if>
+        <if test="facPrinter != null and facPrinter == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_fax = 1) </if>
+        <if test="facLocker != null and facLocker == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_storage = 1) </if>
+
+        <if test="lat != null and lng != null">
+            AND (6371 * acos(cos(radians(#{lat})) * cos(radians(b.b_latitude))
+            * cos(radians(b.b_altitude) - radians(#{lng}))
+            + sin(radians(#{lat})) * sin(radians(b.b_latitude)))) &lt; 5
+        </if>
+    </sql>
+
+    <select id="searchWithFilters" resultMap="BranchListMap">
         SELECT
-        b.b_idx AS brnIdx,
-        b.b_name AS brnName,
-        b.b_address AS brnAddress,
-        b.b_description AS brnDescription,
-        b.b_latitude AS brnLatitude,
-        b.b_altitude AS brnLongitude,
-        b.b_phone AS brnPhone,
-        b.b_file AS brnFile,
-        b.b_active AS brnActive
+        b.b_idx, b.b_name, b.b_address, b.b_description,
+        b.b_latitude, b.b_altitude, b.b_phone, b.b_file, b.b_active,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_parking = 1) as fac_parking,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_hours24 = 1) as fac_hours24,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_pet = 1) as fac_pet,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_desk = 1) as fac_wifi,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_cafe = 1) as fac_coffee,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_fax = 1) as fac_printer,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_storage = 1) as fac_locker
         <if test="lat != null and lng != null">
             , (6371 * acos(cos(radians(#{lat})) * cos(radians(b.b_latitude))
             * cos(radians(b.b_altitude) - radians(#{lng}))
@@ -21,70 +86,30 @@
         </if>
         FROM branch b
         <where>
-            b.b_active = 1
-
-            <if test="keyword != null and keyword != ''">
-                AND (
-                b.b_name LIKE CONCAT('%', #{keyword}, '%')
-                OR b.b_address LIKE CONCAT('%', #{keyword}, '%')
-                OR b.b_description LIKE CONCAT('%', #{keyword}, '%')
-                OR EXISTS (
-                SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_name LIKE CONCAT('%', #{keyword}, '%')
-                )
-                )
-            </if>
-
-            <if test="region != null and region != ''">
-                AND b.b_address LIKE CONCAT('%', #{region}, '%')
-            </if>
-
-            <if test="capacity != null and capacity != ''">
-                AND EXISTS (SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_max_capacity >= #{capacity})
-            </if>
-            <if test="parking != null and parking == 1">
-                AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_parking = 1)
-            </if>
-            <if test="h24 != null and h24 == 1">
-                AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_24hours = 1)
-            </if>
-            <if test="pet != null and pet == 1">
-                AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_pet = 1)
-            </if>
-            <if test="wifi != null and wifi == 1">
-                AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_wifi = 1)
-            </if>
-            <if test="coffee != null and coffee == 1">
-                AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_coffee = 1)
-            </if>
-            <if test="printer != null and printer == 1">
-                AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_printer = 1)
-            </if>
-            <if test="locker != null and locker == 1">
-                AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_locker = 1)
-            </if>
-
-            <if test="lat != null and lng != null">
-                AND (6371 * acos(cos(radians(#{lat})) * cos(radians(b.b_latitude))
-                * cos(radians(b.b_altitude) - radians(#{lng}))
-                + sin(radians(#{lat})) * sin(radians(b.b_latitude)))) &lt; 5
-            </if>
+            <include refid="branchFilters"/>
         </where>
-        <if test="lat != null and lng != null">
-            ORDER BY distance ASC
+
+        ORDER BY
+        <if test="lat != null and lng != null"> distance ASC, </if>
+        b.b_idx DESC
+
+        <if test="skip != null and size != null">
+            LIMIT #{size} OFFSET #{skip}
         </if>
     </select>
 
-    <select id="getAllBranches" resultType="org.study.project05.branch.vo.BranchVO">
+    <select id="getCountWithFilters" resultType="int">
+        SELECT COUNT(*)
+        FROM branch b
+        <where>
+            <include refid="branchFilters"/>
+        </where>
+    </select>
+
+    <select id="getAllBranches" resultMap="BranchListMap">
         SELECT
-            b_idx AS brnIdx,
-            b_name AS brnName,
-            b_address AS brnAddress,
-            b_description AS brnDescription,
-            b_latitude AS brnLatitude,
-            b_altitude AS brnLongitude,
-            b_phone AS brnPhone,
-            b_file AS brnFile,
-            b_active AS brnActive
+            b_idx, b_name, b_address, b_description,
+            b_latitude, b_altitude, b_phone, b_file, b_active
         FROM branch
         WHERE b_active = 1
     </select>

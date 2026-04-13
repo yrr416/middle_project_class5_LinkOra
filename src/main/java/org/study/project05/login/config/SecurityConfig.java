@@ -18,6 +18,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(csrf -> csrf.disable())  // CSRF 비활성화 — JSP 폼 POST 요청이 403으로 막히는 문제 해결
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
                 )

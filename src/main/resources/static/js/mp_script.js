@@ -1,13 +1,11 @@
-/* [Link Ora] mp_script.js - 모든 기능 통합 & 리뷰 슬라이드 및 지도 핀 복구판임. */
+/* mp_script.js - 모든 기능 통합 & 리뷰 슬라이드 및 지도 핀 복구 */
 
 // 전역 알림 중복 방지 변수
 window.isLoginAlertShown = false;
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // ==========================================
     // 1. 사이드바 및 아코디언 제어
-    // ==========================================
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
@@ -35,9 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    // ==========================================
     // 2. 프로모션(광고) 슬라이드 제어
-    // ==========================================
     const promoContainer = document.getElementById('promoContainer');
     const promoTrack = document.getElementById('promoTrack');
     const promoDots = document.querySelectorAll('.promo-dot');
@@ -84,9 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ==========================================
     // 3. 리뷰(Stories) 슬라이드 제어
-    // ==========================================
     const reviewTrack = document.getElementById('reviewTrack');
     const prevReview = document.getElementById('prevReview');
     const nextReview = document.getElementById('nextReview');
@@ -121,9 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
         nextReview.addEventListener('click', () => moveReview('next'));
     }
 
-    // ==========================================
     // 4. 카카오맵 설정
-    // ==========================================
     const mapContainer = document.getElementById('mainMap');
     if (!mapContainer) {
         if (typeof bindSearchEvents === "function") bindSearchEvents();
@@ -215,6 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (activeInfoOverlay) activeInfoOverlay.setMap(null);
         });
 
+        // 지점 데이터 로드 함수 수정
         window.loadBranches = function(keyword = "", type = "all") {
 
             markers.forEach(m => m.setMap(null));
@@ -222,18 +215,29 @@ document.addEventListener('DOMContentLoaded', () => {
             if (activeInfoOverlay) activeInfoOverlay.setMap(null);
             markers = []; overlays = [];
 
-            let fetchUrl = `/linkora/branch/api/data?keyword=${encodeURIComponent(keyword)}`;
+            // 컨트롤러 주소와 일치하도록 URL 수정
+            let fetchUrl = "";
 
-            const isMapPage = location.pathname.includes('/map');
-            if (centerLatLng && type === "all" && !keyword && !isMapPage) {
-                fetchUrl += `&lat=${centerLatLng.getLat()}&lng=${centerLatLng.getLng()}`;
+            if (type === "favorite") {
+                fetchUrl = `/api/wishlist/my`;
+            } else if (!keyword || keyword.trim() === "") {
+                fetchUrl = `/api/all-branches`;
+            } else {
+                fetchUrl = `/api/branches?keyword=${encodeURIComponent(keyword)}`;
+                const isMapPage = location.pathname.includes('/map');
+                if (centerLatLng && !isMapPage) {
+                    fetchUrl += `&lat=${centerLatLng.getLat()}&lng=${centerLatLng.getLng()}`;
+                }
             }
 
-            if (type === "favorite") fetchUrl = `/linkora/api/wishlist/my`;
-
             fetch(fetchUrl)
-                .then(res => res.json())
+                .then(res => {
+                    // 서버 응답이 실패한 경우 에러 발생
+                    if (!res.ok) throw new Error("API 서버 응답 에러: " + res.status);
+                    return res.json();
+                })
                 .then(branches => {
+                    // 로그인 필요 알림 처리 방어 로직
                     if (branches.status === 'login_required') {
                         if (!window.isLoginAlertShown) {
                             alert("로그인이 필요한 서비스입니다.");
@@ -243,7 +247,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         return;
                     }
 
-                    if (!branches || branches.length === 0) {
+                    // 배열이 아닌 데이터가 넘어올 경우 forEach 에러 방지
+                    if (!Array.isArray(branches)) {
+                        console.warn("데이터 형식이 올바르지 않습니다.");
+                        return;
+                    }
+
+                    if (branches.length === 0) {
                         console.warn("표시할 지점이 없습니다.");
                         return;
                     }
@@ -252,11 +262,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (branch.brnLatitude && branch.brnLongitude) {
                             const markerPos = new window.kakao.maps.LatLng(branch.brnLatitude, branch.brnLongitude);
 
-                            // 마커 생성
                             const marker = new window.kakao.maps.Marker({ position: markerPos, image: markerImage, map: map });
                             markers.push(marker);
 
-                            // 이름표 요소 생성
                             const labelWrap = document.createElement('div');
                             labelWrap.style.cssText = `display:flex; align-items:center; background:white; color:#2F4F4F; padding:6px 16px; border-radius:10px; border:2px solid #cccccc; box-shadow:0 4px 15px rgba(0,0,0,0.2); font-family:'Pretendard',sans-serif; font-size:14px; font-weight:800; white-space:nowrap; position:relative; cursor:pointer;`;
                             labelWrap.innerHTML = `
@@ -268,7 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             const labelOverlay = new window.kakao.maps.CustomOverlay({ position: markerPos, content: labelWrap, yAnchor: 2.3, zIndex: 99 });
                             labelOverlay.setMap(map); overlays.push(labelOverlay);
 
-                            // 정보창 열기 함수
                             const openInfoOverlay = () => {
                                 if (activeInfoOverlay) activeInfoOverlay.setMap(null);
 
@@ -288,16 +295,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                         </div>
                                     </div>`;
 
-                                // 상세보기 클릭 시 안내창 띄움
                                 contentWrap.querySelector('.detailBtn').addEventListener('click', () => {
                                     alert("아직 상세 페이지가 연결되지 않았습니다!");
                                 });
 
-                                // 하트 클릭 시 찜하기 실행
                                 const wishBtn = contentWrap.querySelector('.wishBtn');
                                 wishBtn.addEventListener('click', function() { window.toggleWish(this, branch.brnIdx); });
 
-                                // clickable: true 옵션을 주어 내부 버튼 클릭을 허용함
                                 activeInfoOverlay = new window.kakao.maps.CustomOverlay({
                                     position: markerPos,
                                     content: contentWrap,
@@ -309,7 +313,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                 map.panTo(markerPos);
                             };
 
-                            // 클릭 이벤트 연결
                             window.kakao.maps.event.addListener(marker, 'click', openInfoOverlay);
                             labelWrap.addEventListener('click', openInfoOverlay);
                         }
@@ -341,16 +344,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ==========================================
-// 5. 찜하기 전역 함수
-// ==========================================
+// 5. 찜하기 전역 함수 수정
 window.toggleWish = function (target, brnIdx) {
     let btn = target.classList && target.classList.contains('wish-btn') ? target : target.closest('.wish-btn');
     if (!btn) return;
 
     const icon = btn.querySelector('i');
 
-    fetch('/linkora/api/wishlist/toggle', {
+    // 찜하기 URL도 /linkora 제거
+    fetch('/api/wishlist/toggle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=UTF-8' },
         body: JSON.stringify({ "brnIdx": parseInt(brnIdx, 10) })
@@ -371,7 +373,8 @@ window.toggleWish = function (target, brnIdx) {
                     window.isLoginAlertShown = true;
                     setTimeout(() => { window.isLoginAlertShown = false; }, 1500);
                 }
-                location.href = "/linkora/login";
+                // 로그인 이동 경로 수정
+                location.href = "/login";
             }
         })
         .catch(err => console.error("찜하기 통신 실패:", err));

@@ -527,12 +527,7 @@
 <script>
   const CTX         = '${pageContext.request.contextPath}';
 
-  // Spring Security CSRF 토큰 — AJAX POST 요청에 헤더로 포함해야 403 방지
-  $.ajaxSetup({
-    beforeSend: function(xhr) {
-      xhr.setRequestHeader('${_csrf.headerName}', '${_csrf.token}');
-    }
-  });
+
   const BRANCH_IDX  = ${branch.brnIdx};
   const LAT         = '${branch.brnLatitude}';
   const LNG         = '${branch.brnLongitude}';

@@ -22,4 +22,16 @@ public interface UserReservationMapper {
 
     /** 해당 지점에 완료/진행중 예약이 있는지 확인 */
     int countByUserAndBranch(@Param("userIdx") int userIdx, @Param("brnIdx") int brnIdx);
+
+    /**
+     * 결제 승인 시 사용 — 행 락(SELECT FOR UPDATE)을 걸고 예약 조회
+     * 스케줄러의 자동 취소와 동시에 실행될 때 충돌을 방지함
+     */
+    ReservationVO selectByIdForUpdate(int rIdx);
+
+    /** 예약 상태 변경 (PENDING → CONFIRMED / CANCELLED) */
+    void updateStatus(@Param("rIdx") int rIdx, @Param("status") String status);
+
+    /** 생성된 지 10분이 지난 PENDING 예약을 일괄 CANCELLED 처리 — 스케줄러 전용 */
+    void cancelExpiredPending();
 }

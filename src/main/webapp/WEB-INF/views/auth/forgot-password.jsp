@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<%-- 비밀번호 찾기 화면: 이메일 검증 후 임시 비밀번호 발급/메일 전송을 요청한다. --%>
 <!DOCTYPE html>
 <html lang="ko">
 

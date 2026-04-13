@@ -9,27 +9,47 @@ import java.util.List;
 public interface BranchMapper {
 
     /**
-     지도에 모든 지점 정보를 싹 뿌려주기 위한 기능
-     XML에 만든 <select id="getAllBranches">와 연결
+     * 지도에 모든 지점 정보를 싹 뿌려주기 위한 기능
      */
     List<BranchVO> getAllBranches();
 
     /**
-     * 상세 필터와 키워드로 지점을 검색하는 기능
-     * [추가] 현재 위치(GPS) 기반 거리 계산을 위해 lat, lng 매개변수 추가
+     * 상세 필터와 키워드로 지점을 검색하는 기능 (페이징 포함)
+     * [수정] skip과 size 파라미터를 추가하여 원하는 구간만큼만 가져오게 함
      */
     List<BranchVO> searchWithFilters(
             @Param("keyword") String keyword,
             @Param("region") String region,
             @Param("capacity") Integer capacity,
-            @Param("parking") Integer parking,
-            @Param("h24") Integer h24,
-            @Param("pet") Integer pet,
-            @Param("wifi") Integer wifi,
-            @Param("coffee") Integer coffee,
-            @Param("printer") Integer printer,
-            @Param("locker") Integer locker,
-            @Param("lat") Double lat, // [추가] JS에서 넘어온 내 위치 위도
-            @Param("lng") Double lng  // [추가] JS에서 넘어온 내 위치 경도
+            @Param("facParking") Integer facParking,
+            @Param("facHours24") Integer facHours24,
+            @Param("facPet") Integer facPet,
+            @Param("facWifi") Integer facWifi,
+            @Param("facCoffee") Integer facCoffee,
+            @Param("facPrinter") Integer facPrinter,
+            @Param("facLocker") Integer facLocker,
+            @Param("lat") Double lat,
+            @Param("lng") Double lng,
+            @Param("skip") Integer skip, // [추가] 건너뛸 개수
+            @Param("size") Integer size  // [추가] 가져올 개수
+    );
+
+    /**
+     * [추가] 필터 조건에 맞는 전체 지점의 개수를 가져옴
+     * 페이지 번호(1 2 3...)를 계산하기 위해 반드시 필요함
+     */
+    int getCountWithFilters(
+            @Param("keyword") String keyword,
+            @Param("region") String region,
+            @Param("capacity") Integer capacity,
+            @Param("facParking") Integer facParking,
+            @Param("facHours24") Integer facHours24,
+            @Param("facPet") Integer facPet,
+            @Param("facWifi") Integer facWifi,
+            @Param("facCoffee") Integer facCoffee,
+            @Param("facPrinter") Integer facPrinter,
+            @Param("facLocker") Integer facLocker,
+            @Param("lat") Double lat,
+            @Param("lng") Double lng
     );
 }

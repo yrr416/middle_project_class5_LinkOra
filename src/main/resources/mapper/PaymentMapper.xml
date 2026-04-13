@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05.reservation.user.mapper.PaymentMapper">
+
+    <!--
+        DB 컬럼명(column)과 Java 필드명(property)을 한 곳에서 매핑
+        이렇게 해두면 SELECT 쿼리에서 AS 별칭을 쓰지 않아도 됨
+    -->
+    <resultMap id="paymentResultMap" type="org.study.project05.reservation.user.vo.PaymentVO">
+        <id     property="payIdx"     column="pay_idx"     />
+        <result property="resIdx"     column="r_idx"       />
+        <result property="userIdx"    column="u_idx"       />
+        <result property="paymentKey" column="payment_key" />
+        <result property="orderId"    column="order_id"    />
+        <result property="amount"     column="amount"      />
+        <result property="payStatus"  column="pay_status"  />
+        <result property="paidAt"     column="paid_at"     />
+    </resultMap>
+
+    <!-- 결제 정보 저장 -->
+    <insert id="insertPayment" useGeneratedKeys="true" keyProperty="payIdx">
+        INSERT INTO payment (r_idx, u_idx, payment_key, order_id, amount, pay_status)
+        VALUES (#{resIdx}, #{userIdx}, #{paymentKey}, #{orderId}, #{amount}, #{payStatus})
+    </insert>
+
+    <!-- orderId로 결제 정보 조회 -->
+    <select id="selectByOrderId" resultMap="paymentResultMap">
+        SELECT pay_idx, r_idx, u_idx, payment_key, order_id, amount, pay_status, paid_at
+        FROM payment
+        WHERE order_id = #{orderId}
+    </select>
+
+    <!-- 결제 상태 변경 -->
+    <update id="updatePayStatus">
+        UPDATE payment
+        SET pay_status = #{payStatus}
+        WHERE order_id = #{orderId}
+    </update>
+
+</mapper>

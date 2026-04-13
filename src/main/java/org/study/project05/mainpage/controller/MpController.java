@@ -26,18 +26,21 @@ public class MpController {
             @RequestParam(required = false) Integer capacity,
             Model model) {
 
-        // [수정] XML의 id인 recordKeyword에 맞춰서 호출함
+        // 1. 인기 검색어 기록
         if (keyword != null && !keyword.trim().isEmpty()) {
             searchService.recordKeyword(keyword);
         }
 
-        // 지점 목록 가져오기 (기존 유지)
+        // 2. [수정 포인트] 지점 목록 가져오기
+        // 파라미터 개수를 14개로 맞춤 (시설필터 7개, 좌표 2개, 페이징 2개 모두 null 처리)
         List<BranchVO> list = branchService.searchWithFilters(
-                keyword, region, capacity, null, null, null,
-                null, null, null, null, null, null
+                keyword, region, capacity,
+                null, null, null, null, null, null, null, // 시설 필터 7개
+                null, null,                               // lat, lng
+                null, null                                // skip, size (메인은 전체 혹은 필터만 적용)
         );
 
-        // 인기 검색어 상위 5개 가져오기
+        // 3. 인기 검색어 상위 5개 가져오기
         List<SearchLogVO> topTags = searchService.getTopKeywords();
 
         model.addAttribute("branches", list);
