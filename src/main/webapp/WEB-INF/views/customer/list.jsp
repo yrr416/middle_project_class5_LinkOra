@@ -45,8 +45,6 @@
             <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
             <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
             <hr class="border-secondary mx-3">
-            <span class="nav-link text-white-50 small px-3 pb-1">파트너 페이지</span>
-            <a class="nav-link" href="${ctx}/partner/reservation/list"><i class="bi bi-calendar2-check me-1"></i>파트너 예약 관리</a>
             <hr class="border-secondary mx-3">
             <a class="nav-link" href="${ctx}/" target="_blank"><i class="bi bi-house"></i>홈페이지 이동</a>
             <a class="nav-link" href="${ctx}/admin/settings"><i class="bi bi-gear"></i>설정</a>
