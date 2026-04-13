@@ -1,0 +1,180 @@
+/**
+ * UserProfileService 구현: user 테이블(MyBatis) 기반 가입·OAuth·비밀번호·프로필·삭제.
+ */
+package org.study.project05.member.service.impl;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.study.project05.member.mapper.UserProfileMapper;
+import org.study.project05.member.service.UserProfileService;
+import org.study.project05.member.vo.UserProfileVO;
+
+import java.security.SecureRandom;
+import java.util.UUID;
+
+@Service
+public class UserProfileServiceImpl implements UserProfileService {
+
+    private final UserProfileMapper userProfileMapper;
+    private final PasswordEncoder passwordEncoder;
+    private static final String RESET_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+    public UserProfileServiceImpl(UserProfileMapper userProfileMapper, PasswordEncoder passwordEncoder) {
+        this.userProfileMapper = userProfileMapper;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    public UserProfileVO getByUserId(String userId) {
+        return userProfileMapper.findByUserId(userId);
+    }
+
+    public boolean existsUserId(String userId) {
+        return userProfileMapper.countByUserId(userId) > 0;
+    }
+
+    public boolean existsEmail(String email) {
+        return userProfileMapper.countByEmail(email) > 0;
+    }
+
+    public boolean register(
+            String userId,
+            String password,
+            String name,
+            String email,
+            String address,
+            String phone,
+            String profilePath
+    ) {
+        String encoded = passwordEncoder.encode(password);
+        return userProfileMapper.insertUser(userId, encoded, name, email, address, phone, profilePath) > 0;
+    }
+
+    /**
+     * 카카오/네이버 등 OAuth 식별자로 {@code user} 행을 만들거나 갱신합니다.
+     *
+     * @param providerPrefix DB {@code u_id} 접두사 (예: {@code kakao}, {@code naver})
+     * @return 저장된 {@code u_id} (예: {@code kakao_12345})
+     */
+    public String upsertOAuthUser(
+            String providerPrefix,
+            String oauthSubject,
+            String name,
+            String email,
+            String address,
+            String phone,
+            String profileImageUrl
+    ) {
+        String prefix = providerPrefix != null ? providerPrefix.trim().toLowerCase() : "oauth";
+        String subject = oauthSubject != null ? oauthSubject.trim() : "";
+        String userId = prefix + "_" + subject;
+        String displayName = (name == null || name.isBlank()) ? (prefix + " 사용자") : name.trim();
+        String safeEmail = emptyToEmpty(email);
+        String safeAddress = emptyToEmpty(address);
+        String safePhone = emptyToEmpty(phone);
+        String safeProfile = emptyToEmpty(profileImageUrl);
+
+        if (userProfileMapper.countByUserId(userId) > 0) {
+            userProfileMapper.updateOauthUserByUserId(
+                    userId,
+                    displayName,
+                    safeEmail,
+                    safeAddress,
+                    safePhone,
+                    safeProfile
+            );
+            return userId;
+        }
+
+        String encodedRandom = passwordEncoder.encode(UUID.randomUUID().toString());
+        userProfileMapper.insertUser(
+                userId,
+                encodedRandom,
+                displayName,
+                safeEmail,
+                safeAddress,
+                safePhone,
+                safeProfile
+        );
+        return userId;
+    }
+
+    private static String emptyToEmpty(String s) {
+        if (s == null || s.isBlank()) {
+            return "";
+        }
+        return s.trim();
+    }
+
+    public PasswordChangeResult changePassword(String userId, String currentPassword, String newPassword) {
+        UserProfileVO user = userProfileMapper.findByUserId(userId);
+        if (user == null || user.getPassword() == null) {
+            return PasswordChangeResult.userNotFound;
+        }
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            return PasswordChangeResult.currentPasswordMismatch;
+        }
+        String encoded = passwordEncoder.encode(newPassword);
+        int updated = userProfileMapper.updatePasswordByUserId(user.getUserId(), encoded);
+        return updated > 0 ? PasswordChangeResult.SUCCESS : PasswordChangeResult.userNotFound;
+    }
+
+    public boolean updateProfileImage(String userId, String profilePath) {
+        if (userId == null || userId.isBlank() || profilePath == null || profilePath.isBlank()) {
+            return false;
+        }
+        return userProfileMapper.updateProfileImageByUserId(userId, profilePath) > 0;
+    }
+
+    public boolean deleteByUserId(String userId) {
+        if (userId == null || userId.isBlank()) {
+            return false;
+        }
+        return userProfileMapper.deleteByUserId(userId) > 0;
+    }
+
+    public PasswordResetIssuePasswordResult issueTemporaryPasswordByEmail(String email) {
+        if (email == null || email.isBlank() || !email.contains("@")) {
+            return PasswordResetIssuePasswordResult.invalid();
+        }
+        UserProfileVO user = userProfileMapper.findLatestByEmail(email.trim());
+        if (user == null || user.getUserId() == null || user.getUserId().isBlank()) {
+            return PasswordResetIssuePasswordResult.notFound();
+        }
+        String temporaryPassword = generateTemporaryPassword(10);
+        String encoded = passwordEncoder.encode(temporaryPassword);
+        int updated = userProfileMapper.updatePasswordByUserId(user.getUserId(), encoded);
+        if (updated <= 0) {
+            return PasswordResetIssuePasswordResult.notFound();
+        }
+        return PasswordResetIssuePasswordResult.success(
+                user.getEmail() != null ? user.getEmail().trim() : email.trim(),
+                user.getName(),
+                temporaryPassword
+        );
+    }
+
+    public UserIdFindIssueResult issueUserIdByEmail(String email) {
+        if (email == null || email.isBlank() || !email.contains("@")) {
+            return UserIdFindIssueResult.invalid();
+        }
+        UserProfileVO user = userProfileMapper.findLatestByEmail(email.trim());
+        if (user == null || user.getUserId() == null || user.getUserId().isBlank()) {
+            return UserIdFindIssueResult.notFound();
+        }
+        return UserIdFindIssueResult.success(
+                user.getEmail() != null ? user.getEmail().trim() : email.trim(),
+                user.getName(),
+                user.getUserId()
+        );
+    }
+
+    private static String generateTemporaryPassword(int length) {
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            int idx = SECURE_RANDOM.nextInt(RESET_CHARS.length());
+            sb.append(RESET_CHARS.charAt(idx));
+        }
+        return sb.toString();
+    }
+}

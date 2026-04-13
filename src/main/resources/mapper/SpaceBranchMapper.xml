@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+    space 모듈 → branch 모듈 통합 이후 mapper
+    partner JOIN 포함 상세 조회용 (상세페이지, 예약폼에서 사용)
+    팀원의 BranchMapper.xml(검색/필터용)과 역할이 다름
+-->
+<mapper namespace="org.study.project05.branch.mapper.SpaceBranchMapper">
+
+    <resultMap id="branchResultMap" type="org.study.project05.branch.vo.BranchVO">
+        <id     property="brnIdx"          column="b_idx"/>
+        <result property="ptnIdx"          column="p_idx"/>
+        <result property="brnName"         column="b_name"/>
+        <result property="brnDescription"  column="b_description"/>
+        <result property="brnFile"         column="b_file"/>
+        <result property="brnAddress"      column="b_address"/>
+        <result property="brnLatitude"     column="b_latitude"/>
+        <result property="brnLongitude"    column="b_altitude"/>
+        <result property="brnPhone"        column="b_phone"/>
+        <result property="brnSns"          column="b_sns"/>
+        <result property="brnHours"        column="b_hours"/>
+        <result property="brnNotice"       column="b_notice"/>
+        <result property="brnRefundPoli"   column="b_refund_policy"/>
+        <result property="partnerName"     column="p_name"/>
+    </resultMap>
+
+    <sql id="branchColumns">
+        b.b_idx, b.p_idx, b.b_name, b.b_description, b.b_file,
+        b.b_address, b.b_latitude, b.b_altitude, b.b_phone,
+        b.b_sns, b.b_hours, b.b_notice, b.b_refund_policy, p.p_name
+    </sql>
+
+    <sql id="branchJoin">
+        FROM branch b
+        JOIN partner p ON b.p_idx = p.p_idx
+    </sql>
+
+    <select id="selectAll" resultMap="branchResultMap">
+        SELECT <include refid="branchColumns"/>
+        <include refid="branchJoin"/>
+        ORDER BY b.b_idx ASC
+    </select>
+
+    <select id="selectById" parameterType="int" resultMap="branchResultMap">
+        SELECT <include refid="branchColumns"/>
+        <include refid="branchJoin"/>
+        WHERE b.b_idx = #{brnIdx}
+    </select>
+
+    <!--
+        특정 공간(space)이 속한 지점 조회
+        예약폼 상단에서 "이 공간이 어느 지점 소속인지" 표시할 때 사용
+        파라미터명: spaIdx (공간 idx)
+    -->
+    <select id="selectBySpaceIdx" parameterType="int" resultMap="branchResultMap">
+        SELECT <include refid="branchColumns"/>
+        <include refid="branchJoin"/>
+        JOIN space s ON s.b_idx = b.b_idx
+        WHERE s.s_idx = #{spaIdx}
+    </select>
+
+</mapper>
