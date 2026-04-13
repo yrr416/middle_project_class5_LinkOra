@@ -98,6 +98,9 @@
             <a class="nav-link" href="${ctx}/partner/mypage">
                 <i class="bi bi-person-circle"></i>파트너 마이페이지
             </a>
+            <a class="nav-link" href="${ctx}/" target="_blank">
+                <i class="bi bi-house"></i>홈페이지 이동
+            </a>
         </nav>
     </div>
 
