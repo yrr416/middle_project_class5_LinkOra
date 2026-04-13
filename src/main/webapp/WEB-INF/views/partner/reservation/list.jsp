@@ -95,8 +95,8 @@
                 <i class="bi bi-building-add"></i>공간/오피스 관리
             </a>
             <hr class="border-secondary mx-3">
-            <a class="nav-link" href="${ctx}/admin/dashboard">
-                <i class="bi bi-speedometer2"></i>관리자 페이지로 이동
+            <a class="nav-link" href="${ctx}/partner/mypage">
+                <i class="bi bi-person-circle"></i>파트너 마이페이지
             </a>
         </nav>
     </div>
