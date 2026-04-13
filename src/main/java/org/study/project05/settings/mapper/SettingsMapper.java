@@ -25,8 +25,11 @@ public interface SettingsMapper {
     int upsertSetting(Map<String, String> map);
 
     // ── 관리자 계정 ──────────────────────────────────────────────
-    /** 관리자 계정 정보 조회 */
+    /** 관리자 계정 정보 조회 (idx 기준) */
     Map<String, Object> getAdminInfo(String a_idx);
+
+    /** 로그인 ID로 관리자 조회 (로그인용) */
+    Map<String, Object> findAdminByLoginId(String loginId);
 
     /** 관리자 계정 정보 수정 (이름, 이메일, 연락처) */
     int updateAdminInfo(Map<String, Object> map);

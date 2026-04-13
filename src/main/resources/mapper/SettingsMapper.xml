@@ -25,6 +25,13 @@
 
     <!-- ── 관리자 계정 ──────────────────────────────────────────── -->
 
+    <!-- 로그인 ID로 관리자 조회 (로그인용) -->
+    <select id="findAdminByLoginId" parameterType="String" resultType="map">
+        SELECT a_idx, a_id, a_pwd
+          FROM admin
+         WHERE a_id = #{loginId}
+    </select>
+
     <!-- 관리자 계정 정보 조회 -->
     <select id="getAdminInfo" parameterType="String" resultType="map">
         SELECT a_idx, a_id, a_name AS adm_name, a_email, a_addr, a_phone, a_pwd

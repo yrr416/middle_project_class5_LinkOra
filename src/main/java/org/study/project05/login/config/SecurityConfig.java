@@ -27,9 +27,11 @@ public class SecurityConfig {
                         .usernameParameter("username")
                         .passwordParameter("password")
                         .successHandler((request, response, authentication) -> {
+                            boolean isAdmin = authentication.getAuthorities().stream()
+                                    .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
                             boolean isPartner = authentication.getAuthorities().stream()
-                                    .anyMatch(authority -> "ROLE_PARTNER".equals(authority.getAuthority()));
-                            String target = isPartner ? "/partner/mypage" : "/";
+                                    .anyMatch(a -> "ROLE_PARTNER".equals(a.getAuthority()));
+                            String target = isAdmin ? "/admin/dashboard" : isPartner ? "/partner/mypage" : "/";
                             response.sendRedirect(request.getContextPath() + target);
                         })
                         .failureUrl("/loginPage?error")

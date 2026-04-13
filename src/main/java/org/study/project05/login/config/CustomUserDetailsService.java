@@ -12,15 +12,20 @@ import org.study.project05.member.service.UserProfileService;
 import org.study.project05.member.vo.UserProfileVO;
 import org.study.project05.partner.service.PartnerService;
 import org.study.project05.partner.vo.PartnerVO;
+import org.study.project05.settings.mapper.SettingsMapper;
+
+import java.util.Map;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
     private final UserProfileService userProfileService;
     private final PartnerService partnerService;
+    private final SettingsMapper settingsMapper;
 
-    public CustomUserDetailsService(UserProfileService userProfileService, PartnerService partnerService) {
+    public CustomUserDetailsService(UserProfileService userProfileService, PartnerService partnerService, SettingsMapper settingsMapper) {
         this.userProfileService = userProfileService;
         this.partnerService = partnerService;
+        this.settingsMapper = settingsMapper;
     }
 
     @Override
@@ -29,6 +34,17 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("사용자를 찾을 수 없습니다.");
         }
         String key = username.trim();
+
+        // 관리자 테이블 먼저 확인
+        Map<String, Object> admin = settingsMapper.findAdminByLoginId(key);
+        if (admin != null && admin.get("a_pwd") != null) {
+            String rawPwd = (String) admin.get("a_pwd");
+            return User.withUsername((String) admin.get("a_id"))
+                    .password("{noop}" + rawPwd)
+                    .roles("ADMIN")
+                    .build();
+        }
+
         PartnerVO partner = partnerService.getByPartnerId(key);
         if (partner != null && partner.getPassword() != null && !partner.getPassword().isBlank()) {
             return User.withUsername(partner.getPartnerId())
