@@ -30,7 +30,7 @@
         핵심 조건: r_start_time < 새예약종료 AND r_end_time > 새예약시작
         CANCELLED 상태는 취소된 예약이므로 중복 체크에서 제외한다.
     -->
-    <select id="checkDuplicate" parameterType="ReservationVO" resultType="int">
+    <select id="checkDuplicate" parameterType="org.study.project05.reservation.user.vo.ReservationVO" resultType="int">
         SELECT COUNT(*)
         FROM reservation
         WHERE s_idx = #{spcIdx}
@@ -43,7 +43,9 @@
         [날짜별 점유 시간대 조회] - 예약 폼 달력 AJAX용
     -->
     <select id="getSlotsByDate" resultMap="reservationResultMap">
-        SELECT r_start_time, r_end_time, r_headcount
+        SELECT DATE_FORMAT(r_start_time, '%Y-%m-%d %H:%i:%s') AS r_start_time,
+               DATE_FORMAT(r_end_time,   '%Y-%m-%d %H:%i:%s') AS r_end_time,
+               r_headcount
         FROM reservation
         WHERE s_idx     = #{spaceIdx}
           AND r_status != 'CANCELLED'
@@ -68,8 +70,8 @@
         SELECT r.r_idx,
                r.s_idx,
                r.u_idx,
-               DATE_FORMAT(r.r_start_time, '%Y-%m-%d %H:%i') AS r_start_time,
-               DATE_FORMAT(r.r_end_time,   '%Y-%m-%d %H:%i') AS r_end_time,
+               DATE_FORMAT(r.r_start_time, '%Y-%m-%d %H:%i:%s') AS r_start_time,
+               DATE_FORMAT(r.r_end_time,   '%Y-%m-%d %H:%i:%s') AS r_end_time,
                r.r_headcount,
                r.r_total_price,
                r.r_status,
@@ -103,7 +105,7 @@
         SET r_status = 'CANCELLED'
         WHERE r_idx  = #{resIdx}
           AND u_idx  = #{userIdx}
-          AND r_status = 'PENDING'
+          AND r_status != 'CANCELLED'
     </update>
 
     <!--
@@ -144,3 +146,4 @@
     </update>
 
 </mapper>
+

@@ -183,7 +183,7 @@
         <p class="msg error">이메일에는 @가 포함되어야 합니다.</p>
         <% } %>
 
-        <form method="post" action="/signup" enctype="multipart/form-data">
+        <form method="post" action="${pageContext.request.contextPath}/signup" enctype="multipart/form-data">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
             <div class="form-group">
