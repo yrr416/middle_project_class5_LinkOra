@@ -101,6 +101,16 @@
           AND u_idx  = #{userIdx}
     </delete>
 
+    <!-- 본인 후기 수정 (revIdx + userIdx 둘 다 일치해야 수정 — 타인 수정 방지) -->
+    <update id="updateByUser">
+        UPDATE review
+        SET v_content    = #{revContent},
+            v_rating     = #{revRating},
+            v_updated_at = NOW()
+        WHERE v_idx  = #{revIdx}
+          AND u_idx  = #{userIdx}
+    </update>
+
     <!-- 후기/답글 등록 -->
     <insert id="insert" parameterType="ReviewVO">
         INSERT INTO review (s_idx, u_idx, v_parent_idx, v_content, v_rating, v_active, v_time, v_created_at, v_updated_at)

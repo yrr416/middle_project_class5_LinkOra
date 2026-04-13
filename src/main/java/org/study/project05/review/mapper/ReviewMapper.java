@@ -24,6 +24,9 @@ public interface ReviewMapper {
     /** 본인 후기 삭제 (revIdx + userIdx 일치 시만 삭제) */
     int deleteByUser(@Param("revIdx") int revIdx, @Param("userIdx") int userIdx);
 
+    /** 본인 후기 수정 (revIdx + userIdx 일치 시만 수정) */
+    int updateByUser(ReviewVO vo);
+
     /** 후기/답글 등록 */
     void insert(ReviewVO vo);
 

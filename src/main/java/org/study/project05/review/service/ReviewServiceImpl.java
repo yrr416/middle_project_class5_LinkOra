@@ -86,6 +86,28 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    public void updateReview(int revIdx, int userIdx, String content, Integer rating) {
+        if (rating == null || rating < 1 || rating > 5) throw new IllegalArgumentException("별점은 1~5 사이여야 합니다.");
+        if (content == null || content.isBlank()) throw new IllegalArgumentException("후기 내용을 입력해주세요.");
+
+        // 욕설 필터 적용 (writeReview와 동일한 방식)
+        String filtered = badWordFiltering.change(content.trim(),
+                new String[]{" ", "　", ".", "!", "*", "-", "_", "~", "ㅡ"});
+
+        ReviewVO vo = new ReviewVO();
+        vo.setRevIdx(revIdx);
+        vo.setUserIdx(userIdx);
+        vo.setRevContent(filtered);
+        vo.setRevRating(rating);
+
+        // updateByUser는 revIdx + userIdx 모두 일치할 때만 수정하고 영향받은 행 수를 반환
+        int updated = reviewMapper.updateByUser(vo);
+        if (updated == 0) {
+            throw new IllegalArgumentException("수정 권한이 없거나 존재하지 않는 리뷰입니다.");
+        }
+    }
+
+    @Override
     public void deleteReview(int revIdx, int userIdx) {
         // deleteByUser는 revIdx + userIdx가 모두 일치할 때만 삭제하고 영향받은 행 수를 반환
         // 0이면 본인 리뷰가 아니거나 이미 삭제된 것

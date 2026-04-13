@@ -376,7 +376,7 @@
                   </a>
                 </c:when>
                 <c:otherwise>
-                  <a href="${pageContext.request.contextPath}/loginPage?redirectUrl=/reservation/form?spcIdx=${space.spcIdx}"
+                  <a href="${pageContext.request.contextPath}/loginPage?redirectUrl=${pageContext.request.contextPath}/reservation/form?spcIdx=${space.spcIdx}"
                      class="block text-center bg-gray-200 hover:bg-gray-300
                                               text-gray-600 text-sm font-semibold py-2 rounded-xl transition">
                     로그인 후 예약
@@ -491,6 +491,44 @@
         신고하기
       </button>
       <button onclick="closeReportModal()"
+              class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-semibold py-2 rounded-xl transition">
+        취소
+      </button>
+    </div>
+  </div>
+</div>
+
+<%-- ── 리뷰 수정 모달 ── --%>
+<div id="editModal"
+     class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+     onclick="closeEditModal()">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl" onclick="event.stopPropagation()">
+    <h3 class="font-bold text-gray-800 mb-4">리뷰 수정</h3>
+
+    <%-- 별점 선택 --%>
+    <input type="hidden" id="editRating" value="0">
+    <div class="flex gap-1 mb-3">
+      <c:forEach var="i" begin="1" end="5">
+        <button type="button"
+                class="edit-star-btn text-2xl text-gray-300 transition"
+                data-val="${i}"
+                onclick="setEditRating(${i})">★</button>
+      </c:forEach>
+    </div>
+
+    <textarea id="editContent" rows="4"
+              class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3
+                     focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none"
+              placeholder="수정할 내용을 입력해주세요."></textarea>
+
+    <p id="editMsg" class="text-xs text-red-400 mb-3 hidden"></p>
+
+    <div class="flex gap-2">
+      <button onclick="submitEdit()"
+              class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-2 rounded-xl transition">
+        수정하기
+      </button>
+      <button onclick="closeEditModal()"
               class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-semibold py-2 rounded-xl transition">
         취소
       </button>
@@ -767,11 +805,20 @@
                        title="부적절한 리뷰 신고">신고</button>`
             : '';
 
-    // 삭제 버튼: 본인이 작성한 리뷰에만 표시
+    // 삭제/수정 버튼: 본인이 작성한 리뷰에만 표시
     const deleteBtn = (LOGIN_USER_IDX > 0 && LOGIN_USER_IDX === r.userIdx)
             ? `<button onclick="deleteReview(\${r.revIdx}, this)"
                        class="text-xs text-gray-300 hover:text-red-500 transition ml-2"
                        title="리뷰 삭제">삭제</button>`
+            : '';
+    // data 속성에 값을 저장 → onclick 안에 따옴표 충돌 없이 안전하게 전달
+    const editBtn = (LOGIN_USER_IDX > 0 && LOGIN_USER_IDX === r.userIdx)
+            ? `<button onclick="openEditModal(this)"
+                       data-rev-idx="\${r.revIdx}"
+                       data-content="\${esc(r.revContent)}"
+                       data-rating="\${r.revRating}"
+                       class="text-xs text-gray-300 hover:text-indigo-500 transition ml-2"
+                       title="리뷰 수정">수정</button>`
             : '';
 
     // 신고 3회 이상이면 블라인드 처리
@@ -801,6 +848,7 @@
                     \${spaceTag}
                     <span class="text-xs text-gray-400">\${date}</span>
                     \${reportBtn}
+                    \${editBtn}
                     \${deleteBtn}
                 </div>
                 <span class="text-sm">\${stars}</span>
@@ -986,6 +1034,76 @@
         } else {
           // 실패 사유를 모달 내부에 표시
           msgEl.textContent = res.message;
+          msgEl.classList.remove('hidden');
+        }
+      },
+      error: function() {
+        msgEl.textContent = '서버 오류가 발생했습니다.';
+        msgEl.classList.remove('hidden');
+      }
+    });
+  }
+
+  /* ──────────────────────────────────────────
+     리뷰 수정 기능
+  ────────────────────────────────────────── */
+  let editTargetIdx = 0; // 현재 수정 대상 리뷰 번호
+
+  /**
+   * 수정 모달 열기
+   * @param revIdx  - 수정할 리뷰 번호
+   * @param content - 기존 내용 (esc() 처리된 문자열)
+   * @param rating  - 기존 별점 (1~5)
+   */
+  // btn: 클릭된 수정 버튼 요소 — data 속성에서 값을 읽어옴
+  function openEditModal(btn) {
+    editTargetIdx = parseInt(btn.dataset.revIdx);
+    const content = btn.dataset.content || '';
+    const rating  = parseInt(btn.dataset.rating) || 0;
+    // esc()로 HTML 엔티티 처리된 값을 원래 문자로 복원
+    const textarea = document.getElementById('editContent');
+    textarea.value = content.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"');
+    setEditRating(rating);
+    document.getElementById('editMsg').classList.add('hidden');
+    document.getElementById('editModal').classList.remove('hidden');
+  }
+
+  /** 수정 모달 닫기 */
+  function closeEditModal() {
+    document.getElementById('editModal').classList.add('hidden');
+    editTargetIdx = 0;
+  }
+
+  /** 수정 모달 별점 설정 */
+  function setEditRating(val) {
+    document.getElementById('editRating').value = val;
+    document.querySelectorAll('.edit-star-btn').forEach(btn => {
+      btn.classList.toggle('text-yellow-400', val > 0 && btn.dataset.val <= val);
+      btn.classList.toggle('text-gray-300',   val === 0 || btn.dataset.val > val);
+    });
+  }
+
+  /** 수정 제출 */
+  function submitEdit() {
+    if (editTargetIdx === 0) return;
+    const content = document.getElementById('editContent').value.trim();
+    const rating  = parseInt(document.getElementById('editRating').value);
+    const msgEl   = document.getElementById('editMsg');
+
+    if (!rating) { msgEl.textContent = '별점을 선택해주세요.'; msgEl.classList.remove('hidden'); return; }
+    if (!content) { msgEl.textContent = '내용을 입력해주세요.'; msgEl.classList.remove('hidden'); return; }
+
+    $.ajax({
+      url:      CTX + '/review/update',
+      type:     'POST',
+      data:     { revIdx: editTargetIdx, content: content, rating: rating },
+      dataType: 'json',
+      success: function(res) {
+        if (res.success) {
+          closeEditModal();
+          loadReviews(currentPage); // 현재 페이지 그대로 새로고침
+        } else {
+          msgEl.textContent = res.message || '수정에 실패했습니다.';
           msgEl.classList.remove('hidden');
         }
       },

@@ -47,6 +47,25 @@ public class ReviewController {
         }
     }
 
+    /** 본인 리뷰 수정 (로그인 필요, AJAX POST) */
+    @PostMapping("/update")
+    @ResponseBody
+    public Map<String, Object> update(@RequestParam int revIdx,
+                                      @RequestParam String content,
+                                      @RequestParam Integer rating,
+                                      HttpSession session) {
+        UserProfileVO user = (UserProfileVO) session.getAttribute("loginUser");
+        if (user == null) {
+            return Map.of("success", false, "message", "로그인이 필요합니다.");
+        }
+        try {
+            reviewService.updateReview(revIdx, user.getUserIdx(), content, rating);
+            return Map.of("success", true);
+        } catch (IllegalArgumentException e) {
+            return Map.of("success", false, "message", e.getMessage());
+        }
+    }
+
     /** 본인 리뷰 삭제 (로그인 필요, AJAX POST) */
     @PostMapping("/delete")
     @ResponseBody

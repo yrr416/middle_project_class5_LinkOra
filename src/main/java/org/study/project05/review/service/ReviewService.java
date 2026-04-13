@@ -17,6 +17,12 @@ public interface ReviewService {
     void deleteReview(int revIdx, int userIdx);
 
     /**
+     * 본인 리뷰 수정 (욕설 필터 적용)
+     * @throws IllegalArgumentException 본인 리뷰가 아니거나 내용/별점이 유효하지 않은 경우
+     */
+    void updateReview(int revIdx, int userIdx, String content, Integer rating);
+
+    /**
      * 리뷰 신고
      * @throws IllegalStateException 이미 신고한 경우
      */
