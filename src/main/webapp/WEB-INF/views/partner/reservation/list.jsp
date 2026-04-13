@@ -92,7 +92,7 @@
                 <i class="bi bi-calendar2-check"></i>예약 관리
             </a>
             <a class="nav-link" href="${ctx}/partner/register/step1">
-                <i class="bi bi-building-add"></i>공간/오피스 관리
+                <i class="bi bi-building-add"></i>공간 등록
             </a>
             <hr class="border-secondary mx-3">
             <a class="nav-link" href="${ctx}/partner/mypage">
