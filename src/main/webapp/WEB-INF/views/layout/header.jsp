@@ -75,7 +75,7 @@
     <ul class="sidebar-nav">
         <li class="accordion-item">
             <a href="#" class="accordion-toggle">
-                <div class="acc-left"><i class="fa-regular fa-building"></i> 공간 소개임</div>
+                <div class="acc-left"><i class="fa-regular fa-building"></i> 공간 소개</div>
                 <i class="fa-solid fa-chevron-down acc-arrow"></i>
             </a>
             <ul class="accordion-content">
