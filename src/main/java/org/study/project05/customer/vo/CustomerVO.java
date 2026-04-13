@@ -24,8 +24,13 @@ public class CustomerVO {
     /* ── 조인 필드 ── */
     private String reserveCnt;    // 예약 건수 (reservation 서브쿼리)
 
+    /* ── 파트너 추가 필드 ── */
+    private String memberType;    // 구분 ('user' / 'partner')
+    private String partnerNumber;  // 사업자번호 (partner 전용)
+
     /* ── 검색 파라미터 (DB 컬럼 아님) ── */
     private String searchType;    // 검색 항목 (name/email/phone)
     private String searchWord;    // 검색어
     private String statusFilter;  // 상태 필터 (0=정상, 1=숨김)
+    private String roleFilter;    // 회원 구분 필터 ('user' / 'partner' / '')
 }

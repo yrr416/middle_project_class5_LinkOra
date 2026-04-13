@@ -40,6 +40,11 @@ public class ReservationServiceImpl implements ReservationService {
             result.put((String) r.get("resStatus"), ((Number) r.get("cnt")).intValue());
         return result;
     }
+    @Override public List<ReservationVO> getRecentReservationsByUser(int userIdx, int resIdx) {
+        Map<String, Object> p = new HashMap<>();
+        p.put("userIdx", userIdx); p.put("resIdx", resIdx);
+        return reservationMapper.getRecentReservationsByUser(p);
+    }
     @Override public void confirmReservation(int resIdx) { reservationMapper.confirmReservation(resIdx); }
     @Override public void completeReservation(int resIdx) { reservationMapper.completeReservation(resIdx); }
     @Override public void cancelReservation(int resIdx, String reason) {

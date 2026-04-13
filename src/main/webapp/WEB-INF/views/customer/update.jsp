@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
+<c:set var="isPartner" value="${memberType == 'partner'}"/>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -41,7 +42,10 @@
             <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
             <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
             <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
+            <hr class="border-secondary mx-3">
+            <span class="nav-link text-white-50 small px-3 pb-1">파트너 페이지</span>
             <a class="nav-link" href="${ctx}/partner/register/step1"><i class="bi bi-person-badge me-1"></i>파트너 등록</a>
+            <a class="nav-link" href="${ctx}/partner/reservation/list"><i class="bi bi-calendar2-check me-1"></i>파트너 예약 관리</a>
             <hr class="border-secondary mx-3">
             <a class="nav-link" href="${ctx}/admin/settings"><i class="bi bi-gear"></i>설정</a>
         </nav>
@@ -53,11 +57,21 @@
         <!-- 페이지 헤더 -->
         <div class="page-header d-flex justify-content-between align-items-center">
             <div>
-                <h5 class="mb-1 fw-bold"><i class="bi bi-pencil-square me-2 text-warning"></i>고객 정보 수정</h5>
-                <small class="text-muted"><strong>${cvo.userName}</strong> 회원의 정보를 수정합니다.</small>
+                <h5 class="mb-1 fw-bold"><i class="bi bi-pencil-square me-2 text-warning"></i>
+                    <c:choose>
+                        <c:when test="${isPartner}">파트너 정보 수정</c:when>
+                        <c:otherwise>고객 정보 수정</c:otherwise>
+                    </c:choose>
+                </h5>
+                <small class="text-muted"><strong>${cvo.userName}</strong>
+                    <c:choose>
+                        <c:when test="${isPartner}">파트너의 정보를 수정합니다.</c:when>
+                        <c:otherwise>회원의 정보를 수정합니다.</c:otherwise>
+                    </c:choose>
+                </small>
             </div>
             <div class="d-flex gap-2">
-                <a href="${ctx}/admin/customer/detail?userIdx=${cvo.userIdx}&nowPage=${nowPage}"
+                <a href="${ctx}/admin/customer/detail?userIdx=${cvo.userIdx}&memberType=${memberType}&nowPage=${nowPage}"
                    class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-arrow-left me-1"></i>상세로
                 </a>
@@ -79,8 +93,9 @@
 
         <!-- 수정 폼 -->
         <form method="post" action="${ctx}/admin/customer/update" onsubmit="return validateForm()">
-            <input type="hidden" name="userIdx"   value="${cvo.userIdx}">
-            <input type="hidden" name="nowPage" value="${nowPage}">
+            <input type="hidden" name="userIdx"    value="${cvo.userIdx}">
+            <input type="hidden" name="memberType" value="${memberType}">
+            <input type="hidden" name="nowPage"    value="${nowPage}">
 
             <div class="row g-3">
 
@@ -92,21 +107,29 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label form-label-sm">회원 번호</label>
+                            <label class="form-label form-label-sm">번호</label>
                             <input type="text" class="form-control form-control-sm readonly-field"
                                    value="${cvo.userIdx}" readonly>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label form-label-sm">가입일</label>
-                            <input type="text" class="form-control form-control-sm readonly-field"
-                                   value="${cvo.userCreated}" readonly>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label form-label-sm">역할</label>
-                            <input type="text" class="form-control form-control-sm readonly-field"
-                                   value="${cvo.userRole}" readonly>
-                            <div class="form-text">역할 변경은 상세 페이지에서 가능합니다.</div>
-                        </div>
+                        <c:if test="${!isPartner}">
+                            <div class="mb-3">
+                                <label class="form-label form-label-sm">가입일</label>
+                                <input type="text" class="form-control form-control-sm readonly-field"
+                                       value="${cvo.userCreated}" readonly>
+                            </div>
+                        </c:if>
+                        <c:if test="${isPartner}">
+                            <div class="mb-3">
+                                <label class="form-label form-label-sm">사업자번호</label>
+                                <input type="text" class="form-control form-control-sm readonly-field"
+                                       value="${cvo.partnerNumber}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label form-label-sm">구분</label>
+                                <input type="text" class="form-control form-control-sm readonly-field"
+                                       value="파트너" readonly>
+                            </div>
+                        </c:if>
                     </div>
                 </div>
 
@@ -168,7 +191,7 @@
                             <button type="submit" class="btn btn-warning px-4">
                                 <i class="bi bi-save me-2"></i>수정 완료
                             </button>
-                            <a href="${ctx}/admin/customer/detail?userIdx=${cvo.userIdx}&nowPage=${nowPage}"
+                            <a href="${ctx}/admin/customer/detail?userIdx=${cvo.userIdx}&memberType=${memberType}&nowPage=${nowPage}"
                                class="btn btn-outline-secondary px-4">
                                 <i class="bi bi-x-circle me-2"></i>취소
                             </a>
@@ -184,9 +207,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    /**
-     * 연락처 자동 하이픈 삽입
-     */
     document.getElementById('uPhone').addEventListener('input', function() {
         let val = this.value.replace(/[^0-9]/g, '');
         if (val.length <= 3)      this.value = val;
@@ -194,9 +214,6 @@
         else                      this.value = val.slice(0,3) + '-' + val.slice(3,7) + '-' + val.slice(7,11);
     });
 
-    /**
-     * 폼 유효성 검사
-     */
     function validateForm() {
         const name  = document.querySelector('input[name="userName"]').value.trim();
         const email = document.querySelector('input[name="userEmail"]').value.trim();

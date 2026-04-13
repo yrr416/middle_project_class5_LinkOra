@@ -63,7 +63,6 @@
             u.u_idx                                   AS user_idx,
             u.u_name                                  AS user_name,
             u.u_email                                 AS user_email,
-            u.u_role                                  AS user_role,
             DATE_FORMAT(u.u_created, '%Y-%m-%d')      AS user_created,
             /* 세션 최초 메시지 (c_idx 오름차순 첫 번째) */
             (SELECT c2.c_message
@@ -80,7 +79,7 @@
         FROM chatbot c
         LEFT JOIN user u ON c.u_idx = u.u_idx
         <include refid="searchWhere"/>
-        GROUP BY c.c_session, u.u_idx, u.u_name, u.u_email, u.u_role, u.u_created
+        GROUP BY c.c_session, u.u_idx, u.u_name, u.u_email,  u.u_created
         <include refid="statusHaving"/>
         ORDER BY start_time DESC
         LIMIT #{numPerPage} OFFSET #{offset}
@@ -93,7 +92,6 @@
             u.u_idx                                   AS user_idx,
             u.u_name                                  AS user_name,
             u.u_email                                 AS user_email,
-            u.u_role                                  AS user_role,
             DATE_FORMAT(u.u_created, '%Y-%m-%d')      AS user_created,
             COUNT(c.c_idx)                            AS msg_count,
             DATE_FORMAT(MIN(c.c_time), '%Y-%m-%d')    AS start_time,
@@ -103,7 +101,7 @@
         FROM chatbot c
         LEFT JOIN user u ON c.u_idx = u.u_idx
         WHERE c.c_session = #{chatSession}
-        GROUP BY c.c_session, u.u_idx, u.u_name, u.u_email, u.u_role, u.u_created
+        GROUP BY c.c_session, u.u_idx, u.u_name, u.u_email,  u.u_created
     </select>
 
     <!-- 세션 메시지 목록 조회 (상세 페이지 말풍선 대화 내역용) -->

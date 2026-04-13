@@ -39,9 +39,9 @@ public class ReservationController {
         int beginBlock = ((nowPage - 1) / BLOCK_SIZE) * BLOCK_SIZE + 1;
         int endBlock   = Math.min(beginBlock + BLOCK_SIZE - 1, totalPage);
 
-        List<ReservationVO>      list    = reservationService.getReservationList(offset, NUM_PER_PAGE, searchVO);
-        List<ReservationVO>      spaces  = reservationService.getSpaceListForFilter();
-        Map<String, Integer>     summary = reservationService.getStatusSummary(searchVO);
+        List<ReservationVO>  list    = reservationService.getReservationList(offset, NUM_PER_PAGE, searchVO);
+        List<ReservationVO>  spaces  = reservationService.getSpaceListForFilter();
+        Map<String, Integer> summary = reservationService.getStatusSummary(searchVO);
 
         model.addAttribute("reservationList", list);
         model.addAttribute("spaceList",       spaces);
@@ -55,7 +55,22 @@ public class ReservationController {
         return "reservation/list";
     }
 
-    /* 상세 조회 (AJAX) */
+    /* 상세 페이지 (풀 페이지) */
+    @GetMapping("/view")
+    public String view(@RequestParam int resIdx,
+                       @RequestParam(defaultValue = "1") int nowPage,
+                       @ModelAttribute ReservationVO searchVO,
+                       Model model) {
+        ReservationVO rvo = reservationService.getReservationDetail(resIdx);
+        List<ReservationVO> recentList = reservationService.getRecentReservationsByUser(rvo.getUserIdx(), resIdx);
+        model.addAttribute("rvo",        rvo);
+        model.addAttribute("recentList", recentList);
+        model.addAttribute("nowPage",    nowPage);
+        model.addAttribute("searchVO",   searchVO);
+        return "reservation/detail";
+    }
+
+    /* 상세 조회 (AJAX - 기존 호환용) */
     @GetMapping("/detail")
     @ResponseBody
     public ReservationVO detail(@RequestParam int resIdx) {
@@ -66,11 +81,13 @@ public class ReservationController {
     @PostMapping("/confirm")
     public String confirm(@RequestParam int resIdx,
                           @RequestParam(defaultValue = "1") int nowPage,
+                          @RequestParam(defaultValue = "false") boolean fromDetail,
                           @ModelAttribute ReservationVO searchVO,
                           RedirectAttributes rttr) {
         reservationService.confirmReservation(resIdx);
         rttr.addFlashAttribute("alertMsg",  "예약이 확정되었습니다.");
         rttr.addFlashAttribute("alertType", "success");
+        if (fromDetail) return "redirect:/admin/reservation/view?resIdx=" + resIdx + "&nowPage=" + nowPage + buildSearch(searchVO);
         return buildRedirect(nowPage, searchVO);
     }
 
@@ -78,11 +95,13 @@ public class ReservationController {
     @PostMapping("/complete")
     public String complete(@RequestParam int resIdx,
                            @RequestParam(defaultValue = "1") int nowPage,
+                           @RequestParam(defaultValue = "false") boolean fromDetail,
                            @ModelAttribute ReservationVO searchVO,
                            RedirectAttributes rttr) {
         reservationService.completeReservation(resIdx);
         rttr.addFlashAttribute("alertMsg",  "이용 완료 처리되었습니다.");
         rttr.addFlashAttribute("alertType", "success");
+        if (fromDetail) return "redirect:/admin/reservation/view?resIdx=" + resIdx + "&nowPage=" + nowPage + buildSearch(searchVO);
         return buildRedirect(nowPage, searchVO);
     }
 
@@ -92,6 +111,7 @@ public class ReservationController {
                          @RequestParam String cancelReason,
                          @RequestParam(defaultValue = "false") boolean refundChecked,
                          @RequestParam(defaultValue = "1") int nowPage,
+                         @RequestParam(defaultValue = "false") boolean fromDetail,
                          @ModelAttribute ReservationVO searchVO,
                          RedirectAttributes rttr) {
         reservationService.cancelReservation(resIdx, cancelReason);
@@ -100,19 +120,21 @@ public class ReservationController {
                 : "예약이 취소되었습니다. 환불 처리를 별도로 진행해 주세요.";
         rttr.addFlashAttribute("alertMsg",  msg);
         rttr.addFlashAttribute("alertType", "warning");
+        if (fromDetail) return "redirect:/admin/reservation/view?resIdx=" + resIdx + "&nowPage=" + nowPage + buildSearch(searchVO);
         return buildRedirect(nowPage, searchVO);
     }
 
-    /**
-     * 목록 리다이렉트 URL 생성 (필터 파라미터 유지)
-     */
-    private String buildRedirect(int nowPage, ReservationVO vo) {
-        StringBuilder sb = new StringBuilder("redirect:/admin/reservation/list?nowPage=").append(nowPage);
+    private String buildSearch(ReservationVO vo) {
+        StringBuilder sb = new StringBuilder();
         if (vo.getStartDate()    != null && !vo.getStartDate().isEmpty())    sb.append("&startDate=").append(vo.getStartDate());
         if (vo.getEndDate()      != null && !vo.getEndDate().isEmpty())      sb.append("&endDate=").append(vo.getEndDate());
         if (vo.getStatusFilter() != null && !vo.getStatusFilter().isEmpty()) sb.append("&statusFilter=").append(vo.getStatusFilter());
         if (vo.getSpaceFilter()  != null && !vo.getSpaceFilter().isEmpty())  sb.append("&spaceFilter=").append(vo.getSpaceFilter());
         if (vo.getSearchWord()   != null && !vo.getSearchWord().isEmpty())   sb.append("&searchWord=").append(vo.getSearchWord());
         return sb.toString();
+    }
+
+    private String buildRedirect(int nowPage, ReservationVO vo) {
+        return "redirect:/admin/reservation/list?nowPage=" + nowPage + buildSearch(vo);
     }
 }

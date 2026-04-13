@@ -83,8 +83,7 @@
         SELECT u_idx     AS user_idx,
                u_name    AS user_name,
                u_email   AS user_email,
-               u_created AS user_created,
-               u_role    AS user_role
+               u_created AS user_created
           FROM user WHERE u_active=0 ORDER BY u_created DESC LIMIT 5
     </select>
 

@@ -39,23 +39,30 @@ public class CustomerController {
 
         List<CustomerVO> customerList = customerService.getCustomerList(NUM_PER_PAGE, offset, customerVO);
 
-        model.addAttribute("customerList",  customerList);
-        model.addAttribute("customerVO",    customerVO);
-        model.addAttribute("totalRecord",   totalRecord);
-        model.addAttribute("totalPage",     totalPage);
-        model.addAttribute("nowPage",       nowPage);
-        model.addAttribute("beginBlock",    beginBlock);
-        model.addAttribute("endBlock",      endBlock);
+        model.addAttribute("customerList",    customerList);
+        model.addAttribute("customerVO",      customerVO);
+        model.addAttribute("totalRecord",     totalRecord);
+        model.addAttribute("totalPage",       totalPage);
+        model.addAttribute("nowPage",         nowPage);
+        model.addAttribute("beginBlock",      beginBlock);
+        model.addAttribute("endBlock",        endBlock);
+        model.addAttribute("totalUserCnt",    customerService.getTotalUserCount());
+        model.addAttribute("totalPartnerCnt", customerService.getTotalPartnerCount());
         return "customer/list";
     }
 
     /* 고객 상세 */
     @GetMapping("/detail")
     public String detail(@RequestParam String userIdx,
+                         @RequestParam(defaultValue = "") String memberType,
                          @RequestParam(defaultValue = "1") int nowPage,
                          Model model) {
-        model.addAttribute("cvo", customerService.getCustomerDetail(userIdx));
-        model.addAttribute("nowPage",  nowPage);
+        CustomerVO cvo = "partner".equals(memberType)
+                ? customerService.getPartnerDetail(userIdx)
+                : customerService.getCustomerDetail(userIdx);
+        model.addAttribute("cvo",        cvo);
+        model.addAttribute("memberType", memberType);
+        model.addAttribute("nowPage",    nowPage);
         return "customer/detail";
     }
 
@@ -73,41 +80,55 @@ public class CustomerController {
     /* 고객 수정 폼 */
     @GetMapping("/update")
     public String updateForm(@RequestParam String userIdx,
+                             @RequestParam(defaultValue = "") String memberType,
                              @RequestParam(defaultValue = "1") int nowPage,
                              Model model) {
-        model.addAttribute("cvo", customerService.getCustomerDetail(userIdx));
-        model.addAttribute("nowPage",  nowPage);
+        CustomerVO cvo = "partner".equals(memberType)
+                ? customerService.getPartnerDetail(userIdx)
+                : customerService.getCustomerDetail(userIdx);
+        model.addAttribute("cvo",        cvo);
+        model.addAttribute("memberType", memberType);
+        model.addAttribute("nowPage",    nowPage);
         return "customer/update";
     }
 
     /* 고객 수정 처리 */
     @PostMapping("/update")
     public String updateOk(CustomerVO vo,
+                           @RequestParam(defaultValue = "") String memberType,
                            @RequestParam(defaultValue = "1") int nowPage) {
-        customerService.updateCustomer(vo);
-        return "redirect:/admin/customer/detail?userIdx=" + vo.getUserIdx() + "&nowPage=" + nowPage;
+        if ("partner".equals(memberType)) {
+            customerService.updatePartner(vo);
+        } else {
+            customerService.updateCustomer(vo);
+        }
+        return "redirect:/admin/customer/detail?userIdx=" + vo.getUserIdx()
+                + "&memberType=" + memberType + "&nowPage=" + nowPage;
     }
 
     /* 상태 변경 (정상 ↔ 숨김) */
     @PostMapping("/statusChange")
     public String statusChange(CustomerVO vo,
+                               @RequestParam(defaultValue = "") String memberType,
                                @RequestParam(defaultValue = "1") int nowPage) {
-        customerService.updateCustomerStatus(vo);
-        return "redirect:/admin/customer/detail?userIdx=" + vo.getUserIdx() + "&nowPage=" + nowPage;
+        if ("partner".equals(memberType)) {
+            customerService.updatePartnerStatus(vo);
+        } else {
+            customerService.updateCustomerStatus(vo);
+        }
+        return "redirect:/admin/customer/detail?userIdx=" + vo.getUserIdx()
+                + "&memberType=" + memberType + "&nowPage=" + nowPage;
     }
 
-    /* 역할 변경 */
-    @PostMapping("/memoUpdate")
-    public String memoUpdate(CustomerVO vo,
-                             @RequestParam(defaultValue = "1") int nowPage) {
-        customerService.updateCustomerMemo(vo);
-        return "redirect:/admin/customer/detail?userIdx=" + vo.getUserIdx() + "&nowPage=" + nowPage;
-    }
-
-    /* 고객 삭제 (소프트) */
+    /* 고객/파트너 삭제 (소프트) */
     @PostMapping("/delete")
-    public String delete(@RequestParam String userIdx) {
-        customerService.deleteCustomer(userIdx);
+    public String delete(@RequestParam String userIdx,
+                         @RequestParam(defaultValue = "") String memberType) {
+        if ("partner".equals(memberType)) {
+            customerService.deletePartner(userIdx);
+        } else {
+            customerService.deleteCustomer(userIdx);
+        }
         return "redirect:/admin/customer/list";
     }
 

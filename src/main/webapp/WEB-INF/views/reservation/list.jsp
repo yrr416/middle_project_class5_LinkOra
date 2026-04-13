@@ -84,7 +84,10 @@
             <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
             <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
             <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
+            <hr class="border-secondary mx-3">
+            <span class="nav-link text-white-50 small px-3 pb-1">파트너 페이지</span>
             <a class="nav-link" href="${ctx}/partner/register/step1"><i class="bi bi-person-badge me-1"></i>파트너 등록</a>
+            <a class="nav-link" href="${ctx}/partner/reservation/list"><i class="bi bi-calendar2-check me-1"></i>파트너 예약 관리</a>
             <hr class="border-secondary mx-3">
             <a class="nav-link" href="${ctx}/admin/settings"><i class="bi bi-gear"></i>설정</a>
         </nav>
@@ -246,8 +249,7 @@
                         </c:if>
 
                         <c:forEach var="r" items="${reservationList}">
-                            <!-- 행 클릭 시 상세 모달 오픈 -->
-                            <tr onclick="openDetailModal(${r.resIdx})" style="cursor:pointer;">
+                            <tr onclick="location.href='${ctx}/admin/reservation/view?resIdx=${r.resIdx}&nowPage=${nowPage}'" style="cursor:pointer;">
                                 <td class="ps-4 text-muted">#${r.resIdx}</td>
                                 <td>
                                     <div class="fw-semibold">${r.userName}</div>
@@ -289,10 +291,10 @@
                                     </c:choose>
                                 </td>
                                 <td class="text-center" onclick="event.stopPropagation()">
-                                    <button class="btn btn-outline-primary btn-sm py-0 px-2"
-                                            onclick="openDetailModal(${r.resIdx})">
+                                    <a href="${ctx}/admin/reservation/view?resIdx=${r.resIdx}&nowPage=${nowPage}"
+                                       class="btn btn-outline-primary btn-sm py-0 px-2">
                                         <i class="bi bi-eye"></i>
-                                    </button>
+                                    </a>
                                 </td>
                             </tr>
                         </c:forEach>

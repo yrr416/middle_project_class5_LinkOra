@@ -16,6 +16,8 @@ public interface ReservationMapper {
     List<ReservationVO> getSpaceListForFilter();
     List<Map<String, Object>> getStatusSummary(Map<String, Object> params);
 
+    List<ReservationVO> getRecentReservationsByUser(Map<String, Object> params);
+
     void confirmReservation(@Param("resIdx") int resIdx);
     void completeReservation(@Param("resIdx") int resIdx);
     void cancelReservation(Map<String, Object> params);

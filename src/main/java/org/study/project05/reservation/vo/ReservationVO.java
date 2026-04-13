@@ -35,6 +35,20 @@ public class ReservationVO {
     /* branch JOIN */
     private String brnName;        // 지점명
 
+    /* 예약 번호 포맷 */
+    private String resCode;        // R-YYYYMMDD-XXXX 형식
+
+    /* user 추가 */
+    private int    userResCnt;     // 총 예약 건수 (등급 계산)
+
+    /* review JOIN */
+    private int    revIdx;         // 리뷰 PK
+    private int    revRating;      // 별점
+    private String revContent;     // 리뷰 내용
+    private String revCreatedAt;   // 리뷰 작성일시
+    private String revActive;      // 블라인드 상태
+    private String revImg;         // 리뷰 이미지
+
     /* 검색·필터 파라미터 */
     private String startDate;      // 검색 시작일
     private String endDate;        // 검색 종료일

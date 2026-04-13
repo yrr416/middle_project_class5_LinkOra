@@ -11,6 +11,7 @@ public interface ReservationService {
     ReservationVO getReservationDetail(int resIdx);
     List<ReservationVO> getSpaceListForFilter();
     Map<String, Integer> getStatusSummary(ReservationVO searchVO);
+    List<ReservationVO> getRecentReservationsByUser(int userIdx, int resIdx);
     void confirmReservation(int resIdx);
     void completeReservation(int resIdx);
     void cancelReservation(int resIdx, String cancelReason);
