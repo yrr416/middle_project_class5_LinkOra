@@ -1,0 +1,387 @@
+<%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사업자 회원가입</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: #f4f6f8;
+            font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+        }
+        .top-bar {
+            height: 64px;
+            background: #e8e8e3;
+            border-bottom: 1px solid #d7d7d1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .logo-image { height: 48px; width: auto; display: block; }
+        .home-btn {
+            height: 38px;
+            padding: 0 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #334155;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .content { padding: 16px; }
+        .wrap {
+            max-width: 420px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid #e6e8ec;
+            border-radius: 10px;
+            padding: 18px 20px;
+        }
+        h1 { margin: 0 0 14px; font-size: 20px; color: #243140; }
+        .form-group { margin-bottom: 10px; }
+        .pwd-inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pwd-inline input {
+            flex: 1;
+        }
+        .pwd-mark {
+            min-width: 20px;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1;
+            visibility: hidden;
+        }
+        .pwd-mark.ok {
+            color: #16a34a;
+            visibility: visible;
+        }
+        .pwd-mark.fail {
+            color: #dc2626;
+            visibility: visible;
+        }
+        .address-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+            color: #334155;
+            font-weight: 700;
+        }
+        input {
+            width: 100%;
+            height: 36px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            padding: 0 10px;
+            font-size: 13px;
+        }
+        .submit-btn {
+            width: 100%;
+            height: 40px;
+            border: none;
+            border-radius: 6px;
+            background: #3730a3;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+        .msg { margin: 0 0 10px; font-size: 12px; text-align: center; }
+        .msg.error { color: #dc2626; }
+        .hint { color: #64748b; font-size: 12px; margin: 0 0 12px; }
+        .postcode-btn {
+            width: 118px;
+            height: 36px;
+            flex-shrink: 0;
+            border: 1px solid #3730a3;
+            background: #ffffff;
+            color: #3730a3;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .guide {
+            color: #999;
+            display: none;
+            margin: 2px 0 10px;
+            font-size: 13px;
+        }
+        .file-input {
+            width: 100%;
+            height: auto;
+            padding: 6px 0;
+        }
+    </style>
+</head>
+<body>
+<%
+    String errorParam = request.getParameter("error");
+%>
+<header class="top-bar">
+    <img class="logo-image"
+         src="/assets/c__Users_ict-02_AppData_Roaming_Cursor_User_workspaceStorage_14eab3a244838b5187ba2f0dbb8a04dc_images_image-5bd41dfc-4c07-450b-9c64-6e9dc2724a93.png"
+         alt="Linkora 로고">
+    <a class="home-btn" href="/loginPage">로그인으로</a>
+</header>
+
+<main class="content">
+    <section class="wrap">
+        <h1>사업자 회원가입</h1>
+        <% if ("duplicateId".equals(errorParam)) { %>
+        <p class="msg error">이미 사용 중인 사업자 아이디입니다.</p>
+        <% } else if ("duplicateEmail".equals(errorParam)) { %>
+        <p class="msg error">이미 사용 중인 이메일입니다.</p>
+        <% } else if ("duplicateBizNo".equals(errorParam)) { %>
+        <p class="msg error">이미 등록된 사업자번호입니다.</p>
+        <% } else if ("passwordMismatch".equals(errorParam)) { %>
+        <p class="msg error">비밀번호와 비밀번호 확인이 일치하지 않습니다.</p>
+        <% } else if ("passwordWeak".equals(errorParam)) { %>
+        <p class="msg error">비밀번호는 8자 이상 입력해주세요.</p>
+        <% } else if ("passwordComplex".equals(errorParam)) { %>
+        <p class="msg error">비밀번호는 8자 이상이며, 영문 대문자·소문자·숫자·특수문자(!@#$%^&amp;* 등)를 각각 1개 이상 포함해야 합니다.</p>
+        <% } else if ("phoneFormat".equals(errorParam)) { %>
+        <p class="msg error">전화번호 형식은 xxx-xxxx-xxxx 입니다.</p>
+        <% } else if ("emailFormat".equals(errorParam)) { %>
+        <p class="msg error">이메일에는 @가 포함되어야 합니다.</p>
+        <% } else if ("bizNoFormat".equals(errorParam)) { %>
+        <p class="msg error">사업자번호 형식은 xxx-xx-xxxxx 입니다.</p>
+        <% } else if ("schema".equals(errorParam)) { %>
+        <p class="msg error">partner 테이블 컬럼 확인이 필요합니다.</p>
+        <% } else if ("failed".equals(errorParam)) { %>
+        <p class="msg error">사업자회원가입 처리에 실패했습니다.</p>
+        <% } %>
+
+        <form method="post" action="/partner-signup" enctype="multipart/form-data">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+            <div class="form-group">
+                <label for="partnerProfileImage">프로필 이미지 (선택)</label>
+                <input class="file-input" type="file" id="partnerProfileImage" name="partnerProfileImage" accept="image/*">
+            </div>
+            <div class="form-group">
+                <label for="partnerId">사업자 아이디</label>
+                <input type="text" id="partnerId" name="partnerId" required>
+            </div>
+            <div class="form-group">
+                <label for="partnerPwd">비밀번호</label>
+                <div class="pwd-inline">
+                    <input type="password" id="partnerPwd" name="partnerPwd" minlength="8" required autocomplete="new-password">
+                    <span id="pwdMark" class="pwd-mark" aria-hidden="true"></span>
+                </div>
+                <p class="hint">8자 이상, 영문 대문자·소문자·숫자·특수문자(!@#$%^&amp;* 등)를 각각 포함해야 합니다.</p>
+            </div>
+            <div class="form-group">
+                <label for="partnerPwdConfirm">비밀번호 확인</label>
+                <div class="pwd-inline">
+                    <input type="password" id="partnerPwdConfirm" name="partnerPwdConfirm" minlength="8" required autocomplete="new-password">
+                    <span id="pwdConfirmMark" class="pwd-mark" aria-hidden="true"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="partnerName">상호/담당자명</label>
+                <input type="text" id="partnerName" name="partnerName" required>
+            </div>
+            <div class="form-group">
+                <label for="partnerBizNo">사업자번호</label>
+                <input type="text" id="partnerBizNo" name="partnerBizNo" placeholder="123-45-67890" pattern="[0-9]{3}-[0-9]{2}-[0-9]{5}" maxlength="13" inputmode="numeric" autocomplete="off" required>
+            </div>
+            <div class="form-group">
+                <label for="partnerPhone">전화번호</label>
+                <input type="text" id="partnerPhone" name="partnerPhone" placeholder="010-1234-5678" pattern="[0-9]{3}-[0-9]{4}-[0-9]{4}" maxlength="13" inputmode="numeric" autocomplete="off" required>
+            </div>
+            <div class="form-group">
+                <label for="partnerEmail">이메일</label>
+                <input type="email" id="partnerEmail" name="partnerEmail" pattern=".+@.+" required>
+            </div>
+            <div class="form-group">
+                <label for="sample4Postcode">주소</label>
+                <div class="address-row">
+                    <input type="text" id="sample4Postcode" name="postcode" placeholder="우편번호">
+                    <input type="button" class="postcode-btn" onclick="sample4ExecDaumPostcode()" value="우편번호 찾기">
+                </div>
+                <input type="text" id="sample4RoadAddress" name="roadAddress" placeholder="도로명주소">
+                <div style="height:4px;"></div>
+                <input type="text" id="sample4JibunAddress" name="jibunAddress" placeholder="지번주소">
+                <span id="guide" class="guide"></span>
+                <div style="height:4px;"></div>
+                <input type="text" id="sample4DetailAddress" name="detailAddress" placeholder="상세주소">
+                <div style="height:4px;"></div>
+                <input type="text" id="sample4ExtraAddress" name="extraAddress" placeholder="참고항목">
+            </div>
+            <input type="hidden" id="partnerAddr" name="partnerAddr">
+            <button class="submit-btn" type="submit">사업자 회원가입</button>
+        </form>
+    </section>
+</main>
+<script src="//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script>
+    function passwordMeetsPolicy(pw) {
+        if (!pw || pw.length < 8) {
+            return false;
+        }
+        return /[A-Z]/.test(pw) && /[a-z]/.test(pw) && /[0-9]/.test(pw)
+            && /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(pw);
+    }
+
+    (function () {
+        var bizNo = document.getElementById('partnerBizNo');
+        var phone = document.getElementById('partnerPhone');
+        var pwd = document.getElementById('partnerPwd');
+        var pwdConfirm = document.getElementById('partnerPwdConfirm');
+        var pwdMark = document.getElementById('pwdMark');
+        var pwdConfirmMark = document.getElementById('pwdConfirmMark');
+        if (!bizNo) return;
+
+        function updatePasswordMarks() {
+            if (!pwd || !pwdConfirm || !pwdMark || !pwdConfirmMark) {
+                return;
+            }
+            var a = pwd.value || '';
+            var b = pwdConfirm.value || '';
+
+            pwdMark.className = 'pwd-mark';
+            pwdConfirmMark.className = 'pwd-mark';
+            pwdMark.textContent = '';
+            pwdConfirmMark.textContent = '';
+
+            if (!a && !b) {
+                return;
+            }
+
+            if (a === b && passwordMeetsPolicy(a)) {
+                pwdMark.className = 'pwd-mark ok';
+                pwdConfirmMark.className = 'pwd-mark ok';
+                pwdMark.textContent = '✓';
+                pwdConfirmMark.textContent = '✓';
+            } else {
+                pwdMark.className = 'pwd-mark fail';
+                pwdConfirmMark.className = 'pwd-mark fail';
+                pwdMark.textContent = '✕';
+                pwdConfirmMark.textContent = '✕';
+            }
+        }
+
+        function formatBizNo(raw) {
+            var onlyDigits = (raw || '').replace(/\D/g, '').substring(0, 10);
+            if (onlyDigits.length <= 3) return onlyDigits;
+            if (onlyDigits.length <= 5) return onlyDigits.slice(0, 3) + '-' + onlyDigits.slice(3);
+            return onlyDigits.slice(0, 3) + '-' + onlyDigits.slice(3, 5) + '-' + onlyDigits.slice(5);
+        }
+
+        bizNo.addEventListener('input', function () {
+            var before = bizNo.value;
+            var formatted = formatBizNo(before);
+            bizNo.value = formatted;
+        });
+
+        if (phone) {
+            phone.addEventListener('input', function () {
+                var raw = phone.value || '';
+                var onlyDigits = raw.replace(/\D/g, '').substring(0, 11);
+                if (onlyDigits.length <= 3) {
+                    phone.value = onlyDigits;
+                    return;
+                }
+                if (onlyDigits.length <= 7) {
+                    phone.value = onlyDigits.slice(0, 3) + '-' + onlyDigits.slice(3);
+                    return;
+                }
+                phone.value = onlyDigits.slice(0, 3) + '-' + onlyDigits.slice(3, 7) + '-' + onlyDigits.slice(7);
+            });
+        }
+        if (pwd) pwd.addEventListener('input', updatePasswordMarks);
+        if (pwdConfirm) pwdConfirm.addEventListener('input', updatePasswordMarks);
+
+        document.querySelector('form').addEventListener('submit', function (e) {
+            if ((pwd.value || '') !== (pwdConfirm.value || '')) {
+                e.preventDefault();
+                alert('비밀번호와 비밀번호 확인이 일치하지 않습니다.');
+                return;
+            }
+            if ((pwd.value || '').length < 8) {
+                e.preventDefault();
+                alert('비밀번호는 8자 이상 입력해주세요.');
+                return;
+            }
+            if (!passwordMeetsPolicy(pwd.value || '')) {
+                e.preventDefault();
+                alert('비밀번호는 영문 대문자·소문자·숫자·특수문자를 각각 1개 이상 포함해야 합니다.');
+                return;
+            }
+            var email = document.getElementById('partnerEmail').value;
+            if (email.indexOf('@') < 0) {
+                e.preventDefault();
+                alert('이메일에는 @가 포함되어야 합니다.');
+                return;
+            }
+            var road = document.getElementById('sample4RoadAddress').value;
+            var jibun = document.getElementById('sample4JibunAddress').value;
+            var detail = document.getElementById('sample4DetailAddress').value;
+            var extra = document.getElementById('sample4ExtraAddress').value;
+            var merged = [road || jibun, detail, extra].filter(Boolean).join(' ');
+            document.getElementById('partnerAddr').value = merged;
+        });
+    })();
+
+    function sample4ExecDaumPostcode() {
+        new kakao.Postcode({
+            oncomplete: function(data) {
+                var roadAddr = data.roadAddress;
+                var extraRoadAddr = '';
+
+                if (data.bname !== '' && /[동로가]$/.test(data.bname)) {
+                    extraRoadAddr += data.bname;
+                }
+                if (data.buildingName !== '' && data.apartment === 'Y') {
+                    extraRoadAddr += (extraRoadAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+                }
+                if (extraRoadAddr !== '') {
+                    extraRoadAddr = ' (' + extraRoadAddr + ')';
+                }
+
+                document.getElementById('sample4Postcode').value = data.zonecode;
+                document.getElementById('sample4RoadAddress').value = roadAddr;
+                document.getElementById('sample4JibunAddress').value = data.jibunAddress;
+
+                if (roadAddr !== '') {
+                    document.getElementById('sample4ExtraAddress').value = extraRoadAddr;
+                } else {
+                    document.getElementById('sample4ExtraAddress').value = '';
+                }
+
+                var guideTextBox = document.getElementById('guide');
+                if (data.autoRoadAddress) {
+                    var expRoadAddr = data.autoRoadAddress + extraRoadAddr;
+                    guideTextBox.innerHTML = '(예상 도로명 주소 : ' + expRoadAddr + ')';
+                    guideTextBox.style.display = 'block';
+                } else if (data.autoJibunAddress) {
+                    var expJibunAddr = data.autoJibunAddress;
+                    guideTextBox.innerHTML = '(예상 지번 주소 : ' + expJibunAddr + ')';
+                    guideTextBox.style.display = 'block';
+                } else {
+                    guideTextBox.innerHTML = '';
+                    guideTextBox.style.display = 'none';
+                }
+            }
+        }).open();
+    }
+</script>
+</body>
+</html>
+

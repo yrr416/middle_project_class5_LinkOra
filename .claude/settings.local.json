@@ -65,7 +65,10 @@
       "Bash(while read:*)",
       "Bash(do sed:*)",
       "Bash(xargs ls:*)",
-      "Bash(find D:/dev/springmvc/test/project05class -path */work/* -name *step4*)"
+      "Bash(find D:/dev/springmvc/test/project05class -path */work/* -name *step4*)",
+      "Bash(\"D:/dev/springmvc/test/project05/.gitignore\":*)",
+      "Bash(\"D:/dev/springmvc/test/project05/pom.xml\":*)",
+      "Bash(\"D:/dev/springmvc/test/project05/src/main/resources/application.properties\":*)"
     ]
   }
 }

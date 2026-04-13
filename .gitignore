@@ -32,7 +32,35 @@ build/
 ### VS Code ###
 .vscode/
 
-/target/CLAUDE.md/
+# ===== Build Output =====
+*.class
+*.jar
+*.war
+*.ear
 
+# ===== 환경 설정 (민감 정보) =====
+src/main/resources/application-local.properties
+src/main/resources/application-local.yml
+src/main/resources/db.properties
+
+# ===== 로그 =====
+logs/
+*.log
+log/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== 업로드 파일 =====
+src/main/webapp/upload/
+src/main/webapp/resources/upload/
+
+# ===== Claude =====
 .claude
+CLAUDE.md
 
+# 팀원 담당 - User 기능 (임시 구현)
+src/main/java/org/study/project05/user/
+src/main/resources/mapper/UserMapper.xml

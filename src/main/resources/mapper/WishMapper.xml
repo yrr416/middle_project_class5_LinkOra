@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05.branch.mapper.WishMapper">
+
+    <resultMap id="BranchResultMap" type="org.study.project05.branch.vo.BranchVO">
+        <id property="brnIdx" column="b_idx"/>
+        <result property="brnName" column="b_name"/>
+        <result property="brnAddress" column="b_address"/>
+        <result property="brnDescription" column="b_description"/>
+        <result property="brnLatitude" column="b_latitude"/>
+        <result property="brnLongitude" column="b_altitude"/>
+        <result property="brnPhone" column="b_phone"/>
+        <result property="brnFile" column="b_file"/>
+        <result property="brnActive" column="b_active"/>
+        <result property="isWish" column="isWish"/>
+    </resultMap>
+
+    <select id="checkWish" parameterType="org.study.project05.branch.vo.WishVO" resultType="int">
+        SELECT COUNT(*)
+        FROM wishlist
+        WHERE u_idx = #{userIdx} AND b_idx = #{brnIdx}
+    </select>
+
+    <insert id="insertWish" parameterType="org.study.project05.branch.vo.WishVO">
+        INSERT INTO wishlist (u_idx, b_idx)
+        VALUES (#{userIdx}, #{brnIdx})
+    </insert>
+
+    <delete id="deleteWish" parameterType="org.study.project05.branch.vo.WishVO">
+        DELETE FROM wishlist
+        WHERE u_idx = #{userIdx} AND b_idx = #{brnIdx}
+    </delete>
+
+    <select id="getMyFavoriteBranches" parameterType="int" resultMap="BranchResultMap">
+        SELECT
+            b.b_idx,
+            b.b_name,
+            b.b_address,
+            b.b_description,
+            b.b_latitude,
+            b.b_altitude,
+            b.b_phone,
+            b.b_file,
+            b.b_active,
+            1 AS isWish FROM branch b
+                                 INNER JOIN wishlist w ON b.b_idx = w.b_idx
+        WHERE w.u_idx = #{userIdx}
+    </select>
+
+</mapper>
