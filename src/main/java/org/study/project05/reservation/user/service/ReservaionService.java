@@ -1,15 +1,15 @@
 package org.study.project05.reservation.user.service;
 
-import org.study.project05.reservation.user.vo.ReservationVO;
+import org.study.project05.reservation.user.vo.UserUserReservationVO;
 
 import java.util.List;
 import java.util.Map;
 
 public interface ReservaionService {
 
-    void reserve(ReservationVO vo);
+    void reserve(UserReservationVO vo);
 
-    List<ReservationVO> getMyReservations(int userIdx);
+    List<UserReservationVO> getMyReservations(int userIdx);
 
     void cancelReservation(int reservIdx, int userIdx);
 
