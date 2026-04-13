@@ -7,7 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.study.project05.reservation.user.service.ReservaionService;
-import org.study.project05.reservation.user.vo.UserUserReservationVO;
+import org.study.project05.reservation.user.vo.UserReservationVO;
 import org.study.project05.branch.service.SpaceBranchService;
 import org.study.project05.branch.service.BranchSpaceService;
 import org.study.project05.member.vo.UserProfileVO;

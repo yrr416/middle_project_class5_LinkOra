@@ -1,6 +1,6 @@
 package org.study.project05.reservation.user.service;
 
-import org.study.project05.reservation.user.vo.UserUserReservationVO;
+import org.study.project05.reservation.user.vo.UserReservationVO;
 
 import java.util.List;
 import java.util.Map;

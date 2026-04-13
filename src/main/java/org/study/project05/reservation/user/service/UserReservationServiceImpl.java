@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.study.project05.reservation.user.mapper.UserReservationMapper;
-import org.study.project05.reservation.user.vo.UserUserReservationVO;
+import org.study.project05.reservation.user.vo.UserReservationVO;
 import org.study.project05.branch.mapper.BranchSpaceMapper;
 import org.study.project05.branch.vo.BranchSpaceVO;
 

@@ -2,7 +2,7 @@ package org.study.project05.reservation.user.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.study.project05.reservation.user.vo.UserUserReservationVO;
+import org.study.project05.reservation.user.vo.UserReservationVO;
 
 import java.util.List;
 
