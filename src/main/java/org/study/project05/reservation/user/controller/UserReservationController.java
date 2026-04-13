@@ -18,7 +18,7 @@ import java.util.Map;
 // 관리자용 ReservationController와 빈 이름 충돌을 피하기 위해 UserReservationController로 명명
 @Controller
 @RequestMapping("/reservation")
-public class UserReservationController {
+public class  UserReservationController {
 
     @Autowired
     private ReservaionService reservationService;
