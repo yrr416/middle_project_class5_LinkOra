@@ -1,6 +1,7 @@
 package org.study.project05.space.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Component;
 import org.study.project05.space.vo.SpaceVO;
 
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Map;
  * MyBatis를 통해 SpaceMapper.xml 과 연동
  */
 @Mapper
+@Component("adminSpaceMapper")
 public interface SpaceMapper {
 
     // 전체 공간 수 (필터 포함)

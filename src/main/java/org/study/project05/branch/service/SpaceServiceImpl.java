@@ -7,7 +7,7 @@ import org.study.project05.branch.vo.SpaceVO;
 
 import java.util.List;
 
-@Service
+@Service("branchSpaceServiceImpl")
 public class SpaceServiceImpl implements SpaceService {
 
     @Autowired

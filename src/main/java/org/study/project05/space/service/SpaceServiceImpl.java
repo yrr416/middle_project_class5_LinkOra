@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * 공간 관리 서비스 구현 클래스
  */
-@Service
+@Service("adminSpaceServiceImpl")
 public class SpaceServiceImpl implements SpaceService {
 
     @Autowired

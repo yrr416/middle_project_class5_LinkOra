@@ -16,7 +16,7 @@ import org.study.project05.member.service.UserProfileService;
 import org.study.project05.member.vo.UserProfileVO;
 import org.study.project05.reservation.user.mapper.UserReservationMapper;
 
-@Controller
+@Controller("branchSpaceController")
 @RequestMapping("/detail")
 public class SpaceController {
 
