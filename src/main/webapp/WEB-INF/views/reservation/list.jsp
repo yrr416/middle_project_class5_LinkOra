@@ -543,6 +543,7 @@
 /* ══════════════════════════════════════════════
    현재 페이지의 nowPage 값 (리다이렉트 URL 구성용)
    ══════════════════════════════════════════════ */
+const ctx = '${pageContext.request.contextPath}';
 const CURRENT_PAGE = ${nowPage};
 
 /* 상태 코드 → 한국어 레이블·배지 CSS 맵 */
@@ -569,7 +570,7 @@ function openDetailModal(rIdx) {
     modal.show();
 
     /* AJAX 상세 조회 */
-    fetch('/admin/reservation/detail?resIdx=' + rIdx)
+    fetch(ctx + '/admin/reservation/detail?resIdx=' + rIdx)
         .then(res => {
             if (!res.ok) throw new Error('데이터 조회 실패');
             return res.json();

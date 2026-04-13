@@ -197,7 +197,8 @@
         const email = document.getElementById('uEmail').value.trim();
         if (!email) { alert('이메일을 입력해주세요.'); return; }
 
-        fetch('/admin/customer/checkEmail?userEmail=' + encodeURIComponent(email))
+        const ctx = '${pageContext.request.contextPath}';
+        fetch(ctx + '/admin/customer/checkEmail?userEmail=' + encodeURIComponent(email))
             .then(res => res.text())
             .then(result => {
                 const msg = document.getElementById('emailCheckMsg');

@@ -1,4 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -315,7 +317,7 @@
             </p>
             <% } %>
 
-            <form method="post" action="/perform_login">
+            <form method="post" action="${ctx}/perform_login">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                 <div class="form-group">
                     <label for="username">아이디</label>
@@ -327,17 +329,17 @@
                 </div>
                 <button class="submit-btn" type="submit">로그인</button>
                 <div class="signup-row">
-                    <a class="signup-btn" href="/signup">회원가입</a>
-                    <a class="partner-signup-btn" href="/partner-signup">사업자회원가입</a>
+                    <a class="signup-btn" href="${ctx}/signup">회원가입</a>
+                    <a class="partner-signup-btn" href="${ctx}/partner-signup">사업자회원가입</a>
                 </div>
                 <div class="help-row">
-                    <a class="find-id-btn" href="/forgot-id">아이디 찾기</a>
-                    <a class="forgot-btn" href="/forgot-password">비밀번호 찾기</a>
+                    <a class="find-id-btn" href="${ctx}/forgot-id">아이디 찾기</a>
+                    <a class="forgot-btn" href="${ctx}/forgot-password">비밀번호 찾기</a>
                 </div>
             </form>
             <p class="divider">또는 소셜 계정으로 로그인</p>
-            <a class="social-btn kakao-btn" href="/kakao/authorize">카카오로 로그인</a>
-            <a class="social-btn naver-btn" href="/naver/authorize">네이버로 로그인</a>
+            <a class="social-btn kakao-btn" href="${ctx}/kakao/authorize">카카오로 로그인</a>
+            <a class="social-btn naver-btn" href="${ctx}/naver/authorize">네이버로 로그인</a>
         </div>
     </section>
 </main>

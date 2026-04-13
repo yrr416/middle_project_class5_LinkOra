@@ -1,4 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -182,7 +184,7 @@
         <p class="msg error">이메일에는 @가 포함되어야 합니다.</p>
         <% } %>
 
-        <form method="post" action="/signup" enctype="multipart/form-data">
+        <form method="post" action="${ctx}/signup" enctype="multipart/form-data">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
             <div class="form-group">

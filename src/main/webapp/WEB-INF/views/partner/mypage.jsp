@@ -1,4 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -319,7 +321,7 @@
                 <% } %>
             </div>
             <div class="avatar-edit">
-                <form method="post" action="/partner/mypage/profile" enctype="multipart/form-data">
+                <form method="post" action="${ctx}/partner/mypage/profile" enctype="multipart/form-data">
                     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                     <label class="profile-edit-btn" for="partnerProfileImageFile">프로필 수정</label>
                     <input id="partnerProfileImageFile" name="profileImage" type="file" accept="image/*" style="display:none" onchange="this.form.submit()">
@@ -357,11 +359,11 @@
             </div>
         </div>
         <div class="manage-actions">
-            <a class="manage-btn" href="/reservation-management">예약관리</a>
-            <a class="manage-btn" href="/branch-space-management">지점/공간 관리</a>
-            <a class="manage-btn" href="/inquiry-management">문의 관리</a>
-            <a class="manage-btn" href="/notice-management">공지사항 관리</a>
-            <a class="manage-btn" href="/review-management">후기 관리</a>
+            <a class="manage-btn" href="${ctx}/reservation-management">예약관리</a>
+            <a class="manage-btn" href="${ctx}/branch-space-management">지점/공간 관리</a>
+            <a class="manage-btn" href="${ctx}/inquiry-management">문의 관리</a>
+            <a class="manage-btn" href="${ctx}/notice-management">공지사항 관리</a>
+            <a class="manage-btn" href="${ctx}/review-management">후기 관리</a>
         </div>
 
         <section class="password-card">
@@ -384,7 +386,7 @@
             <% if ("failed".equals(request.getAttribute("pwdError"))) { %>
             <p class="pwd-msg err">비밀번호 변경에 실패했습니다. 다시 시도해주세요.</p>
             <% } %>
-            <form class="password-form" method="post" action="/partner/mypage/password">
+            <form class="password-form" method="post" action="${ctx}/partner/mypage/password">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                 <div class="row">
                     <label for="partnerCurrentPassword">현재 비밀번호</label>
@@ -409,12 +411,12 @@
         </section>
 
         <div class="actions">
-            <form id="partnerWithdrawForm" method="post" action="/partner/mypage/delete">
+            <form id="partnerWithdrawForm" method="post" action="${ctx}/partner/mypage/delete">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                 <input type="hidden" name="currentPassword">
                 <button type="button" class="btn-danger" onclick="openWithdrawModal('사업자')">사업자 탈퇴</button>
             </form>
-            <a class="btn-danger" href="/logoutNow">로그아웃</a>
+            <a class="btn-danger" href="${ctx}/logoutNow">로그아웃</a>
         </div>
         <% if ("password".equals(request.getAttribute("withdrawError"))) { %>
         <p class="withdraw-msg">탈퇴 비밀번호가 올바르지 않습니다.</p>
