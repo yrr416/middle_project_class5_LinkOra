@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<%-- 사업자 마이페이지 화면: 사업자 정보 조회, 비밀번호/프로필 변경, 계정 탈퇴 기능을 제공한다. --%>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -436,6 +437,15 @@
     </div>
 </div>
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var root = '${pageContext.request.contextPath}';
+        var btn = document.querySelector('.header-right .login-btn');
+        if (!btn || btn.tagName !== 'BUTTON') return;
+        if ((btn.textContent || '').trim() !== '마이페이지') return;
+        btn.textContent = '홈페이지';
+        btn.onclick = function () { location.href = root + '/'; };
+    });
+
     var withdrawTargetForm = null;
     var withdrawModal = document.getElementById('withdrawModal');
     var withdrawModalInput = document.getElementById('withdrawModalPassword');

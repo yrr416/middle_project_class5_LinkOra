@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<%-- 일반 회원가입 화면: 기본 회원 정보/비밀번호 검증 후 가입 요청을 전송한다. --%>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">

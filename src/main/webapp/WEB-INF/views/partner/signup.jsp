@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<%-- 사업자 회원가입 화면: 사업자 정보(사업자번호 포함) 입력 후 가입 요청을 전송한다. --%>
 <!DOCTYPE html>
 <html lang="ko">
 <head>

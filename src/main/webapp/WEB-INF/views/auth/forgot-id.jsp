@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<%-- 아이디 찾기 화면: 이메일 검증 후 가입된 아이디 안내 메일 발송을 요청한다. --%>
 <html lang="ko">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

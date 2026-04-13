@@ -1,5 +1,11 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%
+  boolean loggedIn = request.getUserPrincipal() != null;
+  boolean partnerUser = request.isUserInRole("ROLE_PARTNER");
+  String mypageUrl = partnerUser ? (request.getContextPath() + "/partner/mypage")
+      : (request.getContextPath() + "/mypage");
+%>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -71,11 +77,19 @@
          style="text-decoration: none; display: inline-block; padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 13px; background: #2F4F4F; color: white;">
         예약하기
       </a>
+      <% if (loggedIn) { %>
+      <button class="login-btn"
+              onclick="location.href='<%= mypageUrl %>'"
+              style="background: none; border: 1px solid #ddd; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;">
+        마이페이지
+      </button>
+      <% } else { %>
       <button class="login-btn"
               onclick="location.href='${pageContext.request.contextPath}/login'"
               style="background: none; border: 1px solid #ddd; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;">
         LOGIN
       </button>
+      <% } %>
     </div>
   </div>
 </header>
