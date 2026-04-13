@@ -37,7 +37,7 @@
     <!--
         [예약 등록]
     -->
-    <insert id="insert" parameterType="ReservationVO">
+    <insert id="insert" parameterType="ReservationVO" useGeneratedKeys="true" keyProperty="resIdx">
         INSERT INTO reservation
             (s_idx, u_idx, r_start_time, r_end_time, r_headcount, r_total_price, r_status, r_content, r_created, r_updated)
         VALUES
@@ -51,8 +51,8 @@
         SELECT r.r_idx          AS resIdx,
                r.s_idx          AS spcIdx,
                r.u_idx          AS userIdx,
-               DATE_FORMAT(r.r_start_time, '%Y-%m-%d %H:%i') AS resStartTime,
-               DATE_FORMAT(r.r_end_time,   '%Y-%m-%d %H:%i') AS resEndTime,
+               DATE_FORMAT(r.r_start_time, '%Y-%m-%d %H:%i:%s') AS resStartTime,
+               DATE_FORMAT(r.r_end_time,   '%Y-%m-%d %H:%i:%s') AS resEndTime,
                r.r_headcount    AS resHeadcount,
                r.r_total_price  AS resTotalPrice,
                r.r_status       AS resStatus,
@@ -86,7 +86,8 @@
         SET r_status = 'CANCELLED'
         WHERE r_idx  = #{resIdx}
           AND u_idx  = #{userIdx}
-          AND r_status = 'PENDING'
+          AND r_status != 'CANCELLED'
     </update>
 
 </mapper>
+

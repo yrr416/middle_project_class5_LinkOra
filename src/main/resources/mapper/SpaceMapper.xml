@@ -15,18 +15,21 @@
         <result property="spcImg"          column="s_img"/>
     </resultMap>
 
+    <!-- 전체 공간 목록 -->
     <select id="selectAll" resultMap="spaceResultMap">
         SELECT s_idx, b_idx, s_type, s_name, s_price, s_max_capacity, s_description, s_img
         FROM space
         ORDER BY s_idx ASC
     </select>
 
+    <!-- 공간 단건 -->
     <select id="selectById" parameterType="int" resultMap="spaceResultMap">
         SELECT s_idx, b_idx, s_type, s_name, s_price, s_max_capacity, s_description, s_img
         FROM space
         WHERE s_idx = #{spcIdx}
     </select>
 
+    <!-- 지점에 속한 공간 목록 -->
     <select id="selectByBranch" parameterType="int" resultMap="spaceResultMap">
         SELECT s_idx, b_idx, s_type, s_name, s_price, s_max_capacity, s_description, s_img
         FROM space
@@ -35,3 +38,4 @@
     </select>
 
 </mapper>
+

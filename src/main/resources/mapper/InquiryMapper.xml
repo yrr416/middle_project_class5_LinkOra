@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05.inquiry.mapper.InquiryMapper">
+
+    <!-- ResultMap for InquiryVO (All-Lowercase Standardization for JSP EL Compatibility) -->
+    <resultMap id="inquiryResultMap" type="org.study.project05.inquiry.vo.InquiryVO">
+        <id property="inqIdx" column="i_idx" />
+        <result property="userIdx" column="u_idx" />
+        <result property="inqCategory" column="i_category" />
+        <result property="inqTitle" column="i_title" />
+        <result property="inqStatus" column="i_status" />
+        <result property="inqContent" column="i_content" />
+        <result property="inqFileUrl" column="i_file_url" />
+        <result property="inqAnswer" column="i_answer" />
+        <result property="inqCreated" column="i_created" />
+        <result property="inqAnswered" column="i_answered" />
+    </resultMap>
+
+    <!-- 신규 문의 등록 -->
+    <insert id="insertInquiry" parameterType="org.study.project05.inquiry.vo.InquiryVO">
+        INSERT INTO inquiries (
+            u_idx, i_category, i_title, i_content, i_status, i_created
+        ) VALUES (
+            #{userIdx}, #{inqCategory}, #{inqTitle}, #{inqContent}, '대기중', NOW()
+        )
+    </insert>
+
+    <!-- 특정 사용자의 전체 문의 개수 조회 (페이징용) -->
+    <select id="countInquiriesByUser" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM inquiries 
+        WHERE u_idx = #{userIdx}
+    </select>
+
+    <!-- 특정 사용자의 문의 내역 리스트 조회 (페이징 적용) -->
+    <select id="selectInquiryListByUser" resultMap="inquiryResultMap">
+        SELECT 
+            i_idx, u_idx, i_category, i_title, i_status, 
+            DATE_FORMAT(i_created, '%Y.%m.%d') AS i_created
+        FROM inquiries 
+        WHERE u_idx = #{userIdx}
+        ORDER BY i_created DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 특정 문의 상세 내용 및 관리자 답변 조회 -->
+    <select id="selectInquiryDetail" parameterType="int" resultMap="inquiryResultMap">
+        SELECT 
+            i_idx, u_idx, i_category, i_title, i_content, i_status, i_answer, 
+            DATE_FORMAT(i_created, '%Y.%m.%d %H:%i') AS i_created,
+            DATE_FORMAT(i_answered, '%Y.%m.%d %H:%i') AS i_answered
+        FROM inquiries 
+        WHERE i_idx = #{inqIdx}
+    </select>
+
+</mapper>
