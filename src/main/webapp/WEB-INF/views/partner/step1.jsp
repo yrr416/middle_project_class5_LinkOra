@@ -86,7 +86,10 @@
                        value="${branchVO.brnSns}" placeholder="https://...">
             </div>
 
-            <div class="d-flex justify-content-end">
+            <div class="d-flex justify-content-end gap-2">
+                <a href="${ctx}/partner/reservation/list" class="btn btn-outline-secondary px-4">
+                    <i class="bi bi-shop me-1"></i>파트너 센터
+                </a>
                 <button type="submit" class="btn btn-primary px-4">
                     다음 단계 <i class="bi bi-chevron-right"></i>
                 </button>
