@@ -343,15 +343,16 @@ public class ChatServiceImpl implements ChatService {
             // 위치 정보가 있으면 필터 검색(거리순 상위 3개), 없으면 전체 목록 사용
             List<org.study.project05.branch.vo.BranchVO> branches;
             if (lat != null && lng != null) {
-                // 키워드 없이 위치 정보만으로 검색
-                branches = branchMapper.searchWithFilters(null, null, null, null, null, null, null, null, null, lat, lng);
+                // 키워드 없이 위치 정보만으로 검색 (총 14개 파라미터 전달)
+                // keyword, region, capacity, parking, hours24, pet, wifi, coffee, printer, locker, lat, lng, skip, size
+                branches = branchMapper.searchWithFilters(null, null, null, null, null, null, null, null, null, null, lat, lng, 0, 3);
             } else {
-                branches = branchMapper.selectAll();
+                branches = branchMapper.getAllBranches();
             }
 
             StringBuilder sb = new StringBuilder();
             for (org.study.project05.branch.vo.BranchVO b : branches) {
-                String distInfo = (b.getDistance() != null) ? String.format("(%.1fkm 거리) ", b.getDistance()) : "";
+                String distInfo = (b.getDistance() > 0) ? String.format("(%.1fkm 거리) ", b.getDistance()) : "";
                 sb.append("- ").append(b.getBrnName()).append(distInfo).append(":\n");
                 
                 List<org.study.project05.branch.vo.SpaceVO> spaces = spaceMapper.selectByBranch(b.getBrnIdx());
