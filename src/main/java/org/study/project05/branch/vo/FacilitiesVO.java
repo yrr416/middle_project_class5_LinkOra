@@ -22,7 +22,7 @@ public class FacilitiesVO {
     // 식수 제공 유무임 (f_water).
     private int facWater;
     // 24시간 이용 가능 여부임 (f_24hours).
-    private int fac24hours;
+    private int facHours24;
     // 주방 시설 유무임 (f_kitchen).
     private int facKitchen;
     // 디스플레이 장비 유무임 (f_display).

@@ -9,11 +9,9 @@
 
   <link rel="icon" href="data:,">
 
-  <%-- [외부 자원] 폰트와 아이콘을 불러옴 --%>
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <%-- [설정] 프로젝트 공통 스타일과 지도 전용 스타일임 --%>
   <link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css">
   <link rel="stylesheet" href="${pageContext.request.contextPath}/css/layout.css">
   <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
@@ -47,17 +45,14 @@
 </head>
 <body>
 
-<%-- ==================== 헤더 영역임 ==================== --%>
 <header class="map-header" style="height: 70px; background: #fff; border-bottom: 1px solid #eee;">
   <div class="header-inner" style="display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 100%;">
     <div class="header-left" style="display: flex; align-items: center; gap: 15px;">
 
-      <%-- 햄버거 버튼: 클릭 시 사이드바를 열어줌 --%>
       <div id="hamburgerBtn" class="hamburger-menu" style="cursor: pointer; font-size: 24px; color: #2F4F4F;">
         <i class="fa-solid fa-bars"></i>
       </div>
 
-      <%-- 로고: 클릭 시 메인페이지로 이동함 --%>
       <div class="logo" style="cursor: pointer;" onclick="location.href='${pageContext.request.contextPath}/'">
         <svg class="logo__icon" viewBox="0 -10 160 80" fill="none" style="width: 150px; height: 60px; display: block;">
           <rect x="4"    y="21.5" width="26" height="26" stroke="#a3b8b8" stroke-width="1.5" transform="rotate(-25 17 35)"/>
@@ -71,13 +66,11 @@
     </div>
 
     <div class="header-right" style="display: flex; gap: 10px;">
-      <%-- 예약하기 버튼임 --%>
       <a href="${pageContext.request.contextPath}/reserve"
          class="btn-book"
          style="text-decoration: none; display: inline-block; padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 13px; background: #2F4F4F; color: white;">
         예약하기
       </a>
-      <%-- 로그인 버튼임 --%>
       <button class="login-btn"
               onclick="location.href='${pageContext.request.contextPath}/login'"
               style="background: none; border: 1px solid #ddd; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;">
@@ -87,10 +80,8 @@
   </div>
 </header>
 
-<%-- 사이드바 배경 오버레이임 --%>
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
-<%-- 사이드바 영역임 --%>
 <aside id="sidebar" class="sidebar">
   <div class="sidebar-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #eee;">
     <span class="menu-title" style="font-weight: bold; color: #2F4F4F;">MENU</span>
@@ -99,7 +90,6 @@
 
   <ul class="sidebar-nav" style="list-style: none; padding: 0; margin: 0;">
 
-    <%-- 아코디언 메뉴: 공간 소개임 --%>
     <li class="accordion-item">
       <a href="#" class="accordion-toggle"
          style="display: flex; justify-content: space-between; padding: 15px 20px; text-decoration: none; color: #333; border-bottom: 1px solid #f9f9f9;">
@@ -121,7 +111,6 @@
       </ul>
     </li>
 
-    <%-- 아코디언 메뉴: 고객 지원임 --%>
     <li class="accordion-item">
       <a href="#" class="accordion-toggle"
          style="display: flex; justify-content: space-between; padding: 15px 20px; text-decoration: none; color: #333;">
@@ -140,10 +129,8 @@
   </ul>
 </aside>
 
-<%-- 메인 지도 영역임 --%>
 <main class="map-container">
 
-  <%-- 지도 검색창 오버레이임 --%>
   <div class="map-search-overlay">
     <div class="search-box"
          style="display: flex; align-items: center; background: white; padding: 10px 20px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
@@ -158,10 +145,8 @@
     </div>
   </div>
 
-  <%-- 카카오맵 도화지임 --%>
   <div id="mainMap" style="width: 100%; height: 100%;"></div>
 
-  <%-- 챗봇 말풍선 버튼임 --%>
   <div class="chatbot-bubble" id="chatbotBtn"
        style="position: absolute; bottom: 30px; right: 30px; z-index: 10; cursor: pointer;">
     <div class="chatbot-text"
@@ -176,10 +161,12 @@
 
 </main>
 
-<%-- [스크립트 연동] 카카오맵 SDK와 기능 로직 파일임 --%>
 <script type="text/javascript"
-        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=7508bb04c356b05484667dca670ae0cc&libraries=services&autoload=false">
+        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=7508bb04c356b05484667dca670ae0cc&libraries=services">
 </script>
+
+<script src="${pageContext.request.contextPath}/js/map.js"></script>
+
 <script src="${pageContext.request.contextPath}/js/mp_script.js"></script>
 
 </body>

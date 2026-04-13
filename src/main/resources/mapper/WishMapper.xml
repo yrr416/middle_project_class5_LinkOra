@@ -3,6 +3,19 @@
 
 <mapper namespace="org.study.project05.branch.mapper.WishMapper">
 
+    <resultMap id="BranchResultMap" type="org.study.project05.branch.vo.BranchVO">
+        <id property="brnIdx" column="b_idx"/>
+        <result property="brnName" column="b_name"/>
+        <result property="brnAddress" column="b_address"/>
+        <result property="brnDescription" column="b_description"/>
+        <result property="brnLatitude" column="b_latitude"/>
+        <result property="brnLongitude" column="b_altitude"/>
+        <result property="brnPhone" column="b_phone"/>
+        <result property="brnFile" column="b_file"/>
+        <result property="brnActive" column="b_active"/>
+        <result property="isWish" column="isWish"/>
+    </resultMap>
+
     <select id="checkWish" parameterType="org.study.project05.branch.vo.WishVO" resultType="int">
         SELECT COUNT(*)
         FROM wishlist
@@ -19,20 +32,19 @@
         WHERE u_idx = #{userIdx} AND b_idx = #{brnIdx}
     </delete>
 
-    <select id="getMyFavoriteBranches" parameterType="int" resultType="org.study.project05.branch.vo.BranchVO">
+    <select id="getMyFavoriteBranches" parameterType="int" resultMap="BranchResultMap">
         SELECT
-            b.b_idx AS brnIdx,
-            b.b_name AS brnName,
-            b.b_address AS brnAddress,
-            b.b_description AS brnDescription,
-            b.b_latitude AS brnLatitude,
-            b.b_altitude AS brnLongitude,
-            b.b_phone AS brnPhone,
-            b.b_file AS brnFile,
-            b.b_active AS brnActive,
-            1 AS isWish
-        FROM branch b
-                 INNER JOIN wishlist w ON b.b_idx = w.b_idx
+            b.b_idx,
+            b.b_name,
+            b.b_address,
+            b.b_description,
+            b.b_latitude,
+            b.b_altitude,
+            b.b_phone,
+            b.b_file,
+            b.b_active,
+            1 AS isWish FROM branch b
+                                 INNER JOIN wishlist w ON b.b_idx = w.b_idx
         WHERE w.u_idx = #{userIdx}
     </select>
 

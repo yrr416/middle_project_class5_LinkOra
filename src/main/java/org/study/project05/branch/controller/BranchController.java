@@ -9,13 +9,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody; // [추가] JSON 데이터 전송용 임포트
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
 
-/**
- * 지점 검색과 관련된 요청을 처리하는 안내원임.
- */
 @Controller
 @RequestMapping("/branch")
 @RequiredArgsConstructor
@@ -24,26 +21,25 @@ public class BranchController {
     private final BranchService branchService;
     private final SearchService searchService;
 
-    /**
-     * 사용자가 검색창을 이용할 때 실행되는 기능임.
-     */
+    // 통합된 검색 및 페이징 기능임
     @GetMapping("/search")
     public String search(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String region,
-            @RequestParam(required = false) Integer capacity,
-            @RequestParam(required = false) Integer facParking, // parking -> facParking 으로 변경함.
-            @RequestParam(required = false) Integer facH24,     // h24 -> facH24 로 변경함.
-            @RequestParam(required = false) Integer facPet,     // pet -> facPet 으로 변경함.
-            @RequestParam(required = false) Integer facWifi,    // wifi -> facWifi 로 변경함.
-            @RequestParam(required = false) Integer facCoffee,  // coffee -> facCoffee 로 변경함.
-            @RequestParam(required = false) Integer facPrinter, // printer -> facPrinter 로 변경함.
-            @RequestParam(required = false) Integer facLocker,  // locker -> facLocker 로 변경함.
-            @RequestParam(required = false) Double lat,         // [추가] 내 위치 위도(GPS)를 받음!
-            @RequestParam(required = false) Double lng,         // [추가] 내 위치 경도(GPS)를 받음!
+            @RequestParam(required = false) String capacity,
+            @RequestParam(required = false) Integer facParking,
+            @RequestParam(required = false) Integer facHours24,
+            @RequestParam(required = false) Integer facPet,
+            @RequestParam(required = false) Integer facWifi,
+            @RequestParam(required = false) Integer facCoffee,
+            @RequestParam(required = false) Integer facPrinter,
+            @RequestParam(required = false) Integer facLocker,
+            @RequestParam(required = false) String lat,
+            @RequestParam(required = false) String lng,
+            @RequestParam(defaultValue = "1") int page, // 페이지 번호 기본값 1
             Model model) {
 
-        // 쉼표(,) 제거 로직임 (기존 로직 그대로 유지함).
+        // 1. 데이터 전처리
         String cleanKeyword = null;
         if (keyword != null && !keyword.trim().isEmpty()) {
             cleanKeyword = keyword.replace(",", "").trim();
@@ -52,44 +48,53 @@ public class BranchController {
             }
         }
 
-        /**
-         * [오류 수정] 서비스의 searchWithFilters 매개변수가 10개에서 12개로 늘어났음!
-         * 위도(lat)와 경도(lng)를 마지막에 추가해서 배달함.
-         */
+        Integer intCapacity = (capacity != null && !capacity.isEmpty()) ? Integer.parseInt(capacity) : null;
+        Double dblLat = (lat != null && !lat.isEmpty()) ? Double.parseDouble(lat) : null;
+        Double dblLng = (lng != null && !lng.isEmpty()) ? Double.parseDouble(lng) : null;
+
+        // 2. 페이징 계산
+        int pageSize = 6;
+        int skip = (page - 1) * pageSize;
+
+        // 3. 서비스 호출 (리스트 가져오기)
         List<BranchVO> list = branchService.searchWithFilters(
-                cleanKeyword, region, capacity,
-                facParking, facH24, facPet, facWifi, facCoffee, facPrinter, facLocker,
-                lat, lng // [추가] 좌표 데이터를 서비스로 넘겨줌!
+                cleanKeyword, region, intCapacity,
+                facParking, facHours24, facPet, facWifi, facCoffee, facPrinter, facLocker,
+                dblLat, dblLng, skip, pageSize
         );
 
-        // JSP 화면에서 체크박스 상태를 유지하기 위해 모델에 담아줌.
+        // 4. [수정 포인트] 전체 개수 가져오기 (메서드명 변경 및 좌표 파라미터 추가)
+        int totalCount = branchService.getCountWithFilters(
+                cleanKeyword, region, intCapacity,
+                facParking, facHours24, facPet, facWifi, facCoffee, facPrinter, facLocker,
+                dblLat, dblLng // lat, lng를 추가로 보내줘야 함!
+        );
+
+        int totalPages = (int) Math.ceil((double) totalCount / pageSize);
+
+        // 5. 화면(Model)에 데이터 전달
         model.addAttribute("branches", list);
         model.addAttribute("keyword", cleanKeyword);
         model.addAttribute("region", region);
-        model.addAttribute("capacity", capacity);
-        model.addAttribute("facParking", facParking); // 화면에서도 바뀐 이름을 쓰도록 보냄.
-        model.addAttribute("facH24", facH24);
+        model.addAttribute("capacity", intCapacity);
+        model.addAttribute("facParking", facParking);
+        model.addAttribute("facHours24", facHours24);
         model.addAttribute("facPet", facPet);
         model.addAttribute("facWifi", facWifi);
         model.addAttribute("facCoffee", facCoffee);
         model.addAttribute("facPrinter", facPrinter);
         model.addAttribute("facLocker", facLocker);
 
-        // [추가] 결과 화면에서도 현재 위치를 기억할 수 있게 담아줌.
-        model.addAttribute("lat", lat);
-        model.addAttribute("lng", lng);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalCount", totalCount);
 
         return "branch/list";
     }
 
-    /**
-     * ==========================================
-     * [강제 해결] 지도의 핀 데이터를 위해 JSON을 직접 쏴주는 통로임!
-     * mp_script.js가 /branch/api/data 로 요청하면 여기서 데이터를 꺼내줍니다.
-     * ==========================================
-     */
+    // 지도 데이터 API
     @GetMapping("/api/data")
-    @ResponseBody // JSP(화면)로 가지 않고, 데이터(JSON)만 스크립트에게 바로 던져줌
+    @ResponseBody
     public List<BranchVO> getMapData(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Double lat,
@@ -100,10 +105,9 @@ public class BranchController {
             cleanKeyword = keyword.replace(",", "").trim();
         }
 
-        // 지도 핀을 꽂을 때는 상세 필터(주차장, 24시간 등)가 필요 없으므로 null로 채우고,
-        // GPS 좌표(lat, lng)만 서비스로 던져서 주변 지점을 가져옴
+        // 지도는 페이징 없이 전체를 가져와야 하므로 skip, size는 null로 전달
         return branchService.searchWithFilters(
-                cleanKeyword, null, null, null, null, null, null, null, null, null, lat, lng
+                cleanKeyword, null, null, null, null, null, null, null, null, null, lat, lng, null, null
         );
     }
 }
