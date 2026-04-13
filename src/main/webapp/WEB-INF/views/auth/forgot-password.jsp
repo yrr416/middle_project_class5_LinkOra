@@ -107,12 +107,12 @@
         <p class="msg">메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.</p>
         <% } %>
 
-        <form method="post" action="/forgot-password">
+        <form method="post" action="${pageContext.request.contextPath}/forgot-password">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
             <label for="email">이메일</label>
             <input id="email" name="email" type="email" required placeholder="example@domain.com">
             <div class="actions">
-                <a class="btn" href="/loginPage">로그인으로</a>
+                <a class="btn" href="${pageContext.request.contextPath}/loginPage">로그인으로</a>
                 <button class="btn btn-primary" type="submit">임시 비밀번호 발송</button>
             </div>
         </form>

@@ -29,7 +29,7 @@
     </scm>
     <properties>
         <java.version>21</java.version>
-        <start-class>org.study.Project05Application</start-class>
+        <start-class>org.study.project05.Project05Application</start-class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>

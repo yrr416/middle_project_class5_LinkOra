@@ -315,7 +315,7 @@
             </p>
             <% } %>
 
-            <form method="post" action="/perform_login">
+            <form method="post" action="${pageContext.request.contextPath}/perform_login">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                 <div class="form-group">
                     <label for="username">아이디</label>
@@ -327,17 +327,17 @@
                 </div>
                 <button class="submit-btn" type="submit">로그인</button>
                 <div class="signup-row">
-                    <a class="signup-btn" href="/signup">회원가입</a>
-                    <a class="partner-signup-btn" href="/partner-signup">사업자회원가입</a>
+                    <a class="signup-btn" href="${pageContext.request.contextPath}/signup">회원가입</a>
+                    <a class="partner-signup-btn" href="${pageContext.request.contextPath}/partner-signup">사업자회원가입</a>
                 </div>
                 <div class="help-row">
-                    <a class="find-id-btn" href="/forgot-id">아이디 찾기</a>
-                    <a class="forgot-btn" href="/forgot-password">비밀번호 찾기</a>
+                    <a class="find-id-btn" href="${pageContext.request.contextPath}/forgot-id">아이디 찾기</a>
+                    <a class="forgot-btn" href="${pageContext.request.contextPath}/forgot-password">비밀번호 찾기</a>
                 </div>
             </form>
-            <p class="divider">또는 소셜 계정으로 로그인</p>
-            <a class="social-btn kakao-btn" href="/kakao/authorize">카카오로 로그인</a>
-            <a class="social-btn naver-btn" href="/naver/authorize">네이버로 로그인</a>
+            <div class="social-login">
+            <a class="social-btn kakao-btn" href="${pageContext.request.contextPath}/kakao/authorize">카카오로 로그인</a>
+            <a class="social-btn naver-btn" href="${pageContext.request.contextPath}/naver/authorize">네이버로 로그인</a>
         </div>
     </section>
 </main>

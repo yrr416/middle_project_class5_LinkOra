@@ -50,6 +50,7 @@
 <!-- 스타일 및 스크립트 연결 (추후 static 경로에 맞게 조정 필요) -->
 <script>
     window.contextPath = '${pageContext.request.contextPath}';
+    window.userIdx = '${userIdx != null ? userIdx : 0}';
 </script>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/chatbot.css?v=1.2">
 <script src="${pageContext.request.contextPath}/static/js/chatbot.js?v=1.2"></script>

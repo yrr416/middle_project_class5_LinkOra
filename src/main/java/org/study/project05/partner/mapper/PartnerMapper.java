@@ -16,6 +16,7 @@ public interface PartnerMapper {
 
     @Select("""
             SELECT
+                p_idx AS ptnIdx,
                 p_id AS partnerId,
                 p_pwd AS password,
                 p_name AS name,

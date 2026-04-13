@@ -48,7 +48,7 @@ public class InquiryController {
             } catch (Exception e) {}
         }
         
-        if (uIdx == null) return 1L; // 테스트용 기본값
+        if (uIdx == null) return null; // 로그인 안된 상태
         
         return uIdx;
     }

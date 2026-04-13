@@ -4,6 +4,7 @@
 package org.study.project05.partner.vo;
 
 public class PartnerVO {
+    private int ptnIdx;
     private String partnerId;
     private String password;
     private String name;
@@ -12,6 +13,14 @@ public class PartnerVO {
     private String phone;
     private String businessNo;
     private String profileImage;
+
+    public int getPtnIdx() {
+        return ptnIdx;
+    }
+
+    public void setPtnIdx(int ptnIdx) {
+        this.ptnIdx = ptnIdx;
+    }
 
     public String getPartnerId() {
         return partnerId;

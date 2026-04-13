@@ -7,6 +7,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatMessages = document.getElementById('chatbot-messages');
 
     // 1. 세션 ID 관리 (sessionStorage 사용 - 브라우저 종료 시 초기화)
+    const currentUserIdx = window.userIdx || '0';
+    const lastUserIdx = sessionStorage.getItem('chatbot_user_idx');
+    
+    // [추가] 로그인 상태가 바뀌면(로그인/로그아웃) 기존 챗봇 세션을 초기화
+    if (lastUserIdx !== null && lastUserIdx !== currentUserIdx) {
+        console.log("[Chatbot] User state changed. Resetting session.");
+        sessionStorage.removeItem('chatbot_session_id');
+        sessionStorage.removeItem('chatbot_history_loaded');
+    }
+    sessionStorage.setItem('chatbot_user_idx', currentUserIdx);
+
     let sessionId = sessionStorage.getItem('chatbot_session_id');
     if (!sessionId) {
         sessionId = Math.floor(Math.random() * 1000000);
@@ -27,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (historyLoaded) return; 
 
         // 현재 세션 이력을 로드
-        fetch(`${contextPath}/chat/history/${sessionId}`)
+        fetch(`${contextPath}/chat/history/${sessionId}`, { credentials: 'include' })
         .then(response => response.json())
         .then(data => {
             console.log("[Chat History Response]", data);
@@ -44,7 +55,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 이력이 없거나, 이력 중에 웰컴 메뉴가 한 번도 나오지 않았다면 초기 인사 요청
             if (!data || data.length === 0 || !hasWelcomeMenu) {
-                checkRecentHistory();
+                // [수정] 로그인 사용자(userIdx != 0)인 경우에만 이전 대화 확인
+                if (window.userIdx && window.userIdx !== '0') {
+                    checkRecentHistory();
+                }
                 requestInitialGreeting();
             }
             historyLoaded = true;
@@ -55,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 과거 대화 내역이 있는지 확인 (로그인 유저 기반으로 변경)
     const checkRecentHistory = () => {
         // 백엔드 세션에서 정보를 가져오도록 0번(또는 가상의 번호) 전달 시 컨트롤러가 세션 체크
-        fetch(`${contextPath}/chat/recent/0`)
+        fetch(`${contextPath}/chat/recent/0`, { credentials: 'include' })
         .then(response => response.json())
         .then(data => {
             if (data && data.length > 0) {
@@ -211,7 +225,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const spcIdx = parts[0], spcName = parts[1], brnName = parts[2], 
                       spcImg = (parts[3] && parts[3] !== ' ') ? parts[3] : 'default_office.png', 
                       facInfo = parts[4] || '',
-                      spcPrice = parts[5] || '0';
+                      spcPrice = parts[5] || '0',
+                      spcType = parts[6] || 'INDIVIDUAL',
+                      brnIdx = parts[7] || '0';
 
                 const cardDiv = document.createElement('div');
                 cardDiv.classList.add('action-card');
@@ -228,8 +244,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="action-body">
                         <div class="action-title">${spcName}</div><div class="action-subtitle">${brnName}</div>
                         <div class="action-btns">
-                            <a href="${contextPath}/space/detail?spcIdx=${spcIdx}" target="_blank" class="btn-action detail">상세정보</a>
-                            <button class="btn-action quick-reserve reserve" data-idx="${spcIdx}" data-name="${spcName}" data-price="${spcPrice}">바로예약</button>
+                            <a href="${contextPath}/detail/detail?brnIdx=${brnIdx}" target="_blank" class="btn-action detail">상세정보</a>
+                            <button class="btn-action quick-reserve reserve" data-idx="${spcIdx}" data-name="${spcName}" data-price="${spcPrice}" data-type="${spcType}">바로예약</button>
                         </div>
                     </div>
                 `;
@@ -241,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 cardDiv.querySelector('.quick-reserve').onclick = function() { 
-                    renderReserveForm(this.dataset.idx, this.dataset.name, this.dataset.price); 
+                    renderReserveForm(this.dataset.idx, this.dataset.name, this.dataset.price, this.dataset.type); 
                 };
             });
         }
@@ -260,8 +276,37 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // 기존 함수들을 renderMessage로 연결
-    const appendMessage = (sender, text) => renderMessage(sender, text, 'append');
-    const prependMessage = (sender, text) => renderMessage(sender, text, 'prepend');
+    // 4-1. 메시지 토크나이저 (긴 공백/줄바꿈 기준 분할)
+    const splitTextIntoChunks = (text) => {
+        if (!text) return [];
+        // [수정] 연속된 줄바꿈(3개 이상)을 기준으로 분할하거나, 
+        // 문맥상 의미가 끊기는 지점을 찾아 배열로 반환
+        // 단, [[TAG]] 형식은 분할되지 않도록 보호가 필요할 수 있으나 
+        // 현재는 간단히 3줄 이상 공백 기준으로 시도
+        return text.split(/\n{3,}/).map(c => c.trim()).filter(c => c);
+    };
+
+    // 기존 함수들을 대량/분할 처리 가능하도록 확장
+    const appendMessage = (sender, text) => {
+        if (sender === 'user') {
+            renderMessage(sender, text, 'append');
+        } else {
+            const chunks = splitTextIntoChunks(text);
+            chunks.forEach(chunk => renderMessage(sender, chunk, 'append'));
+        }
+    };
+
+    const prependMessage = (sender, text) => {
+        if (sender === 'user') {
+            renderMessage(sender, text, 'prepend');
+        } else {
+            const chunks = splitTextIntoChunks(text);
+            // 과거 내역 삽입 시 순서 유지를 위해 역순으로 처리
+            for (let i = chunks.length - 1; i >= 0; i--) {
+                renderMessage(sender, chunks[i], 'prepend');
+            }
+        }
+    };
 
     // 현재 페이지 정보가 포함된 초기 인사 요청
     const requestInitialGreeting = () => {
@@ -271,6 +316,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`${contextPath}/chat/send`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({
                 chatMessage: "[OPEN_CHAT]", 
                 chatSession: sessionId,
@@ -373,6 +419,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`${contextPath}/chat/send`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', 
             body: JSON.stringify({
                 chatMessage: message,
                 chatSession: sessionId,
@@ -402,7 +449,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // 간편 예약 폼 렌더링
-    const renderReserveForm = (spcIdx, spcName, spcPrice = 0) => {
+    const renderReserveForm = (spcIdx, spcName, spcPrice = 0, spcType = 'INDIVIDUAL') => {
         const existingForm = document.querySelector('.reserve-form-container');
         if (existingForm) existingForm.remove();
         const formDiv = document.createElement('div');
@@ -457,7 +504,7 @@ document.addEventListener('DOMContentLoaded', function() {
         chatMessages.appendChild(formDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // 가격 계산 핸들러 (시간 x 인원 x 요금)
+        // 가격 계산 핸들러 (타입별 로직 분리)
         const updatePriceDisplay = () => {
             const start = formDiv.querySelector('#res-time-start').value;
             const end = formDiv.querySelector('#res-time-end').value;
@@ -469,8 +516,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 const eH = parseInt(end.split(':')[0]);
                 const diff = eH - sH;
                 if (diff > 0) {
-                    const total = diff * count * parseInt(spcPrice);
-                    display.innerText = `${total.toLocaleString()}원 (${diff}시간 x ${count}명)`;
+                    let total;
+                    let formula;
+                    if (spcType === 'INDIVIDUAL') {
+                        total = diff * count * parseInt(spcPrice);
+                        formula = `${diff}시간 x ${count}명`;
+                    } else {
+                        // ROOM 타입 등은 인원 무관 시간당 고정가
+                        total = diff * parseInt(spcPrice);
+                        formula = `${diff}시간 (공간 전체)`;
+                    }
+                    display.innerText = `${total.toLocaleString()}원 (${formula})`;
                     display.classList.remove('error');
                     return total;
                 } else {

@@ -1,5 +1,4 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<<<<<<< HEAD
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%-- [공통 레이아웃 상단] --%>
@@ -481,8 +480,6 @@
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=7508bb04c356b05484667dca670ae0cc&libraries=services&autoload=false"></script>
     <script src="${pageContext.request.contextPath}/js/mp_script.js"></script>
 
-    <!-- 챗봇 컴포넌트 포함 -->
-    <jsp:include page="common/chatbot.jsp" />
 </main>
 
 <%@ include file="layout/footer.jsp" %>

@@ -23,9 +23,24 @@ public class ChatController {
             chatVO.setChatSession((int)(System.currentTimeMillis() % 1000000));
         }
         
-        // 2. 실제 세션 정보 연동
+        // 2. 세션 정보 또는 시큐리티 인증 정보 연동
         Object uIdxObj = session.getAttribute("userIdx");
-        if (uIdxObj != null) {
+        if (uIdxObj == null) {
+            // [보완] 세션에 없으면 시큐리티 컨텍스트에서 직접 확인
+            org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !(auth instanceof org.springframework.security.authentication.AnonymousAuthenticationToken)) {
+                Object principal = auth.getPrincipal();
+                if (principal instanceof org.study.project05.login.config.CustomUserDetails userDetails) {
+                    Long idx = userDetails.getIdx();
+                    chatVO.setUserIdx(idx);
+                    
+                    // [복구] 세션 유실 방지를 위해 세션에 정보 다시 주입
+                    session.setAttribute("userIdx", idx);
+                    session.setAttribute("userName", userDetails.getRealName());
+                }
+            }
+        } else {
+            // 기존 세션 속성 처리
             try {
                 if (uIdxObj instanceof Long) {
                     chatVO.setUserIdx((Long) uIdxObj);
@@ -35,10 +50,12 @@ public class ChatController {
                     chatVO.setUserIdx(Long.parseLong(String.valueOf(uIdxObj)));
                 }
             } catch (Exception e) {
-                chatVO.setUserIdx(1L); // 파싱 실패 시 테스트용
+                chatVO.setUserIdx(0L);
             }
-        } else if (chatVO.getUserIdx() == null) {
-            chatVO.setUserIdx(1L); // 로그인 안된 경우 기본값(추후 로그인 유도로 교체 가능)
+        }
+
+        if (chatVO.getUserIdx() == null) {
+            chatVO.setUserIdx(0L); // 최종적으로 로그인 안된 경우
         }
         
         return chatService.processMessage(chatVO);
