@@ -4,13 +4,7 @@
 <%-- 공통 헤더 포함 --%>
 <%@ include file="../layout/header.jsp" %>
 
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>Link Ora | 프리미엄 오피스 지도</title>
-
-  <style>
+<style>
     /* 지도 페이지 전체 레이아웃 설정 */
     html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
 
@@ -74,8 +68,6 @@
 
   <%-- 지도 전용 CSS --%>
   <link rel="stylesheet" href="${pageContext.request.contextPath}/css/map.css">
-</head>
-<body>
 
 <main class="map-container">
   <div class="map-search-overlay">
@@ -155,5 +147,4 @@
   });
 </script>
 
-</body>
-</html>
+<%@ include file="../layout/footer.jsp" %>
