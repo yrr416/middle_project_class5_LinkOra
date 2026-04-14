@@ -184,10 +184,21 @@
             <div class="content-left">
                 <div class="section-header"><h2>공간 찾아보기</h2></div>
                 <div class="category-grid">
-                    <div class="category-card"><i class="fa-solid fa-door-closed"></i><div><h3>프라이빗 오피스</h3><p>독립된 개인 공간</p></div></div>
-                    <div class="category-card"><i class="fa-solid fa-laptop"></i><div><h3>오픈 데스크</h3><p>자유로운 업무 환경</p></div></div>
-                    <div class="category-card"><i class="fa-solid fa-users-viewfinder"></i><div><h3>미팅룸 대여</h3></div></div>
-                    <div class="category-card"><i class="fa-solid fa-video"></i><div><h3>스튜디오</h3></div></div>
+                    <div class="category-card">
+                        <i class="fa-solid fa-door-closed"></i>
+                        <div>
+                            <h3>프라이빗 오피스</h3>
+                            <p>개인을 위한 독립된 공간</p>
+                        </div>
+                    </div>
+
+                    <div class="category-card">
+                        <i class="fa-solid fa-laptop"></i>
+                        <div>
+                            <h3>코워킹 스페이스</h3>
+                            <p>자유로운 업무 환경 (회의실/오픈 오피스)</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="map-tab-header" style="display: flex !important; justify-content: space-between !important; align-items: center !important; margin-bottom: 20px;">
