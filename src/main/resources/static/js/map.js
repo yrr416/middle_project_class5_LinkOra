@@ -10,35 +10,49 @@ const brandColors = {
     "패스트파이브": "%23FF3B30"
 };
 
-// 검색 목록창 상태 저장 (페이지, 접기/펴기)
+// 검색 목록창 상태 변수
 let searchGroupedData = {};
 let searchRegionPage = {};
 let searchRegionOpen = {};
 const ITEMS_PER_PAGE = 3;
 
+// [수정] DOM이 로드된 후 실행되되, kakao 객체 여부를 한 번 더 확인합니다.
 document.addEventListener("DOMContentLoaded", () => {
+    // 카카오 라이브러리가 로드되지 않았다면 실행 중단 (ReferenceError 방지)
+    if (typeof kakao === 'undefined' || !kakao.maps) {
+        console.error("카카오 지도 SDK가 아직 로드되지 않았습니다.");
+        return;
+    }
+
     const container = document.getElementById('mainMap');
     if (!container) return;
 
-    // [강제 해결] 시작하자마자 지도 박스의 크기를 물리적으로 고정함
-    container.style.display = 'block';
-    container.style.width = '100%';
-    container.style.height = 'calc(100vh - 70px)';
-    container.style.minHeight = '500px';
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            currentLat = position.coords.latitude;
+            currentLng = position.coords.longitude;
+            const locPosition = new kakao.maps.LatLng(currentLat, currentLng);
 
-    // 카카오 스크립트가 준비될 때까지 0.1초마다 확인하는 타이머
-    const checkKakaoMap = setInterval(() => {
-        if (typeof window.kakao !== 'undefined' && window.kakao.maps) {
-            clearInterval(checkKakaoMap); // 준비 완료 시 타이머 중지
-
-            // 카카오 지도 라이브러리 로드 후 실행
-            window.kakao.maps.load(() => {
-                startMap(container);
+            map = new kakao.maps.Map(container, {
+                center: locPosition,
+                level: 4
             });
-        }
-    }, 100);
+            geocoder = new kakao.maps.services.Geocoder();
+            ps = new kakao.maps.services.Places();
 
-    // 검색 버튼 및 엔터키 이벤트 설정
+            kakao.maps.event.addListener(map, 'click', () => {
+                if (activeOverlay) activeOverlay.setMap(null);
+            });
+
+            fetchBranchData("");
+        }, (error) => {
+            console.error("GPS 정보를 불러올 수 없음 - 기본 위치로 설정");
+            createDefaultMap(container);
+        });
+    } else {
+        createDefaultMap(container);
+    }
+
     const searchBtn = document.getElementById('mapSearchBtn');
     const searchInput = document.getElementById('mapSearchInput');
 
@@ -59,62 +73,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// 지도 초기화 시작 함수
-function startMap(container) {
-    // 기본 지도부터 화면에 렌더링
-    createDefaultMap(container);
-
-    // GPS 사용 가능 시 사용자 위치 추적
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                currentLat = position.coords.latitude;
-                currentLng = position.coords.longitude;
-
-                const locPosition = new window.kakao.maps.LatLng(currentLat, currentLng);
-                map.setCenter(locPosition);
-
-                // 위치 이동 후 지도가 깨지지 않게 강제 재배치
-                setTimeout(() => {
-                    if (map) map.relayout();
-                    map.setCenter(locPosition);
-                }, 500);
-            },
-            (error) => {
-                console.log("GPS 권한 거부 또는 오류로 기본 위치 유지");
-            },
-            { timeout: 3000 }
-        );
-    }
-}
-
-// 기본 지도 객체 생성 함수
 function createDefaultMap(container) {
-    currentLat = 37.3947; // 기본 위도 (판교)
-    currentLng = 127.1111; // 기본 경도
-
-    // 지도 생성
-    map = new window.kakao.maps.Map(container, {
-        center: new window.kakao.maps.LatLng(currentLat, currentLng),
+    currentLat = 37.3947;
+    currentLng = 127.1111;
+    map = new kakao.maps.Map(container, {
+        center: new kakao.maps.LatLng(currentLat, currentLng),
         level: 4
     });
+    geocoder = new kakao.maps.services.Geocoder();
+    ps = new kakao.maps.services.Places();
 
-    geocoder = new window.kakao.maps.services.Geocoder();
-    ps = new window.kakao.maps.services.Places();
-
-    // 지도 빈 곳 클릭 시 활성화된 정보창 닫기
-    window.kakao.maps.event.addListener(map, 'click', () => {
+    kakao.maps.event.addListener(map, 'click', () => {
         if (activeOverlay) activeOverlay.setMap(null);
     });
 
-    // 지도 생성 직후 레이아웃 강제 갱신
-    map.relayout();
-
-    // 전체 지점 데이터 초기 로드
     fetchBranchData("");
 }
 
-// 검색 버튼 클릭 시 실행되는 로직
 function executeSearch() {
     const keyword = document.getElementById('mapSearchInput').value.trim();
     if (!keyword) {
@@ -122,25 +97,20 @@ function executeSearch() {
         return;
     }
 
-    // 자체 API 검색 시도
-    fetch(`/api/branches?keyword=${encodeURIComponent(keyword)}`)
+    fetch(`/linkora/api/branches?keyword=${encodeURIComponent(keyword)}`)
         .then(res => res.json())
         .then(branches => {
             if (branches && branches.length > 0) {
                 fetchBranchData(keyword);
             } else {
-                // 검색 결과 없을 시 카카오 장소 검색 활용
                 ps.keywordSearch(keyword, (data, status) => {
-                    if (status === window.kakao.maps.services.Status.OK) {
-                        const moveLatLon = new window.kakao.maps.LatLng(data[0].y, data[0].x);
-                        map.panTo(moveLatLon);
+                    if (status === kakao.maps.services.Status.OK) {
+                        map.panTo(new kakao.maps.LatLng(data[0].y, data[0].x));
                         fetchBranchData(keyword, data[0].y, data[0].x);
                     } else {
-                        // 장소 검색 실패 시 주소 검색 활용
                         geocoder.addressSearch(keyword, (result, status) => {
-                            if (status === window.kakao.maps.services.Status.OK) {
-                                const moveLatLon = new window.kakao.maps.LatLng(result[0].y, result[0].x);
-                                map.panTo(moveLatLon);
+                            if (status === kakao.maps.services.Status.OK) {
+                                map.panTo(new kakao.maps.LatLng(result[0].y, result[0].x));
                                 fetchBranchData(keyword, result[0].y, result[0].x);
                             } else {
                                 alert("검색 결과가 없습니다.");
@@ -150,17 +120,16 @@ function executeSearch() {
                 });
             }
         })
-        .catch(err => console.error("검색 프로세스 오류"));
+        .catch(err => console.error("검색 오류"));
 }
 
-// 지점 데이터를 서버에서 가져오는 함수
 function fetchBranchData(keyword, lat = null, lng = null) {
     let fetchUrl = "";
     if (!keyword || keyword === "") {
-        fetchUrl = `/api/all-branches`;
+        fetchUrl = `/linkora/api/all-branches`;
         closeResultPanel();
     } else {
-        fetchUrl = `/api/branches?keyword=${encodeURIComponent(keyword)}`;
+        fetchUrl = `/linkora/api/branches?keyword=${encodeURIComponent(keyword)}`;
         if (lat !== null && lng !== null) {
             fetchUrl += `&lat=${lat}&lng=${lng}`;
         }
@@ -178,45 +147,41 @@ function fetchBranchData(keyword, lat = null, lng = null) {
             removeMarkers();
             displayMarkers(branches);
 
-            // 검색 결과 있을 시 좌측 목록창 초기화
             if (keyword && keyword !== "") {
                 initResultList(branches, keyword);
 
                 if (lat === null && lng === null) {
-                    const bounds = new window.kakao.maps.LatLngBounds();
+                    const bounds = new kakao.maps.LatLngBounds();
                     branches.forEach(b => {
                         if (b.brnLatitude && b.brnLongitude) {
-                            bounds.extend(new window.kakao.maps.LatLng(b.brnLatitude, b.brnLongitude));
+                            bounds.extend(new kakao.maps.LatLng(b.brnLatitude, b.brnLongitude));
                         }
                     });
                     map.setBounds(bounds);
                 }
             }
         })
-        .catch(err => console.error("지점 로드 오류"));
+        .catch(err => console.error("데이터 로드 중 에러 발생"));
 }
 
-// 지점명에 따른 브랜드 색상 추출
 function getBrandColor(brnName) {
     if (!brnName) return "%232F4F4F";
     const brand = brnName.split(' ')[0].trim();
     return brandColors[brand] || "%232F4F4F";
 }
 
-// 지점 데이터를 마커로 표시하는 함수
 function displayMarkers(branches) {
     branches.forEach(branch => {
         if (!branch.brnLatitude || !branch.brnLongitude) return;
 
-        const pos = new window.kakao.maps.LatLng(branch.brnLatitude, branch.brnLongitude);
+        const pos = new kakao.maps.LatLng(branch.brnLatitude, branch.brnLongitude);
         const brandColor = getBrandColor(branch.brnName);
         const pinImg = `data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='${brandColor}' d='M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z'/%3E%3C/svg%3E`;
-        const markerImage = new window.kakao.maps.MarkerImage(pinImg, new window.kakao.maps.Size(26, 34));
+        const markerImage = new kakao.maps.MarkerImage(pinImg, new kakao.maps.Size(26, 34));
 
-        const marker = new window.kakao.maps.Marker({ position: pos, image: markerImage, map: map });
+        const marker = new kakao.maps.Marker({ position: pos, image: markerImage, map: map });
         markers.push(marker);
 
-        // 커스텀 레이블 생성
         const labelWrap = document.createElement('div');
         labelWrap.style.cssText = `display:flex; align-items:center; background:white; color:#2F4F4F; padding:6px 16px; border-radius:10px; border:2px solid #cccccc; box-shadow:0 4px 15px rgba(0,0,0,0.2); font-family:'Pretendard',sans-serif; font-size:14px; font-weight:800; white-space:nowrap; position:relative; cursor:pointer;`;
         labelWrap.innerHTML = `
@@ -225,7 +190,7 @@ function displayMarkers(branches) {
             <div style="position:absolute; bottom:-11px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-top:10px solid #cccccc;"></div>
         `;
 
-        const labelOverlay = new window.kakao.maps.CustomOverlay({
+        const labelOverlay = new kakao.maps.CustomOverlay({
             position: pos,
             content: labelWrap,
             yAnchor: 2.3,
@@ -234,7 +199,6 @@ function displayMarkers(branches) {
         labelOverlay.setMap(map);
         labelOverlays.push(labelOverlay);
 
-        // 상세 정보창 열기 함수
         const openInfoOverlay = () => {
             if (activeOverlay) activeOverlay.setMap(null);
 
@@ -247,7 +211,7 @@ function displayMarkers(branches) {
                     <div style="font-weight:900; font-size:18px; color:#2F4F4F; margin-bottom:8px; padding-right:20px;">${branch.brnName}</div>
                     <div style="font-size:13px; color:#666; line-height:1.5; white-space:normal; word-break:keep-all; margin-bottom:15px;">${branch.brnAddress}</div>
                     <div style="display:flex; gap:10px;">
-                        <button onclick="location.href='/branch/detail?brnIdx=${branch.brnIdx}'"
+                        <button onclick="location.href='/linkora/branch/detail?brnIdx=${branch.brnIdx}'"
                             style="flex:1; background:#2F4F4F; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer;">
                             상세보기
                         </button>
@@ -275,7 +239,7 @@ function displayMarkers(branches) {
                 }
             };
 
-            activeOverlay = new window.kakao.maps.CustomOverlay({
+            activeOverlay = new kakao.maps.CustomOverlay({
                 content: content,
                 position: pos,
                 yAnchor: 1,
@@ -286,12 +250,11 @@ function displayMarkers(branches) {
             map.panTo(pos);
         };
 
-        window.kakao.maps.event.addListener(marker, 'click', openInfoOverlay);
+        kakao.maps.event.addListener(marker, 'click', openInfoOverlay);
         labelWrap.onclick = openInfoOverlay;
     });
 }
 
-// 화면상의 모든 마커와 오버레이 제거
 function removeMarkers() {
     markers.forEach(m => m.setMap(null));
     labelOverlays.forEach(o => o.setMap(null));
@@ -300,13 +263,11 @@ function removeMarkers() {
     labelOverlays = [];
 }
 
-// 결과 패널 숨기기
 window.closeResultPanel = function() {
     const panel = document.getElementById('searchResultPanel');
     if (panel) panel.style.display = 'none';
 };
 
-// 지역별 검색 결과 데이터 분류 및 초기화
 function initResultList(branches, keyword) {
     let panel = document.getElementById('searchResultPanel');
     if (!panel) {
@@ -334,7 +295,6 @@ function initResultList(branches, keyword) {
     panel.style.display = 'flex';
 }
 
-// 분류된 데이터를 기반으로 패널 HTML 생성
 function renderResultPanel(keyword, totalCount) {
     const panel = document.getElementById('searchResultPanel');
     if (!panel) return;
@@ -402,13 +362,11 @@ function renderResultPanel(keyword, totalCount) {
     panel.innerHTML = html;
 }
 
-// 지역 폴더 클릭 시 접기/펴기 상태 변경
 window.toggleRegion = function(region, keyword, totalCount) {
     searchRegionOpen[region] = !searchRegionOpen[region];
     renderResultPanel(keyword, totalCount);
 };
 
-// 지역 목록의 페이지 번호 변경
 window.changePage = function(region, step, keyword, totalCount) {
     const branches = searchGroupedData[region];
     const totalPages = Math.ceil(branches.length / ITEMS_PER_PAGE);
@@ -420,9 +378,8 @@ window.changePage = function(region, step, keyword, totalCount) {
     }
 };
 
-// 특정 지점 클릭 시 해당 위치로 지도 이동
 window.moveToBranch = function(lat, lng) {
-    const pos = new window.kakao.maps.LatLng(lat, lng);
+    const pos = new kakao.maps.LatLng(lat, lng);
     map.setCenter(pos);
     map.setLevel(3);
 };
