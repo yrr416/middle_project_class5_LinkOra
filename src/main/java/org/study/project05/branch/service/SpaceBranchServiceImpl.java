@@ -47,4 +47,9 @@ public class SpaceBranchServiceImpl implements SpaceBranchService {
     public BranchVO getBranchBySpaceIdx(int spaIdx) {
         return spaceBranchMapper.selectBySpaceIdx(spaIdx);
     }
+
+    @Override
+    public SpaceVO getSpaceById(int spcIdx) {
+        return spaceMapper.selectById(spcIdx);
+    }
 }
