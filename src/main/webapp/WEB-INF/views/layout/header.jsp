@@ -90,10 +90,18 @@
                         <i class="fa-solid fa-map-location-dot" style="margin-right: 8px;"></i> 지도에서 찾기
                     </a>
                 </li>
-                <li><a href="#">프라이빗 오피스</a></li>
-                <li><a href="#">오픈 데스크</a></li>
+                <li><a href="${pageContext.request.contextPath}/branch/search">프라이빗 오피스</a></li>
+                <li><a href="${pageContext.request.contextPath}/branch/search">오픈 데스크</a></li>
             </ul>
         </li>
+
+        <% if (loggedIn) { %>
+        <li>
+            <a href="${pageContext.request.contextPath}/reservation/mylist">
+                <div class="acc-left"><i class="fa-regular fa-calendar-check"></i> 내 예약</div>
+            </a>
+        </li>
+        <% } %>
 
         <li class="accordion-item">
             <a href="#" class="accordion-toggle">
@@ -102,7 +110,7 @@
             </a>
             <ul class="accordion-content">
                 <li><a href="${pageContext.request.contextPath}/notice/list">공지사항</a></li>
-                <li><a href="#">자주 묻는 질문</a></li>
+                <li><a href="${pageContext.request.contextPath}/inquiry/form">자주 묻는 질문</a></li>
             </ul>
         </li>
     </ul>

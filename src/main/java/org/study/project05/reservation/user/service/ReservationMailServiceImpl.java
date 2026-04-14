@@ -82,6 +82,49 @@ public class ReservationMailServiceImpl implements ReservationMailService {
         }
     }
 
+    @Override
+    public void sendReservationApproved(String toEmail, String name,
+                                        String spaceName,
+                                        String startTime, String endTime) {
+        if (mockEnabled) {
+            log.info("[MAIL MOCK] 예약승인 to={}, name={}, space={}, {}~{}",
+                    toEmail, name, spaceName, startTime, endTime);
+            return;
+        }
+
+        if (mailUsername == null || mailUsername.isBlank()
+                || mailPassword == null || mailPassword.isBlank()) {
+            log.warn("[MAIL] 메일 설정이 없어 발송을 건너뜁니다.");
+            return;
+        }
+
+        try {
+            String displayName = (name == null || name.isBlank()) ? "고객" : name.trim();
+
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(resolveFromAddress());
+            message.setTo(toEmail);
+            message.setSubject("[LinkOra] 예약이 승인되었습니다");
+            message.setText(
+                    displayName + "님, 안녕하세요.\n\n"
+                    + "관리자가 예약을 승인하였습니다.\n\n"
+                    + "━━━━━━━━━━━━━━━━━━━━\n"
+                    + "공간명  : " + spaceName + "\n"
+                    + "시작    : " + startTime + "\n"
+                    + "종료    : " + endTime   + "\n"
+                    + "━━━━━━━━━━━━━━━━━━━━\n\n"
+                    + "이용해 주셔서 감사합니다.\n"
+                    + "본 메일은 발신 전용입니다."
+            );
+
+            createSender().send(message);
+            log.info("[MAIL] 예약승인 메일 발송 완료 → {}", toEmail);
+
+        } catch (Exception e) {
+            log.error("[MAIL] 예약승인 메일 발송 실패 → {}, 사유: {}", toEmail, e.getMessage());
+        }
+    }
+
     /**
      * JavaMailSender 생성 — 이메일 도메인으로 SMTP 서버 자동 감지
      * Gmail, 네이버, 다음, 네이트, Outlook, iCloud 지원

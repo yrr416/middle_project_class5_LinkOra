@@ -52,4 +52,7 @@ public class BranchVO {
     private List<SpaceVO> spaces;        // 지점 내 공간 목록
     private List<BranchImgVO> images;    // 지점 이미지 목록
 
+    // [검색 목록용 대표 이미지] - branch_img 테이블에서 bi_is_main=1인 이미지 URL
+    private String mainImgUrl;
+
 }

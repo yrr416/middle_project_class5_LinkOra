@@ -1,5 +1,6 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c"  uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%-- [공통 레이아웃 상단] --%>
 <%@ include file="../layout/header.jsp" %>
@@ -12,7 +13,7 @@
 
         background-color: #2a2a2a !important; /* 헤더 배경 어둡게 */
 
-        border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 
         position: fixed;
 
@@ -27,19 +28,15 @@
     }
 
 
-
     /* 헤더 내 글자 및 아이콘 흰색으로 반전 */
 
     .main-header .hamburger-menu,
-
     .main-header .login-btn,
-
     .main-header .login-link {
 
         color: #ffffff !important;
 
     }
-
 
 
     /* 로고 SVG 텍스트 흰색으로 반전 */
@@ -49,7 +46,6 @@
         fill: #ffffff !important;
 
     }
-
 
 
     /* 예약하기 버튼 포인트 색상 반전 (흰색 배경 + 다크 텍스트) */
@@ -65,7 +61,6 @@
     }
 
 
-
     /* [중요] 헤더와 배너 사이의 흰색 간격을 없애기 위한 래퍼 설정 */
 
     .list-page-wrapper {
@@ -77,14 +72,19 @@
     }
 
 
-
     /* 서서히 올라오는 애니메이션 효과 */
 
     @keyframes fadeInUp {
 
-        from { opacity: 0; transform: translateY(20px); }
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
 
-        to { opacity: 1; transform: translateY(0); }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
     }
 
@@ -143,52 +143,88 @@
     <div class="container" style="display: flex; gap: 30px; margin-top: 40px; margin-bottom: 60px;">
 
         <%-- [좌측: 상세 필터 영역 - 전체 유지] --%>
-        <aside class="filter-sidebar" style="width: 280px; flex-shrink: 0; background: #fff; padding: 25px; border: 1px solid #eee; border-radius: 12px; height: fit-content; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <aside class="filter-sidebar"
+               style="width: 280px; flex-shrink: 0; background: #fff; padding: 25px; border: 1px solid #eee; border-radius: 12px; height: fit-content; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
             <div class="filter-box">
-                <h3 style="margin-bottom: 20px; font-size: 18px; border-bottom: 2px solid #007A8A; padding-bottom: 10px;">상세 필터</h3>
+                <h3 style="margin-bottom: 20px; font-size: 18px; border-bottom: 2px solid #007A8A; padding-bottom: 10px;">
+                    상세 필터</h3>
                 <form action="${pageContext.request.contextPath}/branch/search" method="get" id="sidebarFilterForm">
                     <input type="hidden" name="keyword" value="${keyword}">
 
                     <div class="filter-group" style="margin-bottom: 20px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">지역 선택</label>
-                        <select id="sidebarCity" onchange="updateSidebarDistricts()" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 8px;">
+                        <select id="sidebarCity" onchange="updateSidebarDistricts()"
+                                style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 8px;">
                             <option value="">시/도 선택</option>
                             <option value="서울">서울특별시</option>
                             <option value="인천">인천광역시</option>
                         </select>
-                        <select name="region" id="sidebarDistrict" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd;" disabled>
+                        <select name="region" id="sidebarDistrict"
+                                style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd;"
+                                disabled>
                             <option value="">상세 구 선택</option>
                         </select>
                     </div>
 
                     <div class="filter-group" style="margin-bottom: 25px;">
-                        <label style="display: block; margin-bottom: 10px; font-weight: bold; color: #333;">수용 인원</label>
+                        <label style="display: block; margin-bottom: 10px; font-weight: bold; color: #333;">수용
+                            인원</label>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px;">
-                            <label style="cursor:pointer;"><input type="radio" name="capacity" value="" ${empty capacity ? 'checked' : ''}> 전체</label>
-                            <label style="cursor:pointer;"><input type="radio" name="capacity" value="1" ${capacity == 1 ? 'checked' : ''}> 1인 전용</label>
-                            <label style="cursor:pointer;"><input type="radio" name="capacity" value="5" ${capacity == 5 ? 'checked' : ''}> ~5인</label>
-                            <label style="cursor:pointer;"><input type="radio" name="capacity" value="10" ${capacity == 10 ? 'checked' : ''}> ~10인</label>
-                            <label style="cursor:pointer;"><input type="radio" name="capacity" value="20" ${capacity == 20 ? 'checked' : ''}> ~20인</label>
-                            <label style="cursor:pointer;"><input type="radio" name="capacity" value="21" ${capacity == 21 ? 'checked' : ''}> 20인+</label>
-                            <label style="cursor:pointer;"><input type="radio" name="capacity" value="100" ${capacity == 100 ? 'checked' : ''}> 100인+</label>
+                            <label style="cursor:pointer;"><input type="radio" name="capacity"
+                                                                  value="" ${empty capacity ? 'checked' : ''}>
+                                전체</label>
+                            <label style="cursor:pointer;"><input type="radio" name="capacity"
+                                                                  value="1" ${capacity == 1 ? 'checked' : ''}> 1인
+                                전용</label>
+                            <label style="cursor:pointer;"><input type="radio" name="capacity"
+                                                                  value="5" ${capacity == 5 ? 'checked' : ''}>
+                                ~5인</label>
+                            <label style="cursor:pointer;"><input type="radio" name="capacity"
+                                                                  value="10" ${capacity == 10 ? 'checked' : ''}>
+                                ~10인</label>
+                            <label style="cursor:pointer;"><input type="radio" name="capacity"
+                                                                  value="20" ${capacity == 20 ? 'checked' : ''}>
+                                ~20인</label>
+                            <label style="cursor:pointer;"><input type="radio" name="capacity"
+                                                                  value="21" ${capacity == 21 ? 'checked' : ''}>
+                                20인+</label>
+                            <label style="cursor:pointer;"><input type="radio" name="capacity"
+                                                                  value="100" ${capacity == 100 ? 'checked' : ''}> 100인+</label>
                         </div>
                     </div>
 
                     <div class="filter-group" style="margin-bottom: 25px;">
-                        <label style="display: block; margin-bottom: 10px; font-weight: bold; color: #333;">편의 시설</label>
+                        <label style="display: block; margin-bottom: 10px; font-weight: bold; color: #333;">편의
+                            시설</label>
                         <div style="display: grid; gap: 10px; font-size: 14px; color: #555;">
-                            <label style="cursor:pointer;"><input type="checkbox" name="facParking" value="1" ${facParking == 1 ? 'checked' : ''}> 주차 가능</label>
-                            <label style="cursor:pointer;"><input type="checkbox" name="facHours24" value="1" ${facHours24 == 1 ? 'checked' : ''}> 24시간 운영</label>
-                            <label style="cursor:pointer;"><input type="checkbox" name="facPet" value="1" ${facPet == 1 ? 'checked' : ''}> 반려동물 동반</label>
-                            <label style="cursor:pointer;"><input type="checkbox" name="facWifi" value="1" ${facWifi == 1 ? 'checked' : ''}> 기가 와이파이</label>
-                            <label style="cursor:pointer;"><input type="checkbox" name="facCoffee" value="1" ${facCoffee == 1 ? 'checked' : ''}> 무료 커피/간식</label>
-                            <label style="cursor:pointer;"><input type="checkbox" name="facPrinter" value="1" ${facPrinter == 1 ? 'checked' : ''}> 프린터 이용</label>
-                            <label style="cursor:pointer;"><input type="checkbox" name="facLocker" value="1" ${facLocker == 1 ? 'checked' : ''}> 개인 사물함</label>
+                            <label style="cursor:pointer;"><input type="checkbox" name="facParking"
+                                                                  value="1" ${facParking == 1 ? 'checked' : ''}> 주차
+                                가능</label>
+                            <label style="cursor:pointer;"><input type="checkbox" name="facHours24"
+                                                                  value="1" ${facHours24 == 1 ? 'checked' : ''}> 24시간 운영</label>
+                            <label style="cursor:pointer;"><input type="checkbox" name="facPet"
+                                                                  value="1" ${facPet == 1 ? 'checked' : ''}> 반려동물
+                                동반</label>
+                            <label style="cursor:pointer;"><input type="checkbox" name="facWifi"
+                                                                  value="1" ${facWifi == 1 ? 'checked' : ''}> 기가
+                                와이파이</label>
+                            <label style="cursor:pointer;"><input type="checkbox" name="facCoffee"
+                                                                  value="1" ${facCoffee == 1 ? 'checked' : ''}> 무료 커피/간식</label>
+                            <label style="cursor:pointer;"><input type="checkbox" name="facPrinter"
+                                                                  value="1" ${facPrinter == 1 ? 'checked' : ''}> 프린터 이용</label>
+                            <label style="cursor:pointer;"><input type="checkbox" name="facLocker"
+                                                                  value="1" ${facLocker == 1 ? 'checked' : ''}> 개인
+                                사물함</label>
                         </div>
                     </div>
 
-                    <button type="submit" style="width: 100%; padding: 12px; background: #007A8A; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">필터 적용하기</button>
-                    <a href="${pageContext.request.contextPath}/branch/search" style="display: block; text-align: center; margin-top: 15px; color: #999; font-size: 13px; text-decoration: none;">필터 초기화</a>
+                    <button type="submit"
+                            style="width: 100%; padding: 12px; background: #007A8A; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                        필터 적용하기
+                    </button>
+                    <a href="${pageContext.request.contextPath}/branch/search"
+                       style="display: block; text-align: center; margin-top: 15px; color: #999; font-size: 13px; text-decoration: none;">필터
+                        초기화</a>
                 </form>
             </div>
         </aside>
@@ -197,10 +233,30 @@
         <section class="branch-list-content" style="flex-grow: 1;">
             <div class="branch-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px;">
                 <c:forEach var="branch" items="${branches}">
-                    <div class="branch-card" style="background: #fff; border: 1px solid #eee; border-radius: 12px; overflow: hidden; transition: 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <div class="branch-card"
+                         style="background: #fff; border: 1px solid #eee; border-radius: 12px; overflow: hidden; transition: 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
                         <div class="branch-img" style="height: 200px; background: #f0f0f0;">
-                                <%-- [경로 수정] 이미지 404 해결 --%>
-                            <img src="${pageContext.request.contextPath}${branch.brnFile}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://placehold.jp/400x200.png?text=No+Image'">
+                            <c:choose>
+                                <c:when test="${not empty branch.mainImgUrl}">
+                                    <%-- '/'로 시작하면 전체 경로, 아니면 파일명으로 처리 --%>
+                                    <c:choose>
+                                        <c:when test="${fn:startsWith(branch.mainImgUrl, '/')}">
+                                            <img src="${pageContext.request.contextPath}${branch.mainImgUrl}"
+                                                 style="width:100%; height:100%; object-fit:cover;"
+                                                 onerror="this.src='https://placehold.jp/400x200.png?text=No+Image'">
+                                        </c:when>
+                                        <c:otherwise>
+                                            <img src="${pageContext.request.contextPath}/static/upload/branch/${branch.mainImgUrl}"
+                                                 style="width:100%; height:100%; object-fit:cover;"
+                                                 onerror="this.src='https://placehold.jp/400x200.png?text=No+Image'">
+                                        </c:otherwise>
+                                    </c:choose>
+                                </c:when>
+                                <c:otherwise>
+                                    <img src="https://placehold.jp/400x200.png?text=No+Image"
+                                         style="width:100%; height:100%; object-fit:cover;">
+                                </c:otherwise>
+                            </c:choose>
                         </div>
 
                         <div class="branch-info" style="padding: 20px;">
@@ -210,17 +266,23 @@
                             </p>
 
                                 <%-- [아이콘 복구] 가시성을 위해 브랜드 컬러 강조 --%>
-                            <div class="facility-icons" style="display: flex; gap: 12px; margin-bottom: 20px; font-size: 18px; color: #007A8A;">
+                            <div class="facility-icons"
+                                 style="display: flex; gap: 12px; margin-bottom: 20px; font-size: 18px; color: #007A8A;">
                                 <c:if test="${branch.facWifi == 1}"><i class="fa-solid fa-wifi" title="와이파이"></i></c:if>
                                 <c:if test="${branch.facParking == 1}"><i class="fa-solid fa-car" title="주차"></i></c:if>
-                                <c:if test="${branch.facCoffee == 1}"><i class="fa-solid fa-mug-hot" title="무료커피"></i></c:if>
-                                <c:if test="${branch.facHours24 == 1}"><i class="fa-solid fa-clock" title="24시간"></i></c:if>
+                                <c:if test="${branch.facCoffee == 1}"><i class="fa-solid fa-mug-hot"
+                                                                         title="무료커피"></i></c:if>
+                                <c:if test="${branch.facHours24 == 1}"><i class="fa-solid fa-clock"
+                                                                          title="24시간"></i></c:if>
                                 <c:if test="${branch.facPet == 1}"><i class="fa-solid fa-paw" title="반려동물"></i></c:if>
-                                <c:if test="${branch.facPrinter == 1}"><i class="fa-solid fa-print" title="프린터"></i></c:if>
-                                <c:if test="${branch.facLocker == 1}"><i class="fa-solid fa-vault" title="사물함"></i></c:if>
+                                <c:if test="${branch.facPrinter == 1}"><i class="fa-solid fa-print"
+                                                                          title="프린터"></i></c:if>
+                                <c:if test="${branch.facLocker == 1}"><i class="fa-solid fa-vault"
+                                                                         title="사물함"></i></c:if>
                             </div>
 
-                            <a href="${pageContext.request.contextPath}/branch/detail?brnIdx=${branch.brnIdx}" style="display: block; text-align: center; border: 1px solid #007A8A; color: #007A8A; padding: 10px; border-radius: 6px; text-decoration: none; font-weight: bold;">
+                            <a href="${pageContext.request.contextPath}/branch/detail?brnIdx=${branch.brnIdx}"
+                               style="display: block; text-align: center; border: 1px solid #007A8A; color: #007A8A; padding: 10px; border-radius: 6px; text-decoration: none; font-weight: bold;">
                                 상세보기 및 예약
                             </a>
                         </div>
