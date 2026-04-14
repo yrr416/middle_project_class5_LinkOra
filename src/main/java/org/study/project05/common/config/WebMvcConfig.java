@@ -3,13 +3,16 @@
  */
 package org.study.project05.common.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.server.servlet.ConfigurableServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.study.project05.common.interceptor.SessionSyncInterceptor;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -20,6 +23,20 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Value("${app.upload.profiles-dir:uploads/profiles}")
     private String profilesDir;
+
+    private final SessionSyncInterceptor sessionSyncInterceptor;
+
+    @Autowired
+    public WebMvcConfig(SessionSyncInterceptor sessionSyncInterceptor) {
+        this.sessionSyncInterceptor = sessionSyncInterceptor;
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(sessionSyncInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns("/static/**", "/assets/**", "/error", "/favicon.ico");
+    }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {

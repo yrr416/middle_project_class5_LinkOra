@@ -3,18 +3,28 @@
 
 <mapper namespace="org.study.project05.branch.mapper.BranchMapper">
 
-    <resultMap id="BranchListMap" type="org.study.project05.branch.vo.BranchVO">
-        <id property="brnIdx" column="b_idx"/>
-        <result property="brnName" column="b_name"/>
-        <result property="brnAddress" column="b_address"/>
-        <result property="brnDescription" column="b_description"/>
-        <result property="brnLatitude" column="b_latitude"/>
-        <result property="brnLongitude" column="b_altitude"/>
-        <result property="brnPhone" column="b_phone"/>
-        <result property="brnFile" column="b_file"/>
-        <result property="brnActive" column="b_active"/>
-        <result property="distance" column="distance"/>
-
+    <!-- 통합 ResultMap (dev 기준으로 ssh 필드 추가) -->
+    <resultMap id="branchResultMap" type="org.study.project05.branch.vo.BranchVO">
+        <id     property="brnIdx"          column="b_idx"/>
+        <result property="ptnIdx"          column="p_idx"/>
+        <result property="brnName"         column="b_name"/>
+        <result property="brnDescription"  column="b_description"/>
+        <result property="brnAddress"      column="b_address"/>
+        <result property="brnLatitude"     column="b_latitude"/>
+        <result property="brnLongitude"    column="b_altitude"/>
+        <result property="brnPhone"        column="b_phone"/>
+        <result property="brnFile"         column="b_file"/>
+        <result property="brnActive"       column="b_active"/>
+        <result property="distance"        column="distance"/>
+        
+        <!-- SSH 전용 필드 -->
+        <result property="brnSns"          column="b_sns"/>
+        <result property="brnHours"        column="b_hours"/>
+        <result property="brnNotice"       column="b_notice"/>
+        <result property="brnRefundPoli"   column="b_refund_policy"/>
+        <result property="partnerName"     column="p_name"/>
+        
+        <!-- DEV 전용 편의시설 약식 필드 -->
         <result property="facParking" column="fac_parking"/>
         <result property="facHours24" column="fac_hours24"/>
         <result property="facPet" column="fac_pet"/>
@@ -24,17 +34,24 @@
         <result property="facLocker" column="fac_locker"/>
     </resultMap>
 
+    <!-- JOIN 절 (Partner 정보 포함) -->
+    <sql id="branchJoin">
+        FROM branch b
+        LEFT JOIN partner p ON b.p_idx = p.p_idx
+    </sql>
+
+    <!-- 필터링 SQL (DEV + SSH 통합) -->
     <sql id="branchFilters">
         b.b_active = 1
 
         <if test="keyword != null and keyword != ''">
             AND (
-            b.b_name LIKE CONCAT('%', #{keyword}, '%')
-            OR b.b_address LIKE CONCAT('%', #{keyword}, '%')
-            OR b.b_description LIKE CONCAT('%', #{keyword}, '%')
-            OR EXISTS (
-            SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_name LIKE CONCAT('%', #{keyword}, '%')
-            )
+                b.b_name LIKE CONCAT('%', #{keyword}, '%')
+                OR b.b_address LIKE CONCAT('%', #{keyword}, '%')
+                OR b.b_description LIKE CONCAT('%', #{keyword}, '%')
+                OR EXISTS (
+                    SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_name LIKE CONCAT('%', #{keyword}, '%')
+                )
             )
         </if>
 
@@ -43,48 +60,49 @@
         </if>
 
         <if test="capacity != null">
-            <choose>
-                <when test="capacity == 1"> AND EXISTS (SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_max_capacity = 1) </when>
-                <when test="capacity == 5"> AND EXISTS (SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_max_capacity BETWEEN 2 AND 5) </when>
-                <when test="capacity == 10"> AND EXISTS (SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_max_capacity BETWEEN 6 AND 10) </when>
-                <when test="capacity == 20"> AND EXISTS (SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_max_capacity BETWEEN 11 AND 20) </when>
-                <when test="capacity == 21"> AND EXISTS (SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_max_capacity > 20) </when>
-                <when test="capacity == 100"> AND EXISTS (SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_max_capacity >= 100) </when>
-            </choose>
+            AND EXISTS (
+                SELECT 1 FROM space s
+                WHERE s.b_idx = b.b_idx
+                AND CAST(s.s_max_capacity AS UNSIGNED) >= #{capacity}
+            )
         </if>
 
         <if test="facParking != null and facParking == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_parking = 1) </if>
         <if test="facHours24 != null and facHours24 == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_hours24 = 1) </if>
         <if test="facPet != null and facPet == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_pet = 1) </if>
-        <if test="facWifi != null and facWifi == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_desk = 1) </if>
-        <if test="facCoffee != null and facCoffee == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_cafe = 1) </if>
-        <if test="facPrinter != null and facPrinter == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_fax = 1) </if>
-        <if test="facLocker != null and facLocker == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_storage = 1) </if>
+        <if test="facWifi != null and facWifi == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_desk = 1 OR f.f_wifi = 1)) </if>
+        <if test="facCoffee != null and facCoffee == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_cafe = 1 OR f.f_coffee = 1)) </if>
+        <if test="facPrinter != null and facPrinter == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_fax = 1 OR f.f_printer = 1)) </if>
+        <if test="facLocker != null and facLocker == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_storage = 1 OR f.f_locker = 1)) </if>
 
         <if test="lat != null and lng != null">
             AND (6371 * acos(cos(radians(#{lat})) * cos(radians(b.b_latitude))
             * cos(radians(b.b_altitude) - radians(#{lng}))
-            + sin(radians(#{lat})) * sin(radians(b.b_latitude)))) &lt; 5
+            + sin(radians(#{lat})) * sin(radians(b.b_latitude)))) &lt; 20
         </if>
     </sql>
 
-    <select id="searchWithFilters" resultMap="BranchListMap">
+    <!-- 복합 검색 (DEV + SSH 통합 메인 쿼리) -->
+    <select id="searchWithFilters" resultMap="branchResultMap">
         SELECT
-        b.b_idx, b.b_name, b.b_address, b.b_description,
-        b.b_latitude, b.b_altitude, b.b_phone, b.b_file, b.b_active,
-        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_parking = 1) as fac_parking,
-        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_hours24 = 1) as fac_hours24,
-        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_pet = 1) as fac_pet,
-        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_desk = 1) as fac_wifi,
-        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_cafe = 1) as fac_coffee,
-        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_fax = 1) as fac_printer,
-        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_storage = 1) as fac_locker
-        <if test="lat != null and lng != null">
-            , (6371 * acos(cos(radians(#{lat})) * cos(radians(b.b_latitude))
-            * cos(radians(b.b_altitude) - radians(#{lng}))
-            + sin(radians(#{lat})) * sin(radians(b.b_latitude)))) AS distance
-        </if>
-        FROM branch b
+            b.b_idx, b.p_idx, b.b_name, b.b_address, b.b_description,
+            b.b_latitude, b.b_altitude, b.b_phone, b.b_file, b.b_active,
+            b.b_sns, b.b_hours, b.b_notice, b.b_refund_policy,
+            p.p_name,
+            /* 편의 시설 요약 (Boolean) */
+            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_parking = 1) as fac_parking,
+            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_hours24 = 1) as fac_hours24,
+            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_pet = 1) as fac_pet,
+            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_desk = 1 OR f.f_wifi = 1)) as fac_wifi,
+            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_cafe = 1 OR f.f_coffee = 1)) as fac_coffee,
+            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_fax = 1 OR f.f_printer = 1)) as fac_printer,
+            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_storage = 1 OR f.f_locker = 1)) as fac_locker
+            <if test="lat != null and lng != null">
+                , (6371 * acos(cos(radians(#{lat})) * cos(radians(b.b_latitude))
+                * cos(radians(b.b_altitude) - radians(#{lng}))
+                + sin(radians(#{lat})) * sin(radians(b.b_latitude)))) AS distance
+            </if>
+        <include refid="branchJoin"/>
         <where>
             <include refid="branchFilters"/>
         </where>
@@ -96,6 +114,9 @@
         <if test="skip != null and size != null">
             LIMIT #{size} OFFSET #{skip}
         </if>
+        <if test="skip == null and size != null">
+            LIMIT #{size}
+        </if>
     </select>
 
     <select id="getCountWithFilters" resultType="int">
@@ -106,7 +127,26 @@
         </where>
     </select>
 
-    <select id="getAllBranches" resultMap="BranchListMap">
+    <select id="selectAll" resultMap="branchResultMap">
+        SELECT b.b_idx, b.p_idx, b.b_name, b.b_description, b.b_file,
+               b.b_address, b.b_latitude, b.b_altitude, b.b_phone,
+               b.b_sns, b.b_hours, b.b_notice, b.b_refund_policy,
+               p.p_name
+        <include refid="branchJoin"/>
+        WHERE b.b_active = 1
+        ORDER BY b.b_idx ASC
+    </select>
+
+    <select id="selectById" parameterType="int" resultMap="branchResultMap">
+        SELECT b.b_idx, b.p_idx, b.b_name, b.b_description, b.b_file,
+               b.b_address, b.b_latitude, b.b_altitude, b.b_phone,
+               b.b_sns, b.b_hours, b.b_notice, b.b_refund_policy,
+               p.p_name
+        <include refid="branchJoin"/>
+        WHERE b.b_idx = #{brnIdx}
+    </select>
+
+    <select id="getAllBranches" resultMap="branchResultMap">
         SELECT
             b_idx, b_name, b_address, b_description,
             b_latitude, b_altitude, b_phone, b_file, b_active
@@ -114,4 +154,15 @@
         WHERE b_active = 1
     </select>
 
+    <select id="selectBySpaceIdx" parameterType="int" resultMap="branchResultMap">
+        SELECT b.b_idx, b.p_idx, b.b_name, b.b_description, b.b_file,
+               b.b_address, b.b_latitude, b.b_altitude, b.b_phone,
+               b.b_sns, b.b_hours, b.b_notice, b.b_refund_policy,
+               p.p_name
+        <include refid="branchJoin"/>
+        JOIN space s ON s.b_idx = b.b_idx
+        WHERE s.s_idx = #{sIdx}
+    </select>
+
 </mapper>
+

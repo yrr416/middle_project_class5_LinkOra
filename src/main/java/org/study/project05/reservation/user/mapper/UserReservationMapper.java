@@ -35,3 +35,4 @@ public interface UserReservationMapper {
     /** 생성된 지 10분이 지난 PENDING 예약을 일괄 CANCELLED 처리 — 스케줄러 전용 */
     void cancelExpiredPending();
 }
+

@@ -40,20 +40,8 @@ public class SpaceController {
         model.addAttribute("branch", branch);
         model.addAttribute("kakaoMapKey", kakaoMapKey);
 
-        // 세션에서 UserProfileVO 꺼냄 (팀원 Spring Security 로그인 시 저장됨)
+        // 세션에서 UserProfileVO 꺼냄 (SessionSyncInterceptor에서 자동 관리됨)
         UserProfileVO loginUser = (UserProfileVO) session.getAttribute("loginUser");
-
-        // 세션에 없으면 authentication(u_id)으로 DB 조회 후 세션에 저장
-        if (loginUser == null
-                && authentication != null
-                && authentication.isAuthenticated()
-                && !(authentication instanceof AnonymousAuthenticationToken)) {
-            loginUser = userProfileService.getByUserId(authentication.getName());
-            if (loginUser != null) {
-                loginUser.setPassword(null); // 세션에 비밀번호 저장 방지
-                session.setAttribute("loginUser", loginUser);
-            }
-        }
 
         boolean hasReservation = loginUser != null &&
                 reservationMapper.countByUserAndBranch(loginUser.getUserIdx(), brnIdx) > 0;

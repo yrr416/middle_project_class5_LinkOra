@@ -31,18 +31,24 @@ public class CustomUserDetailsService implements UserDetailsService {
         String key = username.trim();
         PartnerVO partner = partnerService.getByPartnerId(key);
         if (partner != null && partner.getPassword() != null && !partner.getPassword().isBlank()) {
-            return User.withUsername(partner.getPartnerId())
-                    .password(partner.getPassword())
-                    .roles("PARTNER")
-                    .build();
+            return new CustomUserDetails(
+                    partner.getPartnerId(),
+                    partner.getPassword(),
+                    java.util.Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_PARTNER")),
+                    (long) partner.getPtnIdx(),
+                    partner.getName()
+            );
         }
 
         UserProfileVO user = userProfileService.getByUserId(key);
         if (user != null && user.getPassword() != null) {
-            return User.withUsername(user.getUserId())
-                    .password(user.getPassword())
-                    .roles("USER")
-                    .build();
+            return new CustomUserDetails(
+                    user.getUserId(),
+                    user.getPassword(),
+                    java.util.Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER")),
+                    (long) user.getUserIdx(),
+                    user.getName()
+            );
         }
 
         throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + key);

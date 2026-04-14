@@ -62,7 +62,7 @@ public interface UserProfileMapper {
 
     @Insert("""
             INSERT INTO `user` (u_id, u_name, u_pwd, u_email, u_addr, u_phone, u_created, u_active, u_profile)
-            VALUES (#{userId}, #{name}, #{password}, #{email}, #{address}, #{phone}, CURDATE(), 0, #{profilePath})
+            VALUES (#{userId}, #{name}, #{password}, #{email}, #{address}, #{phone}, CURDATE(), 1, #{profilePath})
             """)
     int insertUser(
             @Param("userId") String userId,

@@ -18,7 +18,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())  // CSRF 비활성화 — JSP 폼 POST 요청이 403으로 막히는 문제 해결
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/chat/**")
+                )
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
                 )
@@ -28,8 +30,21 @@ public class SecurityConfig {
                         .usernameParameter("username")
                         .passwordParameter("password")
                         .successHandler((request, response, authentication) -> {
+                            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+                            jakarta.servlet.http.HttpSession session = request.getSession();
+
                             boolean isPartner = authentication.getAuthorities().stream()
                                     .anyMatch(authority -> "ROLE_PARTNER".equals(authority.getAuthority()));
+
+                            if (isPartner) {
+                                session.setAttribute("partnerIdx", userDetails.getIdx());
+                                session.setAttribute("userIdx", userDetails.getIdx()); // 호환성 유지
+                            } else {
+                                session.setAttribute("userIdx", userDetails.getIdx());
+                            }
+                            
+                            session.setAttribute("userName", userDetails.getRealName());
+
                             String target = isPartner ? "/partner/mypage" : "/";
                             response.sendRedirect(request.getContextPath() + target);
                         })

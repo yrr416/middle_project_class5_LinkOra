@@ -60,6 +60,12 @@
         }
         </c:if>
     </style>
+    
+    <%-- [추가] 전역 JS 변수 설정 (Context Path 및 로그인 상태) --%>
+    <script>
+        window.contextPath = '${pageContext.request.contextPath}';
+        window.userIdx = '${sessionScope.userIdx != null ? sessionScope.userIdx : "0"}';
+    </script>
 </head>
 <body>
 
