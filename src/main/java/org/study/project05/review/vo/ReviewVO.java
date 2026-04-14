@@ -24,6 +24,9 @@ public class ReviewVO {
     private String  spaceName;
     private Date    revCreatedAt;    // DB의 v_created_at (포맷은 JSP/JS에서 처리)
 
+    /** 첨부 이미지 파일명 (v_img) — 없으면 null */
+    private String revImg;
+
     /** 신고 누적 수 — 조회 시 서브쿼리로 계산 (신고 3회 이상이면 블라인드 처리) */
     private int reportCount;
 

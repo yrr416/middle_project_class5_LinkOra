@@ -13,9 +13,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
-// 관리자용 ReservationServiceImpl과 빈 이름 충돌을 피하기 위해 UserReservationServiceImpl로 명명
 @Service
-public class UserReservationServiceImpl implements ReservationService {
+public class UserReservationServiceImpl implements UserReservationService {
 
     @Autowired
     private UserReservationMapper reservationMapper;

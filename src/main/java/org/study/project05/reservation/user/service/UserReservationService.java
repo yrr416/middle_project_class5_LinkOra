@@ -5,7 +5,7 @@ import org.study.project05.reservation.user.vo.ReservationVO;
 import java.util.List;
 import java.util.Map;
 
-public interface ReservationService {
+public interface UserReservationService {
 
     void reserve(ReservationVO vo);
 

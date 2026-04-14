@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.study.project05.branch.service.SpaceBranchService;
 import org.study.project05.branch.vo.BranchVO;
 import org.study.project05.member.vo.UserProfileVO;
-import org.study.project05.reservation.user.service.ReservationService;
+import org.study.project05.reservation.user.service.UserReservationService;
 
 @Controller
 @RequestMapping("/detail")
@@ -23,7 +23,7 @@ public class SpaceController {
     private String kakaoMapKey;
 
     @Autowired private SpaceBranchService branchService;
-    @Autowired private ReservationService reservationService;
+    @Autowired private UserReservationService reservationService;
 
     @GetMapping("/list")
     public String list(Model model) {
