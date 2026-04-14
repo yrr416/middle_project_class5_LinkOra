@@ -20,6 +20,7 @@
         <result property="spaceName"    column="s_name"/>
         <result property="revCreatedAt" column="v_created_at"/>
         <result property="reportCount"  column="report_count"/>
+        <result property="revImg"       column="v_img"/>
     </resultMap>
 
     <!-- 지점 최상위 후기 목록 (페이징)
@@ -35,6 +36,7 @@
                IFNULL(u.u_name, '알 수 없음') AS u_name,
                s.s_name,
                r.v_created_at,
+               r.v_img,
                (SELECT COUNT(*) FROM review_report rr WHERE rr.v_idx = r.v_idx) AS report_count
         FROM review r
         LEFT JOIN user  u ON r.u_idx = u.u_idx
@@ -113,13 +115,14 @@
 
     <!-- 후기/답글 등록 -->
     <insert id="insert" parameterType="ReviewVO">
-        INSERT INTO review (s_idx, u_idx, v_parent_idx, v_content, v_rating, v_active, v_time, v_created_at, v_updated_at)
+        INSERT INTO review (s_idx, u_idx, v_parent_idx, v_content, v_rating, v_img, v_active, v_time, v_created_at, v_updated_at)
         VALUES (
                    #{spcIdx},
                    #{userIdx},
                    #{revParentIdx},
                    #{revContent},
                    #{revRating, jdbcType=TINYINT},
+                   #{revImg, jdbcType=VARCHAR},
                    0,
                    NOW(),
                    NOW(),

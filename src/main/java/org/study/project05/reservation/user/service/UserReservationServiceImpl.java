@@ -13,9 +13,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
-// 관리자용 ReservationServiceImpl과 빈 이름 충돌을 피하기 위해 UserReservationServiceImpl로 명명
 @Service
-public class UserReservationServiceImpl implements ReservaionService {
+public class UserReservationServiceImpl implements UserReservationService {
 
     @Autowired
     private UserReservationMapper reservationMapper;
@@ -108,6 +107,12 @@ public class UserReservationServiceImpl implements ReservaionService {
         List<Integer> result = new ArrayList<>(unavailable);
         Collections.sort(result);
         return result;
+    }
+
+    /** 해당 지점에 완료/진행중 예약이 있는지 확인 — 리뷰 작성 권한 체크용 */
+    @Override
+    public int countByUserAndBranch(int userIdx, int brnIdx) {
+        return reservationMapper.countByUserAndBranch(userIdx, brnIdx);
     }
 
     /**

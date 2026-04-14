@@ -18,7 +18,7 @@ public class ChatServiceImpl implements ChatService {
     private final ChatGPTService chatGPTService;
 
     // 예약 시스템 연동을 위한 서비스 주입
-    private final org.study.project05.reservation.user.service.ReservaionService reservationService;
+    private final org.study.project05.reservation.user.service.UserReservationService reservationService;
     private final org.study.project05.branch.mapper.BranchMapper branchMapper;
     private final org.study.project05.branch.mapper.SpaceMapper spaceMapper;
     private final org.study.project05.branch.mapper.FacilityMapper facilityMapper;
@@ -63,8 +63,8 @@ public class ChatServiceImpl implements ChatService {
             return chatVO;
         }
 
-        // 2. 대화 이력 조회 및 GPT 컨텍스트 구성
-        List<ChatVO> history = chatMapper.selectChatListBySession(chatVO.getChatSession());
+        // 2. 대화 이력 조회 및 GPT 컨텍스트 구성 (보안 검증 파라미터 포함)
+        List<ChatVO> history = chatMapper.selectChatListBySession(chatVO.getChatSession(), chatVO.getUserIdx(), chatVO.getHttpSessionId());
         List<java.util.Map<String, String>> messages = new java.util.ArrayList<>();
 
         // 시스템 지시어 강화
@@ -208,8 +208,8 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public List<ChatVO> getChatHistory(int chatSession) {
-        return chatMapper.selectChatListBySession(chatSession);
+    public List<ChatVO> getChatHistory(int chatSession, Long userIdx, String httpSessionId) {
+        return chatMapper.selectChatListBySession(chatSession, userIdx, httpSessionId);
     }
 
     @Override
@@ -424,21 +424,30 @@ public class ChatServiceImpl implements ChatService {
             List<org.study.project05.reservation.user.vo.ReservationVO> list = reservationService.getMyReservations(userIdx.intValue());
             StringBuilder sb = new StringBuilder();
             java.time.LocalDateTime now = java.time.LocalDateTime.now();
-            java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            
+            // 다양한 날짜 형식을 지원하기 위한 포매터 (공백 및 T 대응)
+            java.time.format.DateTimeFormatter fmt = new java.time.format.DateTimeFormatterBuilder()
+                .append(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+                .optionalStart().appendLiteral(' ').optionalEnd()
+                .optionalStart().appendLiteral('T').optionalEnd()
+                .append(java.time.format.DateTimeFormatter.ISO_LOCAL_TIME)
+                .toFormatter();
 
             boolean hasActive = false;
             for (org.study.project05.reservation.user.vo.ReservationVO r : list) {
                 try {
-                    // 종료 시간이 현재보다 미래인 것만 포함 (지난 예약 제외)
-                    // ISO 형식(T)과 DB 형식(공백) 모두 대응
-                    String endTimeStr = r.getResEndTime().replace("T", " ");
-                    
-                    // 초(%s)가 누락된 경우(16자) 대응: :00 추가
-                    if (endTimeStr != null && endTimeStr.length() == 16) {
-                        endTimeStr += ":00";
-                    }
-                    
+                    String startTimeStrRaw = r.getResStartTime();
+                    String endTimeStrRaw = r.getResEndTime();
+                    if (startTimeStrRaw == null || endTimeStrRaw == null) continue;
+
+                    // 파싱 전 전처리: 초(:ss)가 없는 경우(16자) 대응
+                    String startTimeStr = startTimeStrRaw.length() == 16 ? startTimeStrRaw + ":00" : startTimeStrRaw;
+                    String endTimeStr = endTimeStrRaw.length() == 16 ? endTimeStrRaw + ":00" : endTimeStrRaw;
+
+                    java.time.LocalDateTime startTime = java.time.LocalDateTime.parse(startTimeStr, fmt);
                     java.time.LocalDateTime endTime = java.time.LocalDateTime.parse(endTimeStr, fmt);
+
+                    // 종료 시간이 현재보다 미래인 것만 포함 (지난 예약 제외)
                     if (endTime.isBefore(now)) continue;
 
                     if (!hasActive) {
@@ -449,18 +458,15 @@ public class ChatServiceImpl implements ChatService {
                     String statusKor = ("PENDING".equalsIgnoreCase(r.getResStatus())) ? "대기중(신청 완료)" : 
                                        ("CONFIRMED".equalsIgnoreCase(r.getResStatus())) ? "확정됨(이용 가능)" : "취소됨";
                     
-                    String startTimeStr = r.getResStartTime().replace("T", " ");
-                    if (startTimeStr != null && startTimeStr.length() == 16) {
-                        startTimeStr += ":00";
-                    }
-                    
                     sb.append("- #").append(r.getResIdx())
                       .append(": ").append(r.getSpaceName())
-                      .append(" (").append(startTimeStr).append("~").append(endTimeStr.split(" ")[1]).append(")")
+                      .append(" (").append(startTime.format(java.time.format.DateTimeFormatter.ofPattern("MM.dd HH:mm")))
+                      .append("~").append(endTime.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")))
+                      .append(")")
                       .append(", 상태: ").append(statusKor).append("\n");
                 } catch (Exception e) {
                     log.warn("Reservation date parsing failed for ID #{}: {}", r.getResIdx(), e.getMessage());
-                    continue; // 개별 항목 파싱 실패 시 해당 항목만 스킵
+                    continue; 
                 }
             }
             return hasActive ? sb.toString() : "현재 진행 중인 예약 내역이 없습니다.";

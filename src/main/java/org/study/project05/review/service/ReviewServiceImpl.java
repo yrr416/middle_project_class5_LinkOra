@@ -67,7 +67,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public void writeReview(int spcIdx, int userIdx, String content, Integer rating) {
+    public void writeReview(int spcIdx, int userIdx, String content, Integer rating, String imgUrl) {
         if (rating == null || rating < 1 || rating > 5) throw new IllegalArgumentException("별점은 1~5 사이여야 합니다.");
         if (content == null || content.isBlank()) throw new IllegalArgumentException("후기 내용을 입력해주세요.");
 
@@ -82,6 +82,7 @@ public class ReviewServiceImpl implements ReviewService {
         vo.setRevParentIdx(0);
         vo.setRevContent(filtered);
         vo.setRevRating(rating);
+        vo.setRevImg(imgUrl);
         reviewMapper.insert(vo);
     }
 

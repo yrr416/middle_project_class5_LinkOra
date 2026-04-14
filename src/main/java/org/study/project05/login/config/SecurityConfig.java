@@ -18,7 +18,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())  // CSRF 비활성화 — JSP 폼 POST 요청이 403으로 막히는 문제 해결
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/chat/**")
+                )
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
                 )
@@ -42,6 +44,14 @@ public class SecurityConfig {
                             }
                             
                             session.setAttribute("userName", userDetails.getRealName());
+
+                            // [추가] 문의 기능 한정: 로그인 전 목적지가 있었다면 해당 페이지로 리다이렉트
+                            String prevUrl = (String) session.getAttribute("prevUrl");
+                            if (prevUrl != null && prevUrl.startsWith("/inquiry")) {
+                                session.removeAttribute("prevUrl");
+                                response.sendRedirect(request.getContextPath() + prevUrl);
+                                return;
+                            }
 
                             String target = isPartner ? "/partner/mypage" : "/";
                             response.sendRedirect(request.getContextPath() + target);

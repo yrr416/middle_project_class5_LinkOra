@@ -8,7 +8,7 @@ public interface ReviewService {
 
     void writeReply(int spcIdx, int revParentIdx, int userIdx, String content);
 
-    void writeReview(int spcIdx, int userIdx, String content, Integer rating);
+    void writeReview(int spcIdx, int userIdx, String content, Integer rating, String imgUrl);
 
     /**
      * 본인 리뷰 삭제

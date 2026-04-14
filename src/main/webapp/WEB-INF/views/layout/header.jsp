@@ -81,6 +81,18 @@
     <ul class="sidebar-nav">
         <li class="accordion-item">
             <a href="#" class="accordion-toggle">
+                <div class="acc-left"><i class="fa-regular fa-circle-user"></i> 내 정보</div>
+                <i class="fa-solid fa-chevron-down acc-arrow"></i>
+            </a>
+            <ul class="accordion-content">
+                <li><a href="#">내 문의</a></li>
+                <li><a href="#">관심지점</a></li>
+                <li><a href="#">예약 확인하기</a></li>
+            </ul>
+        </li>
+
+        <li class="accordion-item">
+            <a href="#" class="accordion-toggle">
                 <div class="acc-left"><i class="fa-regular fa-building"></i> 공간 소개</div>
                 <i class="fa-solid fa-chevron-down acc-arrow"></i>
             </a>
@@ -90,10 +102,20 @@
                         <i class="fa-solid fa-map-location-dot" style="margin-right: 8px;"></i> 지도에서 찾기
                     </a>
                 </li>
-                <li><a href="#">프라이빗 오피스</a></li>
-                <li><a href="#">오픈 데스크</a></li>
+                <li><a href="${pageContext.request.contextPath}/branch/search">전체 지점</a></li>
+                <li><a href="${pageContext.request.contextPath}/branch/search">프라이빗 오피스</a></li>
+                <li><a href="${pageContext.request.contextPath}/branch/search">오픈 데스크</a></li>
+                <li><a href="#">코워킹 스페이스</a></li>
             </ul>
         </li>
+
+        <% if (loggedIn) { %>
+        <li>
+            <a href="${pageContext.request.contextPath}/reservation/mylist">
+                <div class="acc-left"><i class="fa-regular fa-calendar-check"></i> 내 예약</div>
+            </a>
+        </li>
+        <% } %>
 
         <li class="accordion-item">
             <a href="#" class="accordion-toggle">
@@ -102,7 +124,10 @@
             </a>
             <ul class="accordion-content">
                 <li><a href="${pageContext.request.contextPath}/notice/list">공지사항</a></li>
-                <li><a href="#">자주 묻는 질문</a></li>
+                <li><a href="${pageContext.request.contextPath}/inquiry/form">자주 묻는 질문</a></li>
+                <li><a href="${pageContext.request.contextPath}/inquiry">1:1 문의</a></li>
+                <li><a href="#">이벤트</a></li>
+                <li><a href="#">사업자 관리</a></li>
             </ul>
         </li>
     </ul>

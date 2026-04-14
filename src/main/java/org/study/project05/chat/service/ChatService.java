@@ -12,11 +12,13 @@ public interface ChatService {
     ChatVO processMessage(ChatVO chatVO);
 
     /**
-     * 세션별 대화 이력 조회
+     * 세션별 대화 이력 조회 (보안 검증 포함)
      * @param cSession 세션 ID
+     * @param userIdx 요청 사용자 ID
+     * @param httpSessionId 요청 브라우저 세션 ID
      * @return 대화 리스트
      */
-    List<ChatVO> getChatHistory(int cSession);
+    List<ChatVO> getChatHistory(int cSession, Long userIdx, String httpSessionId);
 
     /**
      * 사용자별 최근 대화 내역 조회 (하이브리드 세션용)

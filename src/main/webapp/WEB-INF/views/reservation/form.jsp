@@ -66,7 +66,7 @@
 
         <form id="reservationForm"
               action="${pageContext.request.contextPath}/reservation/submit" method="post">
-
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
             <input type="hidden" name="spcIdx"        value="${space.spcIdx}">
             <input type="hidden" name="resStartTime" id="startTimeInput">
             <input type="hidden" name="resEndTime"   id="endTimeInput">
@@ -192,6 +192,7 @@
         <p class="text-xs text-gray-400 mb-5">장기 이용, 법인 계약 등 자유롭게 문의해 주세요.</p>
 
         <form action="${pageContext.request.contextPath}/inquiry/submit" method="post">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
             <div class="mb-4">
                 <label class="block text-sm font-semibold text-gray-700 mb-1">제목</label>
                 <input type="text" name="title" id="inquiryTitle"

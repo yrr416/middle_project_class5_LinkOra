@@ -21,6 +21,10 @@ public class InquiryServiceImpl implements InquiryService {
 
     @Override
     public int registerInquiry(InquiryVO vo) {
+        // [보완] 필수 입력값 검증 (서버 측)
+        if (vo.getInqTitle() == null || vo.getInqTitle().trim().isEmpty()) return 0;
+        if (vo.getInqContent() == null || vo.getInqContent().trim().isEmpty()) return 0;
+        
         return inquiryMapper.insertInquiry(vo);
     }
 
@@ -57,5 +61,35 @@ public class InquiryServiceImpl implements InquiryService {
     @Override
     public InquiryVO getInquiryDetail(Integer inqIdx) {
         return inquiryMapper.selectInquiryDetail(inqIdx);
+    }
+
+    @Override
+    public String updateInquiry(InquiryVO vo, int userIdx) {
+        InquiryVO original = inquiryMapper.selectInquiryDetail(vo.getInqIdx());
+        if (original == null) return "존재하지 않는 문의글입니다.";
+        if (original.getUserIdx() != userIdx) return "수정 권한이 없습니다.";
+        
+        // [보완] 공백 유무와 상관없이 '답변 완료' 상태를 유연하게 체크
+        String status = original.getInqStatus() != null ? original.getInqStatus().replace(" ", "") : "";
+        if ("답변완료".equals(status)) {
+            return "답변이 완료된 문의는 수정할 수 없습니다.";
+        }
+
+        // [보완] 입력값 검증
+        if (vo.getInqTitle() == null || vo.getInqTitle().trim().isEmpty()) return "제목을 입력해 주세요.";
+        if (vo.getInqContent() == null || vo.getInqContent().trim().isEmpty()) return "내용을 입력해 주세요.";
+
+        int res = inquiryMapper.updateInquiry(vo);
+        return (res > 0) ? "success" : "수정에 실패했습니다.";
+    }
+
+    @Override
+    public String deleteInquiry(Integer inqIdx, int userIdx) {
+        InquiryVO original = inquiryMapper.selectInquiryDetail(inqIdx);
+        if (original == null) return "존재하지 않는 문의글입니다.";
+        if (original.getUserIdx() != userIdx) return "삭제 권한이 없습니다.";
+
+        int res = inquiryMapper.deleteInquiry(inqIdx);
+        return (res > 0) ? "success" : "삭제에 실패했습니다.";
     }
 }

@@ -1,8 +1,11 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c"  uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-
 <jsp:include page="/WEB-INF/views/layout/header.jsp" />
+
+<%-- CSRF 토큰: AJAX (특히 FormData) 요청에 헤더로 포함하기 위해 meta 태그에 저장 --%>
+<meta name="_csrf"        content="${_csrf.token}"/>
+<meta name="_csrf_header" content="${_csrf.headerName}"/>
 
 <%-- 페이지 전용 스타일 및 라이브러리 --%>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -278,6 +281,14 @@
                     placeholder="이용 후기를 남겨주세요."
                     class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm
                            resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-3"></textarea>
+
+          <%-- 이미지 첨부 (선택) --%>
+          <label class="block text-xs text-gray-400 mb-1">사진 첨부 (선택, 최대 10MB)</label>
+          <input type="file" id="reviewImgFile" accept="image/*"
+                 class="block w-full text-xs text-gray-500 mb-3
+                        file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0
+                        file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-600
+                        hover:file:bg-indigo-100">
 
           <c:choose>
             <c:when test="${hasReservation}">
@@ -840,6 +851,14 @@
                </div>`
             : `<p class="text-sm text-gray-600">\${censorContent(r.revContent)}</p>`;
 
+    // 리뷰 이미지: 서버에 저장된 파일명을 /static/upload/review/ 경로로 표시
+    const imgHtml = r.revImg
+            ? `<img src="\${CTX}/static/upload/review/\${esc(r.revImg)}"
+                    alt="리뷰 이미지"
+                    class="mt-3 max-h-48 rounded-xl object-cover border border-gray-100"
+                    onerror="this.style.display='none'">`
+            : '';
+
     let html = `
         <div class="bg-white rounded-2xl p-5 shadow-sm">
             <div class="flex items-center justify-between mb-2">
@@ -853,7 +872,8 @@
                 </div>
                 <span class="text-sm">\${stars}</span>
             </div>
-            \${contentHtml}`;
+            \${contentHtml}
+            \${imgHtml}`;
 
     // 답글
     if (r.replies && r.replies.length > 0) {
@@ -891,23 +911,49 @@
 
   /* ── 리뷰 등록 AJAX ── */
   function submitReview() {
-    const spcIdxEl  = document.getElementById('reviewSpcIdx');
-    const content   = document.getElementById('reviewContent').value.trim();
-    const rating    = parseInt(document.getElementById('reviewRating').value);
-    const msgEl     = document.getElementById('reviewMsg');
+    const spcIdxEl = document.getElementById('reviewSpcIdx');
+    const content  = document.getElementById('reviewContent').value.trim();
+    const rating   = parseInt(document.getElementById('reviewRating').value);
+    const imgFile  = document.getElementById('reviewImgFile');
 
-    if (!rating) { showReviewMsg('별점을 선택해주세요.', false); return; }
+    if (!rating)  { showReviewMsg('별점을 선택해주세요.', false);   return; }
     if (!content) { showReviewMsg('후기 내용을 입력해주세요.', false); return; }
 
+    // 파일 크기 10MB 제한
+    if (imgFile && imgFile.files.length > 0 && imgFile.files[0].size > 10 * 1024 * 1024) {
+      showReviewMsg('이미지는 10MB 이하만 첨부할 수 있습니다.', false);
+      return;
+    }
+
+    // FormData: 텍스트 + 파일을 multipart/form-data 로 함께 전송
+    const formData = new FormData();
+    formData.append('spcIdx',  spcIdxEl.value);
+    formData.append('content', content);
+    formData.append('rating',  rating);
+    if (imgFile && imgFile.files.length > 0) {
+      formData.append('imgFile', imgFile.files[0]);
+    }
+
+    // CSRF 토큰을 헤더로 전달 (Spring Security 기본 방식)
+    const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
     $.ajax({
-      url:  CTX + '/review/write',
-      type: 'POST',
-      data: { spcIdx: spcIdxEl.value, content: content, rating: rating },
-      dataType: 'json',
+      url:         CTX + '/review/write',
+      type:        'POST',
+      data:        formData,
+      dataType:    'json',
+      // FormData 사용 시 jQuery가 Content-Type을 자동 설정하도록 false 지정
+      processData: false,
+      contentType: false,
+      beforeSend: function(xhr) {
+        xhr.setRequestHeader(csrfHeader, csrfToken);
+      },
       success: function(res) {
         if (res.success) {
           showReviewMsg('후기가 등록되었습니다.', true);
           document.getElementById('reviewContent').value = '';
+          document.getElementById('reviewImgFile').value = '';
           setRating(0);
           loadReviews(1); // 목록 새로고침
         } else {

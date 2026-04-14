@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (isCarousel) cardDiv.classList.add('carousel-item');
                 if (position === 'prepend') cardDiv.classList.add('history-msg');
                 
-                const imgPath = `${contextPath}/static/images/${spcImg}`;
+                const imgPath = `${contextPath}/static/upload/branch/${spcImg}`;
                 const fallbackImg = `${contextPath}/static/images/default_office.png`;
                 
                 cardDiv.innerHTML = `

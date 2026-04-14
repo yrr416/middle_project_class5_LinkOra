@@ -4,7 +4,7 @@
 <mapper namespace="org.study.project05.branch.mapper.BranchMapper">
 
     <!-- 통합 ResultMap (dev 기준으로 ssh 필드 추가) -->
-    <resultMap id="branchResultMap" type="org.study.project05.branch.vo.BranchVO">
+    <resultMap id="branchResultMap" type="BranchVO">
         <id     property="brnIdx"          column="b_idx"/>
         <result property="ptnIdx"          column="p_idx"/>
         <result property="brnName"         column="b_name"/>
@@ -32,6 +32,7 @@
         <result property="facCoffee" column="fac_coffee"/>
         <result property="facPrinter" column="fac_printer"/>
         <result property="facLocker" column="fac_locker"/>
+        <result property="mainImgUrl" column="main_img_url"/>
     </resultMap>
 
     <!-- JOIN 절 (Partner 정보 포함) -->
@@ -96,7 +97,8 @@
             (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_desk = 1 OR f.f_wifi = 1)) as fac_wifi,
             (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_cafe = 1 OR f.f_coffee = 1)) as fac_coffee,
             (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_fax = 1 OR f.f_printer = 1)) as fac_printer,
-            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_storage = 1 OR f.f_locker = 1)) as fac_locker
+            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_storage = 1 OR f.f_locker = 1)) as fac_locker,
+            (SELECT bi_url FROM branch_img WHERE branch_img.b_idx = b.b_idx AND bi_is_main = 1 LIMIT 1) as main_img_url
             <if test="lat != null and lng != null">
                 , (6371 * acos(cos(radians(#{lat})) * cos(radians(b.b_latitude))
                 * cos(radians(b.b_altitude) - radians(#{lng}))

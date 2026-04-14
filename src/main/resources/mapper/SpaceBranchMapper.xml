@@ -8,7 +8,7 @@
 -->
 <mapper namespace="org.study.project05.branch.mapper.SpaceBranchMapper">
 
-    <resultMap id="branchResultMap" type="org.study.project05.branch.vo.BranchVO">
+    <resultMap id="branchResultMap" type="BranchVO">
         <id     property="brnIdx"          column="b_idx"/>
         <result property="ptnIdx"          column="p_idx"/>
         <result property="brnName"         column="b_name"/>
@@ -35,12 +35,6 @@
         FROM branch b
         JOIN partner p ON b.p_idx = p.p_idx
     </sql>
-
-    <select id="selectAll" resultMap="branchResultMap">
-        SELECT <include refid="branchColumns"/>
-        <include refid="branchJoin"/>
-        ORDER BY b.b_idx ASC
-    </select>
 
     <select id="selectById" parameterType="int" resultMap="branchResultMap">
         SELECT <include refid="branchColumns"/>

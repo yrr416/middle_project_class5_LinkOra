@@ -117,9 +117,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. 카카오맵 설정
     const mapContainer = document.getElementById('mainMap');
-    if (!mapContainer) {
-        if (typeof bindSearchEvents === "function") bindSearchEvents();
+    const isMapPage = location.pathname.includes('/map');
+
+    if (!mapContainer || isMapPage) {
+        if (typeof window.bindSearchEvents === "function") window.bindSearchEvents();
         return;
+    }
+
+    if (mapContainer.clientHeight === 0) {
+        mapContainer.style.minHeight = "400px";
     }
 
     const loadKakaoMap = () => {
@@ -150,64 +156,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const mapOption = { center: centerLatLng, level: 4 };
         const map = new window.kakao.maps.Map(mapContainer, mapOption);
 
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                const myPos = new window.kakao.maps.LatLng(lat, lng);
-
-                map.setCenter(myPos);
-                centerLatLng = myPos;
-
-                window.loadBranches("", "all");
-            }, (err) => {
-                console.warn("GPS 획득 실패, 기본 위치로 로드함.");
-                window.loadBranches("", "all");
-            });
-        } else {
-            window.loadBranches("", "all");
-        }
-
-        setTimeout(() => { map.relayout(); map.setCenter(centerLatLng); }, 100);
-
-        const resizeObserver = new ResizeObserver(() => {
-            map.relayout();
-            map.setCenter(centerLatLng);
-        });
-        resizeObserver.observe(mapContainer);
-
-        let activeInfoOverlay = null;
-
-        const tabNear = document.getElementById('tabNear');
-        const tabFavorite = document.getElementById('tabFavorite');
-
-        if (tabNear && tabFavorite) {
-            tabNear.addEventListener('click', () => {
-                tabNear.classList.add('active'); tabNear.classList.remove('inactive');
-                tabFavorite.classList.add('inactive'); tabFavorite.classList.remove('active');
-                if (activeInfoOverlay) activeInfoOverlay.setMap(null);
-                window.loadBranches("", "all");
-            });
-
-            tabFavorite.addEventListener('click', () => {
-                tabFavorite.classList.add('active'); tabFavorite.classList.remove('inactive');
-                tabNear.classList.add('inactive'); tabNear.classList.remove('active');
-                if (activeInfoOverlay) activeInfoOverlay.setMap(null);
-                window.loadBranches("", "favorite");
-            });
-        }
-
         const pinImg = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='%232F4F4F' d='M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z'/%3E%3C/svg%3E";
         const markerImage = new window.kakao.maps.MarkerImage(pinImg, new window.kakao.maps.Size(26, 34));
 
         let markers = [];
         let overlays = [];
+        let activeInfoOverlay = null;
 
         window.kakao.maps.event.addListener(map, 'click', () => {
             if (activeInfoOverlay) activeInfoOverlay.setMap(null);
         });
 
-        // 지점 데이터 로드 함수 수정
         window.loadBranches = function(keyword = "", type = "all") {
 
             markers.forEach(m => m.setMap(null));
@@ -215,15 +174,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (activeInfoOverlay) activeInfoOverlay.setMap(null);
             markers = []; overlays = [];
 
-            // 컨트롤러 주소와 일치하도록 URL 수정
             let fetchUrl = "";
 
+            // [핵심 수정] 서버 context-path인 /linkora 를 모든 주소 앞에 붙여줌!
             if (type === "favorite") {
-                fetchUrl = `/api/wishlist/my`;
+                fetchUrl = `/linkora/api/wishlist/my`;
             } else if (!keyword || keyword.trim() === "") {
-                fetchUrl = `/api/all-branches`;
+                fetchUrl = `/linkora/api/all-branches`;
             } else {
-                fetchUrl = `/api/branches?keyword=${encodeURIComponent(keyword)}`;
+                fetchUrl = `/linkora/api/branches?keyword=${encodeURIComponent(keyword)}`;
                 const isMapPage = location.pathname.includes('/map');
                 if (centerLatLng && !isMapPage) {
                     fetchUrl += `&lat=${centerLatLng.getLat()}&lng=${centerLatLng.getLng()}`;
@@ -232,12 +191,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             fetch(fetchUrl)
                 .then(res => {
-                    // 서버 응답이 실패한 경우 에러 발생
                     if (!res.ok) throw new Error("API 서버 응답 에러: " + res.status);
                     return res.json();
                 })
                 .then(branches => {
-                    // 로그인 필요 알림 처리 방어 로직
                     if (branches.status === 'login_required') {
                         if (!window.isLoginAlertShown) {
                             alert("로그인이 필요한 서비스입니다.");
@@ -247,7 +204,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         return;
                     }
 
-                    // 배열이 아닌 데이터가 넘어올 경우 forEach 에러 방지
                     if (!Array.isArray(branches)) {
                         console.warn("데이터 형식이 올바르지 않습니다.");
                         return;
@@ -340,19 +296,63 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        bindSearchEvents();
+        window.loadBranches("", "all");
+        window.bindSearchEvents();
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const myPos = new window.kakao.maps.LatLng(lat, lng);
+
+                    map.setCenter(myPos);
+                    centerLatLng = myPos;
+
+                    window.loadBranches("", "all");
+                }, (err) => {
+                    console.warn("GPS 획득 실패, 기본 위치로 로드함.");
+                },
+                { timeout: 3000 }
+            );
+        }
+
+        setTimeout(() => { map.relayout(); map.setCenter(centerLatLng); }, 100);
+
+        const resizeObserver = new ResizeObserver(() => {
+            map.relayout();
+            map.setCenter(centerLatLng);
+        });
+        resizeObserver.observe(mapContainer);
+
+        const tabNear = document.getElementById('tabNear');
+        const tabFavorite = document.getElementById('tabFavorite');
+
+        if (tabNear && tabFavorite) {
+            tabNear.addEventListener('click', () => {
+                tabNear.classList.add('active'); tabNear.classList.remove('inactive');
+                tabFavorite.classList.add('inactive'); tabFavorite.classList.remove('active');
+                if (activeInfoOverlay) activeInfoOverlay.setMap(null);
+                window.loadBranches("", "all");
+            });
+
+            tabFavorite.addEventListener('click', () => {
+                tabFavorite.classList.add('active'); tabFavorite.classList.remove('inactive');
+                tabNear.classList.add('inactive'); tabNear.classList.remove('active');
+                if (activeInfoOverlay) activeInfoOverlay.setMap(null);
+                window.loadBranches("", "favorite");
+            });
+        }
     }
 });
 
-// 5. 찜하기 전역 함수 수정
 window.toggleWish = function (target, brnIdx) {
     let btn = target.classList && target.classList.contains('wish-btn') ? target : target.closest('.wish-btn');
     if (!btn) return;
 
     const icon = btn.querySelector('i');
 
-    // 찜하기 URL도 /linkora 제거
-    fetch('/api/wishlist/toggle', {
+    // [핵심 수정] 여기도 /linkora 를 붙여줌!
+    fetch('/linkora/api/wishlist/toggle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=UTF-8' },
         body: JSON.stringify({ "brnIdx": parseInt(brnIdx, 10) })
@@ -373,8 +373,7 @@ window.toggleWish = function (target, brnIdx) {
                     window.isLoginAlertShown = true;
                     setTimeout(() => { window.isLoginAlertShown = false; }, 1500);
                 }
-                // 로그인 이동 경로 수정
-                location.href = "/login";
+                location.href = "/linkora/login"; // 로그인 경로도 맞춤
             }
         })
         .catch(err => console.error("찜하기 통신 실패:", err));

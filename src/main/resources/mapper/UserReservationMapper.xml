@@ -8,7 +8,7 @@
         DB 컬럼명(column)과 Java 필드명(property)을 한 곳에서 매핑
         SELECT 쿼리에서 AS 별칭 없이도 ReservationVO에 자동으로 값이 들어감
     -->
-    <resultMap id="reservationResultMap" type="org.study.project05.reservation.user.vo.ReservationVO">
+    <resultMap id="reservationResultMap" type="ReservationVO">
         <id     property="resIdx"       column="r_idx"         />
         <result property="spcIdx"       column="s_idx"         />
         <result property="userIdx"      column="u_idx"         />
@@ -30,7 +30,7 @@
         핵심 조건: r_start_time < 새예약종료 AND r_end_time > 새예약시작
         CANCELLED 상태는 취소된 예약이므로 중복 체크에서 제외한다.
     -->
-    <select id="checkDuplicate" parameterType="org.study.project05.reservation.user.vo.ReservationVO" resultType="int">
+    <select id="checkDuplicate" parameterType="ReservationVO" resultType="int">
         SELECT COUNT(*)
         FROM reservation
         WHERE s_idx = #{spcIdx}
@@ -42,10 +42,10 @@
     <!--
         [날짜별 점유 시간대 조회] - 예약 폼 달력 AJAX용
     -->
-    <select id="getSlotsByDate" resultMap="reservationResultMap">
-        SELECT DATE_FORMAT(r_start_time, '%Y-%m-%d %H:%i:%s') AS r_start_time,
-               DATE_FORMAT(r_end_time,   '%Y-%m-%d %H:%i:%s') AS r_end_time,
-               r_headcount
+    <select id="getSlotsByDate" resultType="ReservationVO">
+        SELECT DATE_FORMAT(r_start_time, '%Y-%m-%d %H:%i:%s') AS resStartTime,
+               DATE_FORMAT(r_end_time,   '%Y-%m-%d %H:%i:%s') AS resEndTime,
+               r_headcount AS resHeadcount
         FROM reservation
         WHERE s_idx     = #{spaceIdx}
           AND r_status != 'CANCELLED'
@@ -55,7 +55,6 @@
     <!--
         [예약 등록]
     -->
-    <!-- useGeneratedKeys: INSERT 후 자동생성된 r_idx를 vo의 resIdx 필드에 담아줌 -->
     <insert id="insert" parameterType="ReservationVO" useGeneratedKeys="true" keyProperty="resIdx">
         INSERT INTO reservation
             (s_idx, u_idx, r_start_time, r_end_time, r_headcount, r_total_price, r_status, r_content, r_created, r_updated)
@@ -66,17 +65,17 @@
     <!--
         [내 예약 목록 조회]
     -->
-    <select id="selectByUser" parameterType="int" resultMap="reservationResultMap">
-        SELECT r.r_idx,
-               r.s_idx,
-               r.u_idx,
-               DATE_FORMAT(r.r_start_time, '%Y-%m-%d %H:%i:%s') AS r_start_time,
-               DATE_FORMAT(r.r_end_time,   '%Y-%m-%d %H:%i:%s') AS r_end_time,
-               r.r_headcount,
-               r.r_total_price,
-               r.r_status,
-               s.s_name,
-               b.b_name
+    <select id="selectByUser" parameterType="int" resultType="ReservationVO">
+        SELECT r.r_idx          AS resIdx,
+               r.s_idx          AS spcIdx,
+               r.u_idx          AS userIdx,
+               DATE_FORMAT(r.r_start_time, '%Y-%m-%d %H:%i:%s') AS resStartTime,
+               DATE_FORMAT(r.r_end_time,   '%Y-%m-%d %H:%i:%s') AS resEndTime,
+               r.r_headcount    AS resHeadcount,
+               r.r_total_price  AS resTotalPrice,
+               r.r_status       AS resStatus,
+               s.s_name         AS spaceName,
+               b.b_name         AS branchName
         FROM reservation r
         JOIN space  s ON r.s_idx = s.s_idx
         JOIN branch b ON s.b_idx = b.b_idx

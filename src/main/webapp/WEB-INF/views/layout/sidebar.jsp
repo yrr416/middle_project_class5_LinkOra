@@ -24,15 +24,14 @@
             </a>
             <ul class="accordion-content">
                 <li><a href="#">프라이빗 오피스</a></li>
-                <li><a href="#">오픈 데스크</a></li>
-                <li><a href="#">미팅룸 & 스튜디오</a></li>
+                <li><a href="#">오픈 오피스</a></li>
             </ul>
         </li>
 
         <%-- 2. 지점 찾기 (아코디언 구조 & Context Path 적용임) --%>
         <li class="accordion-item">
             <a href="#" class="accordion-toggle">
-                <div class="acc-left"><i class="fa-solid fa-map-location-dot"></i> 지점 찾기임</div>
+                <div class="acc-left"><i class="fa-solid fa-map-location-dot"></i> 지점 찾기</div>
                 <i class="fa-solid fa-chevron-down acc-arrow"></i>
             </a>
             <ul class="accordion-content">

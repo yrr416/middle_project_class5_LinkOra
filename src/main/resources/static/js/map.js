@@ -5,22 +5,28 @@ let currentLng = null;
 
 // 브랜드별 색상 사전
 const brandColors = {
-    "링크오라": "%23FF9500",    // 오렌지색
-    "알파오피스": "%234682B4",  // 차분한 파란색
+    "링크오라": "%23FF9500",
+    "알파오피스": "%234682B4",
     "패스트파이브": "%23FF3B30"
 };
 
-// [추가됨] 검색 목록창의 상태를 기억하는 수첩 (페이지, 접기/펴기)
-let searchGroupedData = {}; // 지역별 데이터를 담아둘 바구니
-let searchRegionPage = {};  // 지역별 현재 페이지 번호
-let searchRegionOpen = {};  // 지역별 폴더가 열렸는지 닫혔는지
-const ITEMS_PER_PAGE = 3;   // 한 페이지에 보여줄 지점 개수 (마음대로 바꿔도 돼!)
+// 검색 목록창 상태 변수
+let searchGroupedData = {};
+let searchRegionPage = {};
+let searchRegionOpen = {};
+const ITEMS_PER_PAGE = 3;
 
+// [수정] DOM이 로드된 후 실행되되, kakao 객체 여부를 한 번 더 확인합니다.
 document.addEventListener("DOMContentLoaded", () => {
+    // 카카오 라이브러리가 로드되지 않았다면 실행 중단 (ReferenceError 방지)
+    if (typeof kakao === 'undefined' || !kakao.maps) {
+        console.error("카카오 지도 SDK가 아직 로드되지 않았습니다.");
+        return;
+    }
+
     const container = document.getElementById('mainMap');
     if (!container) return;
 
-    // 위치 정보 가져오기 및 지도 초기화
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
             currentLat = position.coords.latitude;
@@ -40,14 +46,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             fetchBranchData("");
         }, (error) => {
-            console.error("GPS 정보를 불러올 수 없음");
+            console.error("GPS 정보를 불러올 수 없음 - 기본 위치로 설정");
             createDefaultMap(container);
         });
     } else {
         createDefaultMap(container);
     }
 
-    // 검색 이벤트 설정
     const searchBtn = document.getElementById('mapSearchBtn');
     const searchInput = document.getElementById('mapSearchInput');
 
@@ -68,7 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// 기본 지도 생성
 function createDefaultMap(container) {
     currentLat = 37.3947;
     currentLng = 127.1111;
@@ -86,7 +90,6 @@ function createDefaultMap(container) {
     fetchBranchData("");
 }
 
-// 검색 실행 로직
 function executeSearch() {
     const keyword = document.getElementById('mapSearchInput').value.trim();
     if (!keyword) {
@@ -94,14 +97,12 @@ function executeSearch() {
         return;
     }
 
-    // 우리 DB 먼저 검색
-    fetch(`/api/branches?keyword=${encodeURIComponent(keyword)}`)
+    fetch(`/linkora/api/branches?keyword=${encodeURIComponent(keyword)}`)
         .then(res => res.json())
         .then(branches => {
             if (branches && branches.length > 0) {
                 fetchBranchData(keyword);
             } else {
-                // DB에 없으면 카카오 지도 검색
                 ps.keywordSearch(keyword, (data, status) => {
                     if (status === kakao.maps.services.Status.OK) {
                         map.panTo(new kakao.maps.LatLng(data[0].y, data[0].x));
@@ -122,14 +123,13 @@ function executeSearch() {
         .catch(err => console.error("검색 오류"));
 }
 
-// 지점 데이터 요청 및 렌더링
 function fetchBranchData(keyword, lat = null, lng = null) {
     let fetchUrl = "";
     if (!keyword || keyword === "") {
-        fetchUrl = `/api/all-branches`;
+        fetchUrl = `/linkora/api/all-branches`;
         closeResultPanel();
     } else {
-        fetchUrl = `/api/branches?keyword=${encodeURIComponent(keyword)}`;
+        fetchUrl = `/linkora/api/branches?keyword=${encodeURIComponent(keyword)}`;
         if (lat !== null && lng !== null) {
             fetchUrl += `&lat=${lat}&lng=${lng}`;
         }
@@ -147,9 +147,8 @@ function fetchBranchData(keyword, lat = null, lng = null) {
             removeMarkers();
             displayMarkers(branches);
 
-            // 검색어가 있을 때 목록창 처리
             if (keyword && keyword !== "") {
-                initResultList(branches, keyword); // 데이터를 세팅함
+                initResultList(branches, keyword);
 
                 if (lat === null && lng === null) {
                     const bounds = new kakao.maps.LatLngBounds();
@@ -165,14 +164,12 @@ function fetchBranchData(keyword, lat = null, lng = null) {
         .catch(err => console.error("데이터 로드 중 에러 발생"));
 }
 
-// 브랜드 색상 가져오기
 function getBrandColor(brnName) {
     if (!brnName) return "%232F4F4F";
     const brand = brnName.split(' ')[0].trim();
     return brandColors[brand] || "%232F4F4F";
 }
 
-// 마커 및 정보창 렌더링
 function displayMarkers(branches) {
     branches.forEach(branch => {
         if (!branch.brnLatitude || !branch.brnLongitude) return;
@@ -214,7 +211,7 @@ function displayMarkers(branches) {
                     <div style="font-weight:900; font-size:18px; color:#2F4F4F; margin-bottom:8px; padding-right:20px;">${branch.brnName}</div>
                     <div style="font-size:13px; color:#666; line-height:1.5; white-space:normal; word-break:keep-all; margin-bottom:15px;">${branch.brnAddress}</div>
                     <div style="display:flex; gap:10px;">
-                        <button onclick="location.href='/branch/detail?brnIdx=${branch.brnIdx}'"
+                        <button onclick="location.href='/linkora/branch/detail?brnIdx=${branch.brnIdx}'"
                             style="flex:1; background:#2F4F4F; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer;">
                             상세보기
                         </button>
@@ -258,7 +255,6 @@ function displayMarkers(branches) {
     });
 }
 
-// 마커 지우기
 function removeMarkers() {
     markers.forEach(m => m.setMap(null));
     labelOverlays.forEach(o => o.setMap(null));
@@ -267,17 +263,11 @@ function removeMarkers() {
     labelOverlays = [];
 }
 
-// ===============================================
-// [완전 업그레이드] 지역별 접기/펴기 & 페이징(넘기기) 기능
-// ===============================================
-
-// 목록창 닫기
 window.closeResultPanel = function() {
     const panel = document.getElementById('searchResultPanel');
     if (panel) panel.style.display = 'none';
 };
 
-// 1. 처음 데이터를 받았을 때 지역별로 분류하고 수첩(상태)을 초기화함
 function initResultList(branches, keyword) {
     let panel = document.getElementById('searchResultPanel');
     if (!panel) {
@@ -287,28 +277,24 @@ function initResultList(branches, keyword) {
         document.querySelector('.map-container').appendChild(panel);
     }
 
-    // 수첩 비우기
     searchGroupedData = {};
     searchRegionPage = {};
     searchRegionOpen = {};
 
-    // 지역별로 묶어주기
     branches.forEach(b => {
         const region = b.brnAddress.split(' ')[0] || "기타 지역";
         if (!searchGroupedData[region]) {
             searchGroupedData[region] = [];
-            searchRegionPage[region] = 0;    // 처음엔 무조건 1페이지(0)
-            searchRegionOpen[region] = true; // 처음엔 무조건 폴더 열어두기
+            searchRegionPage[region] = 0;
+            searchRegionOpen[region] = true;
         }
         searchGroupedData[region].push(b);
     });
 
-    // 화면 그리기 함수 호출
     renderResultPanel(keyword, branches.length);
     panel.style.display = 'flex';
 }
 
-// 2. 수첩(상태)을 보고 화면을 예쁘게 그리는 함수
 function renderResultPanel(keyword, totalCount) {
     const panel = document.getElementById('searchResultPanel');
     if (!panel) return;
@@ -318,14 +304,12 @@ function renderResultPanel(keyword, totalCount) {
                     <button onclick="closeResultPanel()" style="background:none; border:none; font-size:22px; cursor:pointer; color:#999;"><i class="fa-solid fa-xmark"></i></button>
                 </div>`;
 
-    // 각 지역별로 반복해서 그림
     for (const region in searchGroupedData) {
         const branches = searchGroupedData[region];
         const isOpen = searchRegionOpen[region];
         const currentPage = searchRegionPage[region];
         const totalPages = Math.ceil(branches.length / ITEMS_PER_PAGE);
 
-        // 지역 이름 바(Bar) - 클릭하면 접고 펴짐
         html += `<div style="margin-bottom:15px; border:1px solid #eee; border-radius:10px; overflow:hidden;">
                     <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:12px 15px; cursor:pointer;"
                          onclick="toggleRegion('${region}', '${keyword}', ${totalCount})">
@@ -333,11 +317,9 @@ function renderResultPanel(keyword, totalCount) {
                         <i class="fa-solid ${isOpen ? 'fa-chevron-up' : 'fa-chevron-down'}" style="color:#666;"></i>
                     </div>`;
 
-        // 폴더가 열려있을 때만 목록을 그림
         if (isOpen) {
             html += `<div style="padding:10px;">`;
 
-            // 현재 페이지에 해당하는 3개(ITEMS_PER_PAGE)만 잘라냄
             const startIndex = currentPage * ITEMS_PER_PAGE;
             const endIndex = startIndex + ITEMS_PER_PAGE;
             const currentBranches = branches.slice(startIndex, endIndex);
@@ -356,7 +338,6 @@ function renderResultPanel(keyword, totalCount) {
                          </div>`;
             });
 
-            // 3개가 넘어가서 페이지가 여러 개일 때만 화살표 버튼을 보여줌
             if (totalPages > 1) {
                 html += `<div style="display:flex; justify-content:center; align-items:center; gap:20px; margin-top:12px; padding-bottom:5px;">
                             <button onclick="changePage('${region}', -1, '${keyword}', ${totalCount})" 
@@ -381,28 +362,24 @@ function renderResultPanel(keyword, totalCount) {
     panel.innerHTML = html;
 }
 
-// 지역 폴더 접기/펴기 스위치
 window.toggleRegion = function(region, keyword, totalCount) {
-    searchRegionOpen[region] = !searchRegionOpen[region]; // 열림 <-> 닫힘 반전
-    renderResultPanel(keyword, totalCount); // 화면 다시 그리기
+    searchRegionOpen[region] = !searchRegionOpen[region];
+    renderResultPanel(keyword, totalCount);
 };
 
-// 방향키 눌렀을 때 페이지 넘기기
 window.changePage = function(region, step, keyword, totalCount) {
     const branches = searchGroupedData[region];
     const totalPages = Math.ceil(branches.length / ITEMS_PER_PAGE);
-    let newPage = searchRegionPage[region] + step; // 이전(-1) 또는 다음(+1)
+    let newPage = searchRegionPage[region] + step;
 
-    // 페이지가 허용된 범위 안에 있을 때만 이동
     if (newPage >= 0 && newPage < totalPages) {
         searchRegionPage[region] = newPage;
-        renderResultPanel(keyword, totalCount); // 화면 다시 그리기
+        renderResultPanel(keyword, totalCount);
     }
 };
 
-// 목록 클릭 시 지점 위치로 이동
 window.moveToBranch = function(lat, lng) {
     const pos = new kakao.maps.LatLng(lat, lng);
     map.setCenter(pos);
-    map.setLevel(3); // 약간 확대해서 보여줌
+    map.setLevel(3);
 };
