@@ -8,7 +8,7 @@
 -->
 <mapper namespace="org.study.project05.branch.mapper.SpaceBranchMapper">
 
-    <resultMap id="branchResultMap" type="org.study.project05.branch.vo.BranchVO">
+    <resultMap id="branchResultMap" type="BranchVO">
         <id     property="brnIdx"          column="b_idx"/>
         <result property="ptnIdx"          column="p_idx"/>
         <result property="brnName"         column="b_name"/>

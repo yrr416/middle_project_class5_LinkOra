@@ -16,6 +16,24 @@ public interface InquiryMapper {
     // 특정 사용자의 문의 내역 리스트 조회 (페이징 적용)
     List<InquiryVO> selectInquiryListByUser(@Param("userIdx") Long userIdx, @Param("limit") int limit, @Param("offset") int offset);
     
-    // 특정 문의글 상세 조회
+    /**
+     * 특정 문의 상세 내용 및 관리자 답변 조회
+     * @param inqIdx 문의 ID
+     * @return 문의 정보
+     */
     InquiryVO selectInquiryDetail(@Param("inqIdx") Integer inqIdx);
+
+    /**
+     * 문의 수정
+     * @param vo 수정할 문의 정보
+     * @return 성공 여부
+     */
+    int updateInquiry(InquiryVO vo);
+
+    /**
+     * 문의 삭제
+     * @param inqIdx 삭제할 문의 ID
+     * @return 성공 여부
+     */
+    int deleteInquiry(@Param("inqIdx") Integer inqIdx);
 }

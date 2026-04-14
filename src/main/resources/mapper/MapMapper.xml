@@ -3,7 +3,7 @@
 
 <mapper namespace="org.study.project05.map.service.MapService">
 
-    <resultMap id="BranchResultMap" type="org.study.project05.branch.vo.BranchVO">
+    <resultMap id="BranchResultMap" type="BranchVO">
         <id property="brnIdx" column="b_idx"/>
         <result property="brnName" column="b_name"/>
         <result property="brnAddress" column="b_address"/>

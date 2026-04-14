@@ -1,20 +1,26 @@
 package org.study.project05.reservation.user.service;
 
 import org.study.project05.reservation.user.vo.ReservationVO;
-
 import java.util.List;
 import java.util.Map;
 
-public interface ReservaionService {
+/**
+ * UserReservationService - 사용자 예약 관련 비즈니스 로직 인터페이스
+ * 기존 ReservaionService의 오타를 수정하고 표준 명칭을 사용합니다.
+ */
+public interface UserReservationService {
 
     void reserve(ReservationVO vo);
 
     List<ReservationVO> getMyReservations(int userIdx);
 
-    void cancelReservation(int reservIdx, int userIdx);
+    void cancelReservation(int resIdx, int userIdx);
 
     List<Integer> getUnavailableSlots(int spaceIdx, String date);
 
     /** 날짜별 시간대(0~23)별 잔여 좌석 수 반환 — INDIVIDUAL 타입 전용 */
     Map<Integer, Integer> getRemainingSeats(int spaceIdx, String date, int maxCapacity);
+
+    /** 특정 사용자가 특정 지점에 대해 완료된 예약 내역이 있는지 확인 (리뷰 작성 권한 등) */
+    int countByUserAndBranch(int userIdx, int brnIdx);
 }

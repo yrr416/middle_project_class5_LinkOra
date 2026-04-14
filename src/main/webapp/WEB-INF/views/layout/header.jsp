@@ -103,6 +103,7 @@
             <ul class="accordion-content">
                 <li><a href="${pageContext.request.contextPath}/notice/list">공지사항</a></li>
                 <li><a href="#">자주 묻는 질문</a></li>
+                <li><a href="${pageContext.request.contextPath}/inquiry">1:1 문의</a></li>
             </ul>
         </li>
     </ul>

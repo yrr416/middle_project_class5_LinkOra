@@ -15,7 +15,7 @@ import java.util.*;
 
 // 관리자용 ReservationServiceImpl과 빈 이름 충돌을 피하기 위해 UserReservationServiceImpl로 명명
 @Service
-public class UserReservationServiceImpl implements ReservaionService {
+public class UserReservationServiceImpl implements UserReservationService {
 
     @Autowired
     private UserReservationMapper reservationMapper;
@@ -138,6 +138,11 @@ public class UserReservationServiceImpl implements ReservaionService {
             remaining.put(h, Math.max(0, maxCapacity - booked));
         }
         return remaining;
+    }
+
+    @Override
+    public int countByUserAndBranch(int userIdx, int brnIdx) {
+        return reservationMapper.countByUserAndBranch(userIdx, brnIdx);
     }
 }
 

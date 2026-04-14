@@ -1,5 +1,6 @@
 package org.study.project05.inquiry.vo;
 
+import org.apache.ibatis.type.Alias;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
  * JSP EL(PropertyNotFoundException) 문제를 100% 방지하기 위해 
  * inq_title -> inqTitle, u_idx -> userIdx 등 표준 Camel Case를 사용합니다.
  */
+@Alias("InquiryVO")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,7 +19,7 @@ import lombok.NoArgsConstructor;
 public class InquiryVO {
 
     private Integer inqIdx;       // i_idx
-    private Long userIdx;        // u_idx
+    private int userIdx;        // u_idx (사용자 요청에 따라 int로 유지)
     private String inqCategory;   // i_category
     private String inqTitle;      // i_title
     private String inqContent;    // i_content
@@ -26,5 +28,5 @@ public class InquiryVO {
     private String inqAnswer;     // i_answer
     private String inqCreated;    // i_created
     private String inqAnswered;   // i_answered
-
+    private int inqActive;       // inq_active (1:활성, 0:삭제)
 }

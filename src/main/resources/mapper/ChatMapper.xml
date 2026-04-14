@@ -4,7 +4,7 @@
 <mapper namespace="org.study.project05.chat.mapper.ChatMapper">
 
     <!-- 결과 매핑 (DB 컬럼 -> VO 카멜케이스) -->
-    <resultMap id="ChatResultMap" type="org.study.project05.chat.vo.ChatVO">
+    <resultMap id="ChatResultMap" type="ChatVO">
         <id property="chatIdx" column="c_idx" />
         <result property="userIdx" column="u_idx" />
         <result property="chatSession" column="c_session" />
@@ -13,23 +13,32 @@
         <result property="chatIntent" column="c_intent" />
         <result property="chatPage" column="c_page" />
         <result property="chatTime" column="c_time" />
+        <result property="httpSessionId" column="c_http_session" />
     </resultMap>
 
     <!-- 새로운 대화 저장 -->
-    <insert id="insertChat" parameterType="org.study.project05.chat.vo.ChatVO" useGeneratedKeys="true" keyProperty="chatIdx">
+    <insert id="insertChat" parameterType="ChatVO" useGeneratedKeys="true" keyProperty="chatIdx">
         INSERT INTO chatbot (
-            u_idx, c_session, c_message, c_response, c_intent, c_page, c_time
+            u_idx, c_session, c_message, c_response, c_intent, c_page, c_time, c_http_session
         ) VALUES (
-            #{userIdx}, #{chatSession}, #{chatMessage}, #{chatResponse}, #{chatIntent}, #{chatPage}, NOW()
+            #{userIdx}, #{chatSession}, #{chatMessage}, #{chatResponse}, #{chatIntent}, #{chatPage}, NOW(), #{httpSessionId}
         )
     </insert>
 
-    <!-- 세션별 대화 내역 조회 -->
-    <select id="selectChatListBySession" parameterType="int" resultMap="ChatResultMap">
+    <!-- 세션별 대화 내역 조회 (보안 검증 포함) -->
+    <select id="selectChatListBySession" resultMap="ChatResultMap">
         SELECT 
-            c_idx, u_idx, c_session, c_message, c_response, c_intent, c_page, c_time
+            c_idx, u_idx, c_session, c_message, c_response, c_intent, c_page, c_time, c_http_session
         FROM chatbot
         WHERE c_session = #{chatSession}
+        <choose>
+            <when test="userIdx != null and userIdx > 0">
+                AND u_idx = #{userIdx}
+            </when>
+            <otherwise>
+                AND c_http_session = #{httpSessionId} AND u_idx = 0
+            </otherwise>
+        </choose>
         ORDER BY c_idx ASC
     </select>
 
@@ -37,7 +46,7 @@
     <select id="selectRecentChatByUser" parameterType="long" resultMap="ChatResultMap">
         SELECT * FROM (
             SELECT 
-                c_idx, u_idx, c_session, c_message, c_response, c_intent, c_page, c_time
+                c_idx, u_idx, c_session, c_message, c_response, c_intent, c_page, c_time, c_http_session
             FROM chatbot
             WHERE u_idx = #{userIdx}
             ORDER BY c_idx DESC
