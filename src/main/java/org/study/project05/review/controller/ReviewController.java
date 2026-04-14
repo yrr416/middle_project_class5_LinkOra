@@ -17,6 +17,7 @@ import org.study.project05.review.service.ReviewService;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Controller
@@ -61,17 +62,28 @@ public class ReviewController {
         }
     }
 
+    // 허용된 이미지 확장자 목록 (소문자로 비교)
+    // .jsp, .sh, .exe 같은 실행 파일 업로드를 막기 위해 화이트리스트 방식 사용
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp");
+
     /**
      * 리뷰 이미지를 /static/upload/review/ 에 저장하고 파일명을 반환
      * JSP에서 contextPath + /static/upload/review/ + 파일명 으로 접근
      */
     private String saveReviewImage(MultipartFile file, HttpServletRequest request) throws IOException {
+        String ext = StringUtils.getFilenameExtension(file.getOriginalFilename());
+
+        // 확장자가 없거나 허용 목록에 없으면 업로드 거부
+        // 악의적 사용자가 .jsp/.sh 등을 올려 서버에서 실행되는 것을 방지
+        if (ext == null || !ALLOWED_EXTENSIONS.contains(ext.toLowerCase())) {
+            throw new IllegalArgumentException("이미지 파일만 업로드 가능합니다. (jpg, jpeg, png, gif, webp)");
+        }
+
         String uploadDir = request.getServletContext().getRealPath("/static/upload/review/");
         File dir = new File(uploadDir);
         if (!dir.exists()) dir.mkdirs();
 
-        String ext = StringUtils.getFilenameExtension(file.getOriginalFilename());
-        String fileName = UUID.randomUUID().toString() + (ext != null ? "." + ext : "");
+        String fileName = UUID.randomUUID().toString() + "." + ext.toLowerCase();
         file.transferTo(new File(dir, fileName));
         return fileName;
     }
@@ -140,6 +152,10 @@ public class ReviewController {
                                      @RequestParam String content,
                                      HttpSession session) {
         UserProfileVO user = (UserProfileVO) session.getAttribute("loginUser");
+        // 비로그인 상태에서 user.getRole() 호출 시 NPE 발생 → 다른 메서드와 동일하게 null 체크 추가
+        if (user == null) {
+            return Map.of("success", false, "message", "로그인이 필요합니다.");
+        }
         if (!"ADMIN".equals(user.getRole())) {
             return Map.of("success", false, "message", "파트너 담당자만 답글을 작성할 수 있습니다.");
         }
