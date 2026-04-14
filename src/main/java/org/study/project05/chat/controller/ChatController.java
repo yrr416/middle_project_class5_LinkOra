@@ -57,16 +57,27 @@ public class ChatController {
         if (chatVO.getUserIdx() == null) {
             chatVO.setUserIdx(0L); // 최종적으로 로그인 안된 경우
         }
+
+        // 3. 비회원 보안을 위한 세션 ID 기록
+        chatVO.setHttpSessionId(session.getId());
         
         return chatService.processMessage(chatVO);
     }
 
     /**
-     * 특정 세션의 대화 내역 조회
+     * 특정 세션의 대화 내역 조회 (보안 검증 포함)
      */
     @GetMapping("/history/{chatSession}")
-    public List<ChatVO> getHistory(@PathVariable int chatSession) {
-        return chatService.getChatHistory(chatSession);
+    public List<ChatVO> getHistory(@PathVariable int chatSession, jakarta.servlet.http.HttpSession session) {
+        Long userIdx = 0L;
+        Object uIdxObj = session.getAttribute("userIdx");
+        if (uIdxObj != null) {
+            try {
+                if (uIdxObj instanceof Long) userIdx = (Long) uIdxObj;
+                else userIdx = Long.parseLong(String.valueOf(uIdxObj));
+            } catch (Exception e) {}
+        }
+        return chatService.getChatHistory(chatSession, userIdx, session.getId());
     }
 
     /**

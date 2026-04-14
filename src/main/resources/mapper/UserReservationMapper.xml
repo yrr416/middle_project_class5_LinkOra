@@ -42,8 +42,10 @@
     <!--
         [날짜별 점유 시간대 조회] - 예약 폼 달력 AJAX용
     -->
-    <select id="getSlotsByDate" resultMap="reservationResultMap">
-        SELECT r_start_time, r_end_time, r_headcount
+    <select id="getSlotsByDate" resultType="ReservationVO">
+        SELECT DATE_FORMAT(r_start_time, '%Y-%m-%d %H:%i:%s') AS resStartTime,
+               DATE_FORMAT(r_end_time,   '%Y-%m-%d %H:%i:%s') AS resEndTime,
+               r_headcount AS resHeadcount
         FROM reservation
         WHERE s_idx     = #{spaceIdx}
           AND r_status != 'CANCELLED'
@@ -53,7 +55,6 @@
     <!--
         [예약 등록]
     -->
-    <!-- useGeneratedKeys: INSERT 후 자동생성된 r_idx를 vo의 resIdx 필드에 담아줌 -->
     <insert id="insert" parameterType="ReservationVO" useGeneratedKeys="true" keyProperty="resIdx">
         INSERT INTO reservation
             (s_idx, u_idx, r_start_time, r_end_time, r_headcount, r_total_price, r_status, r_content, r_created, r_updated)
@@ -64,17 +65,17 @@
     <!--
         [내 예약 목록 조회]
     -->
-    <select id="selectByUser" parameterType="int" resultMap="reservationResultMap">
-        SELECT r.r_idx,
-               r.s_idx,
-               r.u_idx,
-               DATE_FORMAT(r.r_start_time, '%Y-%m-%d %H:%i') AS r_start_time,
-               DATE_FORMAT(r.r_end_time,   '%Y-%m-%d %H:%i') AS r_end_time,
-               r.r_headcount,
-               r.r_total_price,
-               r.r_status,
-               s.s_name,
-               b.b_name
+    <select id="selectByUser" parameterType="int" resultType="ReservationVO">
+        SELECT r.r_idx          AS resIdx,
+               r.s_idx          AS spcIdx,
+               r.u_idx          AS userIdx,
+               DATE_FORMAT(r.r_start_time, '%Y-%m-%d %H:%i:%s') AS resStartTime,
+               DATE_FORMAT(r.r_end_time,   '%Y-%m-%d %H:%i:%s') AS resEndTime,
+               r.r_headcount    AS resHeadcount,
+               r.r_total_price  AS resTotalPrice,
+               r.r_status       AS resStatus,
+               s.s_name         AS spaceName,
+               b.b_name         AS branchName
         FROM reservation r
         JOIN space  s ON r.s_idx = s.s_idx
         JOIN branch b ON s.b_idx = b.b_idx

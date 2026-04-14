@@ -14,12 +14,9 @@ public interface ChatMapper {
      */
     int insertChat(ChatVO chatVO);
 
-    /**
-     * 특정 사용자/세션의 대화 내역 조회
-     * @param cSession 세션 ID
-     * @return 대화 리스트
-     */
-    List<ChatVO> selectChatListBySession(@Param("chatSession") int chatSession);
+    List<ChatVO> selectChatListBySession(@Param("chatSession") int chatSession, 
+                                         @Param("userIdx") Long userIdx, 
+                                         @Param("httpSessionId") String httpSessionId);
 
     /**
      * 사용자별 최근 대화 내역 조회 (과거 이력 불러오기용)

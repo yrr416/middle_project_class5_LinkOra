@@ -1,17 +1,20 @@
 package org.study.project05.reservation.user.service;
 
 import org.study.project05.reservation.user.vo.ReservationVO;
-
 import java.util.List;
 import java.util.Map;
 
+/**
+ * UserReservationService - 사용자 예약 관련 비즈니스 로직 인터페이스
+ * 기존 ReservaionService의 오타를 수정하고 표준 명칭을 사용합니다.
+ */
 public interface UserReservationService {
 
     void reserve(ReservationVO vo);
 
     List<ReservationVO> getMyReservations(int userIdx);
 
-    void cancelReservation(int reservIdx, int userIdx);
+    void cancelReservation(int resIdx, int userIdx);
 
     List<Integer> getUnavailableSlots(int spaceIdx, String date);
 

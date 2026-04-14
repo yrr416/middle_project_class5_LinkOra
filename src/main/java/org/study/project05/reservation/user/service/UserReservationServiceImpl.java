@@ -144,5 +144,10 @@ public class UserReservationServiceImpl implements UserReservationService {
         }
         return remaining;
     }
+
+    @Override
+    public int countByUserAndBranch(int userIdx, int brnIdx) {
+        return reservationMapper.countByUserAndBranch(userIdx, brnIdx);
+    }
 }
 

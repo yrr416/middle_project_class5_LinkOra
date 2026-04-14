@@ -18,6 +18,7 @@ public class ChatVO {
     private String chatIntent;     // 대화 의도
     private String chatPage;       // 발생한 페이지 위치
     private java.util.Date chatTime; // 대화 기록 시간
+    private String httpSessionId;    // [추가] 비로그인 사용자의 세션 소유권 확인용
 
     /** [추가] 사용자의 현재 위치 정보 (공간 추천용) */
     private Double lat;
