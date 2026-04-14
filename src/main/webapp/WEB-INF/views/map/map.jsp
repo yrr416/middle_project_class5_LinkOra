@@ -72,7 +72,7 @@
     </div>
 
     <div class="header-right" style="display: flex; gap: 10px;">
-      <a href="${pageContext.request.contextPath}/reserve"
+      <a href="${pageContext.request.contextPath}/detail/list"
          class="btn-book"
          style="text-decoration: none; display: inline-block; padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 13px; background: #2F4F4F; color: white;">
         예약하기

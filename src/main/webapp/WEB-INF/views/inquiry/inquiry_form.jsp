@@ -48,6 +48,7 @@
         </div>
         
         <form action="${pageContext.request.contextPath}/inquiry/submit" method="post">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
             <div class="form-group">
                 <label class="form-label">문의 카테고리</label>
                 <select name="inqCategory" class="form-control" required>

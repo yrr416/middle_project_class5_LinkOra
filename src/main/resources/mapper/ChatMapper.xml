@@ -4,7 +4,7 @@
 <mapper namespace="org.study.project05.chat.mapper.ChatMapper">
 
     <!-- 결과 매핑 (DB 컬럼 -> VO 카멜케이스) -->
-    <resultMap id="ChatResultMap" type="org.study.project05.chat.vo.ChatVO">
+    <resultMap id="ChatResultMap" type="ChatVO">
         <id property="chatIdx" column="c_idx" />
         <result property="userIdx" column="u_idx" />
         <result property="chatSession" column="c_session" />
@@ -16,7 +16,7 @@
     </resultMap>
 
     <!-- 새로운 대화 저장 -->
-    <insert id="insertChat" parameterType="org.study.project05.chat.vo.ChatVO" useGeneratedKeys="true" keyProperty="chatIdx">
+    <insert id="insertChat" parameterType="ChatVO" useGeneratedKeys="true" keyProperty="chatIdx">
         INSERT INTO chatbot (
             u_idx, c_session, c_message, c_response, c_intent, c_page, c_time
         ) VALUES (

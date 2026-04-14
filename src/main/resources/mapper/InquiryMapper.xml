@@ -4,7 +4,7 @@
 <mapper namespace="org.study.project05.inquiry.mapper.InquiryMapper">
 
     <!-- ResultMap for InquiryVO (All-Lowercase Standardization for JSP EL Compatibility) -->
-    <resultMap id="inquiryResultMap" type="org.study.project05.inquiry.vo.InquiryVO">
+    <resultMap id="inquiryResultMap" type="InquiryVO">
         <id property="inqIdx" column="i_idx" />
         <result property="userIdx" column="u_idx" />
         <result property="inqCategory" column="i_category" />
@@ -18,7 +18,7 @@
     </resultMap>
 
     <!-- 신규 문의 등록 -->
-    <insert id="insertInquiry" parameterType="org.study.project05.inquiry.vo.InquiryVO">
+    <insert id="insertInquiry" parameterType="InquiryVO">
         INSERT INTO inquiries (
             u_idx, i_category, i_title, i_content, i_status, i_created
         ) VALUES (

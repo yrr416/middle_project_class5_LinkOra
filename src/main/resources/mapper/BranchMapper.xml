@@ -4,7 +4,7 @@
 <mapper namespace="org.study.project05.branch.mapper.BranchMapper">
 
     <!-- 통합 ResultMap (dev 기준으로 ssh 필드 추가) -->
-    <resultMap id="branchResultMap" type="org.study.project05.branch.vo.BranchVO">
+    <resultMap id="branchResultMap" type="BranchVO">
         <id     property="brnIdx"          column="b_idx"/>
         <result property="ptnIdx"          column="p_idx"/>
         <result property="brnName"         column="b_name"/>

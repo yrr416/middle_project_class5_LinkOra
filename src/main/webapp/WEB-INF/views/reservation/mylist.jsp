@@ -77,6 +77,7 @@
                                 <form action="${pageContext.request.contextPath}/reservation/cancel"
                                       method="post"
                                       onsubmit="return confirm('예약을 취소하시겠습니까?')">
+                                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                                     <input type="hidden" name="resIdx" value="${r.resIdx}">
                                     <button type="submit"
                                             class="text-sm text-red-500 hover:text-red-700 border border-red-300

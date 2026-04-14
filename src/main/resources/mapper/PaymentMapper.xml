@@ -8,7 +8,7 @@
         DB 컬럼명(column)과 Java 필드명(property)을 한 곳에서 매핑
         이렇게 해두면 SELECT 쿼리에서 AS 별칭을 쓰지 않아도 됨
     -->
-    <resultMap id="paymentResultMap" type="org.study.project05.reservation.user.vo.PaymentVO">
+    <resultMap id="paymentResultMap" type="PaymentVO">
         <id     property="payIdx"     column="pay_idx"     />
         <result property="resIdx"     column="r_idx"       />
         <result property="userIdx"    column="u_idx"       />

@@ -12,9 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.study.project05.branch.service.SpaceBranchService;
 import org.study.project05.branch.vo.BranchVO;
-import org.study.project05.member.service.UserProfileService;
 import org.study.project05.member.vo.UserProfileVO;
-import org.study.project05.reservation.user.mapper.UserReservationMapper;
+import org.study.project05.reservation.user.service.ReservationService;
 
 @Controller
 @RequestMapping("/detail")
@@ -24,8 +23,7 @@ public class SpaceController {
     private String kakaoMapKey;
 
     @Autowired private SpaceBranchService branchService;
-    @Autowired private UserReservationMapper reservationMapper;
-    @Autowired private UserProfileService userProfileService;
+    @Autowired private ReservationService reservationService;
 
     @GetMapping("/list")
     public String list(Model model) {
@@ -44,7 +42,7 @@ public class SpaceController {
         UserProfileVO loginUser = (UserProfileVO) session.getAttribute("loginUser");
 
         boolean hasReservation = loginUser != null &&
-                reservationMapper.countByUserAndBranch(loginUser.getUserIdx(), brnIdx) > 0;
+                reservationService.countByUserAndBranch(loginUser.getUserIdx(), brnIdx) > 0;
         model.addAttribute("hasReservation", hasReservation);
 
         return "detail/detail";

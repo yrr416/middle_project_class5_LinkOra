@@ -4,7 +4,7 @@
 
 <mapper namespace="org.study.project05.branch.mapper.BranchImgMapper">
 
-    <resultMap id="branchImgResultMap" type="org.study.project05.branch.vo.BranchImgVO">
+    <resultMap id="branchImgResultMap" type="BranchImgVO">
         <id     property="biIdx"    column="bi_idx"/>
         <result property="bIdx"     column="b_idx"/>
         <result property="biUrl"    column="bi_url"/>

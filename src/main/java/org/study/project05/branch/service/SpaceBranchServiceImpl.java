@@ -2,10 +2,7 @@ package org.study.project05.branch.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.study.project05.branch.mapper.BranchImgMapper;
-import org.study.project05.branch.mapper.FacilityMapper;
-import org.study.project05.branch.mapper.SpaceBranchMapper;
-import org.study.project05.branch.mapper.SpaceMapper;
+import org.study.project05.branch.mapper.*;
 import org.study.project05.branch.vo.BranchVO;
 import org.study.project05.branch.vo.SpaceVO;
 
@@ -15,13 +12,14 @@ import java.util.List;
 public class SpaceBranchServiceImpl implements SpaceBranchService {
 
     @Autowired private SpaceBranchMapper spaceBranchMapper;
+    @Autowired private BranchMapper branchMapper;
     @Autowired private SpaceMapper       spaceMapper;
     @Autowired private FacilityMapper    facilityMapper;
     @Autowired private BranchImgMapper   branchImgMapper;
 
     @Override
     public List<BranchVO> getAllBranches() {
-        List<BranchVO> branches = spaceBranchMapper.selectAll();
+        List<BranchVO> branches = branchMapper.getAllBranches();
         for (BranchVO b : branches) {
             b.setImages(branchImgMapper.selectByBranch(b.getBrnIdx()));
         }

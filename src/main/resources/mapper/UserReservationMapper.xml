@@ -8,7 +8,7 @@
         DB 컬럼명(column)과 Java 필드명(property)을 한 곳에서 매핑
         SELECT 쿼리에서 AS 별칭 없이도 ReservationVO에 자동으로 값이 들어감
     -->
-    <resultMap id="reservationResultMap" type="org.study.project05.reservation.user.vo.ReservationVO">
+    <resultMap id="reservationResultMap" type="ReservationVO">
         <id     property="resIdx"       column="r_idx"         />
         <result property="spcIdx"       column="s_idx"         />
         <result property="userIdx"      column="u_idx"         />
@@ -30,7 +30,7 @@
         핵심 조건: r_start_time < 새예약종료 AND r_end_time > 새예약시작
         CANCELLED 상태는 취소된 예약이므로 중복 체크에서 제외한다.
     -->
-    <select id="checkDuplicate" parameterType="org.study.project05.reservation.user.vo.ReservationVO" resultType="int">
+    <select id="checkDuplicate" parameterType="ReservationVO" resultType="int">
         SELECT COUNT(*)
         FROM reservation
         WHERE s_idx = #{spcIdx}
