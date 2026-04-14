@@ -1,7 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<%-- [공통 레이아웃 상단] --%>
 <%@ include file="layout/header.jsp" %>
 
 <main>
@@ -28,12 +27,12 @@
                 .search-item select:disabled { background-color: #f5f5f5 !important; cursor: not-allowed !important; color: #ccc !important; }
                 .search-bar-round { max-width: 1000px !important; }
 
-                /* --- 광고 슬라이더 비율 및 높이 조정 --- */
+                /* 광고 슬라이더 비율 및 높이 조정 */
                 .promo-slider-container { position: relative; overflow: hidden; border-radius: 12px; border: 1px solid #eee; background: #fff; margin-top: 30px; height: 180px; }
                 .promo-track { display: flex; transition: transform 0.5s ease-in-out; width: 300%; height: 100%; }
                 .promo-slide { width: 33.333%; flex-shrink: 0; display: flex; align-items: center; text-decoration: none; color: inherit; height: 100%; padding: 15px; box-sizing: border-box; }
 
-                /* 이미지 크기 축소 (왼쪽 배치) */
+                /* 이미지 크기 축소 */
                 .promo-image { flex: 0 0 250px; height: 100%; border-radius: 8px; overflow: hidden; }
                 .promo-image img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -42,12 +41,12 @@
                 .promo-text h3 { font-size: 20px; font-weight: 800; margin: 0 0 8px 0; color: #222; }
                 .promo-text p { font-size: 14px; color: #666; line-height: 1.5; margin: 0; }
 
-                /* 슬라이더 점 디자인 (가운데 하단 배치) */
+                /* 슬라이더 점 디자인 */
                 .promo-dots { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; }
                 .promo-dot { width: 10px; height: 10px; border-radius: 50%; background-color: #e0e0e0; cursor: pointer; transition: 0.3s; border: 1px solid #ddd; }
                 .promo-dot.active { background-color: #007A8A; width: 25px; border-radius: 5px; border-color: #007A8A; }
 
-                /* --- 후기 슬라이더 스타일 수정 --- */
+                /* 후기 슬라이더 스타일 수정 */
                 .review-slider-wrapper { position: relative; padding: 10px 0; }
                 .review-grid { display: flex; overflow-x: auto; gap: 20px; padding-bottom: 10px; scroll-behavior: smooth; scroll-snap-type: x mandatory; }
                 .review-grid::-webkit-scrollbar { display: none; }
@@ -56,19 +55,19 @@
                 .review-card { flex: 0 0 calc(33.333% - 13.4px); height: 360px; scroll-snap-align: start; transition: transform 0.3s ease; display: flex; flex-direction: column; text-decoration: none; color: inherit; background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; overflow: hidden; }
                 .review-card:hover { transform: translateY(-5px); }
 
-                /* 텍스트 컨텐츠 박스 가운데 정렬 (사진 없는 카드는 위아래 여백 생성됨) */
+                /* 텍스트 컨텐츠 박스 가운데 정렬 */
                 .rev-content-box { padding: 25px 20px; display: flex; flex-direction: column; flex-grow: 1; justify-content: center; }
 
                 .review-arrow { background: #fff; color: #333; border: 1px solid #ddd; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.2s; }
                 .review-arrow:hover { background: #f8f9fa; border-color: #bbb; color: #007A8A; }
 
-                /* --- 랜선 투어 인라인 비디오 스타일 (높이 350px로 지도와 완벽하게 맞춤, 팝업 없음) --- */
+                /* 랜선 투어 인라인 비디오 스타일 */
                 .inline-video-container { position: relative; border-radius: 12px; overflow: hidden; margin-top: 25px; height: 350px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); background: #000; cursor: pointer; }
                 .inline-video-container video { width: 100%; height: 100%; object-fit: cover; }
-                .inline-video-container.playing video { object-fit: contain; } /* 재생 중에는 영상 비율 유지 */
+                .inline-video-container.playing video { object-fit: contain; }
                 .inline-video-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; transition: 0.3s; }
                 .inline-video-container:hover .inline-video-overlay { background: rgba(0,0,0,0.5); }
-                .inline-video-container.playing .inline-video-overlay { display: none; } /* 영상 재생 시 덮개 숨김 */
+                .inline-video-container.playing .inline-video-overlay { display: none; }
                 .play-icon-circle { width: 55px; height: 55px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 12px; backdrop-filter: blur(4px); transition: 0.3s; }
                 .inline-video-container:hover .play-icon-circle { background: #007A8A; border-color: #007A8A; transform: scale(1.1); }
             </style>
@@ -131,7 +130,6 @@
     </section>
 
     <div class="container">
-        <%-- 광고 슬라이더 영역 --%>
         <div class="promo-slider-container" id="promoContainer">
             <button class="close-promo" id="closePromoBtn" style="position: absolute; top: 12px; right: 15px; z-index: 10; font-size: 16px; color: #bbb; border: none; background: transparent; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
 
@@ -174,9 +172,9 @@
                 </c:choose>
             </div>
             <div class="promo-dots" id="promoDots">
-                <div class="promo-dot active" onclick="movePromoTo(0)"></div>
-                <div class="promo-dot" onclick="movePromoTo(1)"></div>
-                <div class="promo-dot" onclick="movePromoTo(2)"></div>
+                <div class="promo-dot active"></div>
+                <div class="promo-dot"></div>
+                <div class="promo-dot"></div>
             </div>
         </div>
 
@@ -184,10 +182,21 @@
             <div class="content-left">
                 <div class="section-header"><h2>공간 찾아보기</h2></div>
                 <div class="category-grid">
-                    <div class="category-card"><i class="fa-solid fa-door-closed"></i><div><h3>프라이빗 오피스</h3><p>독립된 개인 공간</p></div></div>
-                    <div class="category-card"><i class="fa-solid fa-laptop"></i><div><h3>오픈 데스크</h3><p>자유로운 업무 환경</p></div></div>
-                    <div class="category-card"><i class="fa-solid fa-users-viewfinder"></i><div><h3>미팅룸 대여</h3></div></div>
-                    <div class="category-card"><i class="fa-solid fa-video"></i><div><h3>스튜디오</h3></div></div>
+                    <div class="category-card">
+                        <i class="fa-solid fa-door-closed"></i>
+                        <div>
+                            <h3>프라이빗 오피스</h3>
+                            <p>개인을 위한 독립된 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;공간</p>
+                        </div>
+                    </div>
+
+                    <div class="category-card">
+                        <i class="fa-solid fa-laptop"></i>
+                        <div>
+                            <h3>코워킹 스페이스</h3>
+                            <p>자유로운 업무 환경 (회의실/오픈 오피스)</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="map-tab-header" style="display: flex !important; justify-content: space-between !important; align-items: center !important; margin-bottom: 20px;">
@@ -219,7 +228,6 @@
                             </c:forEach>
                         </c:when>
                         <c:otherwise>
-                            <%-- 5개의 주요 소식 샘플 노출 --%>
                             <li><span class="tag notice">NEW</span> <a href="#">프리미엄 라운지 강남점 오픈</a></li>
                             <li><span class="tag event">EVENT</span> <a href="#">신규 회원 1일 무료 체험권 증정</a></li>
                             <li><span class="tag notice">공지</span> <a href="#">2026년 상반기 멤버십 요금 안내</a></li>
@@ -229,9 +237,7 @@
                     </c:choose>
                 </ul>
 
-                <%-- 랜선 투어 영상 (팝업 모달 대신 화면에서 바로 재생되도록 수정, 높이 350px로 확대) --%>
                 <div class="inline-video-container" id="tourVideoContainer" onclick="playTourVideo()">
-                    <%-- [주의] 영상이 안 나오는 이유는 로컬 경로 설정이 필요하기 때문입니다. 프로젝트의 알맞은 경로에 mp4 파일을 넣고 src를 수정해주세요! --%>
                     <video id="tourVideo" src="${pageContext.request.contextPath}/static/upload/video/office_tour.mp4" poster="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80" playsinline></video>
 
                     <div class="inline-video-overlay" id="tourVideoOverlay">
@@ -243,7 +249,6 @@
             </div>
         </section>
 
-        <%-- 생생 이용 후기 섹션 --%>
         <section class="review-section" style="margin-top: 60px; margin-bottom: 80px;">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #222; padding-bottom: 15px; margin-bottom: 25px;">
                 <div style="display: flex; flex-direction: column; gap: 5px;">
@@ -265,7 +270,6 @@
 
             <div class="review-slider-wrapper">
                 <div class="review-grid" id="reviewGrid">
-                    <%-- DB 연동을 위한 반복문 --%>
                     <c:forEach var="rev" items="${recentReviews}">
                         <a href="${pageContext.request.contextPath}/review/detail?revIdx=${rev.revIdx}" class="review-card">
                             <c:if test="${not empty rev.revImg}">
@@ -292,9 +296,7 @@
                         </a>
                     </c:forEach>
 
-                    <%-- 데이터가 없을 때 보여줄 5개의 샘플 영역 --%>
                     <c:if test="${empty recentReviews}">
-                        <%-- 1. 사진 없는 버전 (내용 정중앙 배치) --%>
                         <a href="${pageContext.request.contextPath}/review/detail?revIdx=1" class="review-card">
                             <div class="rev-content-box">
                                 <div class="rev-stars" style="display: flex; align-items: center; margin-bottom: 12px;">
@@ -311,7 +313,6 @@
                                 </div>
                             </div>
                         </a>
-                        <%-- 2. 사진 있는 버전 --%>
                         <a href="${pageContext.request.contextPath}/review/detail?revIdx=2" class="review-card">
                             <div class="rev-img-box" style="height: 180px; flex-shrink: 0; overflow: hidden;">
                                 <img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=400&q=60" style="width: 100%; height: 100%; object-fit: cover;">
@@ -331,7 +332,6 @@
                                 </div>
                             </div>
                         </a>
-                        <%-- 3. 사진 없는 버전 --%>
                         <a href="${pageContext.request.contextPath}/review/detail?revIdx=3" class="review-card">
                             <div class="rev-content-box">
                                 <div class="rev-stars" style="display: flex; align-items: center; margin-bottom: 12px;">
@@ -348,7 +348,6 @@
                                 </div>
                             </div>
                         </a>
-                        <%-- 4. 사진 있는 버전 --%>
                         <a href="${pageContext.request.contextPath}/review/detail?revIdx=4" class="review-card">
                             <div class="rev-img-box" style="height: 180px; flex-shrink: 0; overflow: hidden;">
                                 <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32b7?auto=format&fit=crop&w=400&q=60" style="width: 100%; height: 100%; object-fit: cover;">
@@ -368,7 +367,6 @@
                                 </div>
                             </div>
                         </a>
-                        <%-- 5. 사진 없는 버전 --%>
                         <a href="${pageContext.request.contextPath}/review/detail?revIdx=5" class="review-card">
                             <div class="rev-content-box">
                                 <div class="rev-stars" style="display: flex; align-items: center; margin-bottom: 12px;">
@@ -393,55 +391,19 @@
     </div>
 
     <script>
-        // --- 랜선 투어 인라인 재생 로직 (모달 팝업 대신 바로 재생) ---
+        // 랜선 투어 비디오 재생 처리 함수 (이건 겹치지 않아서 그대로 뒀어!)
         function playTourVideo() {
             const video = document.getElementById('tourVideo');
             const container = document.getElementById('tourVideoContainer');
 
-            // 영상이 정지되어 있다면 재생 시작
             if (video.paused) {
-                video.controls = true; // 재생이 시작되면 컨트롤 바(재생, 정지 등) 표시
+                video.controls = true;
                 video.play();
-                container.classList.add('playing'); // 오버레이 덮개를 숨기는 클래스 추가
+                container.classList.add('playing');
             }
         }
 
-        // --- 배너 3초 자동 슬라이드 ---
-        let currentPromoIdx = 0;
-        const promoTrack = document.getElementById('promoTrack');
-        const promoDots = document.querySelectorAll('.promo-dot');
-        let promoInterval;
-
-        function updatePromoView() {
-            promoTrack.style.transform = `translateX(-${(100 / 3) * currentPromoIdx}%)`;
-            promoDots.forEach((d, i) => {
-                d.classList.toggle('active', i === currentPromoIdx);
-            });
-        }
-
-        function nextPromo() {
-            currentPromoIdx = (currentPromoIdx + 1) % 3;
-            updatePromoView();
-        }
-
-        function movePromoTo(idx) {
-            currentPromoIdx = idx;
-            updatePromoView();
-            resetPromoTimer();
-        }
-
-        function startPromoTimer() {
-            promoInterval = setInterval(nextPromo, 3000);
-        }
-
-        function resetPromoTimer() {
-            clearInterval(promoInterval);
-            startPromoTimer();
-        }
-
-        startPromoTimer();
-
-        // --- 리뷰 가로 스크롤 ---
+        // 리뷰 좌우 스크롤 기능 (이것도 HTML 전용 기능이라 그대로 뒀어!)
         function scrollReview(direction) {
             const grid = document.getElementById('reviewGrid');
             const card = grid.querySelector('.review-card');
@@ -451,7 +413,7 @@
             }
         }
 
-        // --- 지역 선택 ---
+        // 지역 선택 기능 (마찬가지로 그대로 유지!)
         const districtMap = {
             "서울": ["강남구", "서초구", "종로구", "마포구", "송파구", "영등포구", "성동구"],
             "인천": ["남동구", "연수구", "부평구", "미추홀구", "서구", "중구", "동구"]
@@ -483,4 +445,3 @@
 </main>
 
 <%@ include file="layout/footer.jsp" %>
-
