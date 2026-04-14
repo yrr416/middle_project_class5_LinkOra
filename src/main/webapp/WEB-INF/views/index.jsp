@@ -439,7 +439,7 @@
         }
     </script>
 
-    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=7508bb04c356b05484667dca670ae0cc&libraries=services&autoload=false"></script>
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=247139c78458523e2ad17488def871c6&libraries=services&autoload=false"></script>
     <script src="${pageContext.request.contextPath}/js/mp_script.js"></script>
 
 </main>
