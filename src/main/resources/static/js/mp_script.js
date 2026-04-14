@@ -117,9 +117,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. 카카오맵 설정
     const mapContainer = document.getElementById('mainMap');
-    if (!mapContainer) {
-        if (typeof bindSearchEvents === "function") bindSearchEvents();
+
+    // [핵심 1] 현재 주소가 지도 페이지(/map)인지 확인하는 변수를 다시 살렸어!
+    const isMapPage = location.pathname.includes('/map');
+
+    // 지도 박스가 없거나, 지도 전용 페이지라면 메인 스크립트는 멈춤! (map.js에게 도화지를 양보)
+    if (!mapContainer || isMapPage) {
+        if (typeof window.bindSearchEvents === "function") window.bindSearchEvents();
         return;
+    }
+
+    // [핵심 2] 메인 페이지에서 지도 박스 높이가 0이라 투명해지는 현상 방어!
+    if (mapContainer.clientHeight === 0) {
+        // 강제로 세로 크기를 400px로 줘서 무조건 눈에 보이게 만듦
+        mapContainer.style.minHeight = "400px";
     }
 
     const loadKakaoMap = () => {
@@ -150,22 +161,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const mapOption = { center: centerLatLng, level: 4 };
         const map = new window.kakao.maps.Map(mapContainer, mapOption);
 
+        // 무조건 지점 정보부터 불러와서 핀을 찍어버림!
+        window.loadBranches("", "all");
+
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((position) => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                const myPos = new window.kakao.maps.LatLng(lat, lng);
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const myPos = new window.kakao.maps.LatLng(lat, lng);
 
-                map.setCenter(myPos);
-                centerLatLng = myPos;
+                    map.setCenter(myPos);
+                    centerLatLng = myPos;
 
-                window.loadBranches("", "all");
-            }, (err) => {
-                console.warn("GPS 획득 실패, 기본 위치로 로드함.");
-                window.loadBranches("", "all");
-            });
-        } else {
-            window.loadBranches("", "all");
+                    window.loadBranches("", "all");
+                }, (err) => {
+                    console.warn("GPS 획득 실패, 기본 위치로 로드함.");
+                },
+                // 3초만 기다림!
+                { timeout: 3000 }
+            );
         }
 
         setTimeout(() => { map.relayout(); map.setCenter(centerLatLng); }, 100);
@@ -207,7 +221,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (activeInfoOverlay) activeInfoOverlay.setMap(null);
         });
 
-        // 지점 데이터 로드 함수 수정
         window.loadBranches = function(keyword = "", type = "all") {
 
             markers.forEach(m => m.setMap(null));
@@ -215,7 +228,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (activeInfoOverlay) activeInfoOverlay.setMap(null);
             markers = []; overlays = [];
 
-            // 컨트롤러 주소와 일치하도록 URL 수정
             let fetchUrl = "";
 
             if (type === "favorite") {
@@ -232,12 +244,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             fetch(fetchUrl)
                 .then(res => {
-                    // 서버 응답이 실패한 경우 에러 발생
                     if (!res.ok) throw new Error("API 서버 응답 에러: " + res.status);
                     return res.json();
                 })
                 .then(branches => {
-                    // 로그인 필요 알림 처리 방어 로직
                     if (branches.status === 'login_required') {
                         if (!window.isLoginAlertShown) {
                             alert("로그인이 필요한 서비스입니다.");
@@ -247,7 +257,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         return;
                     }
 
-                    // 배열이 아닌 데이터가 넘어올 경우 forEach 에러 방지
                     if (!Array.isArray(branches)) {
                         console.warn("데이터 형식이 올바르지 않습니다.");
                         return;
@@ -351,7 +360,6 @@ window.toggleWish = function (target, brnIdx) {
 
     const icon = btn.querySelector('i');
 
-    // 찜하기 URL도 /linkora 제거
     fetch('/api/wishlist/toggle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=UTF-8' },
@@ -373,7 +381,6 @@ window.toggleWish = function (target, brnIdx) {
                     window.isLoginAlertShown = true;
                     setTimeout(() => { window.isLoginAlertShown = false; }, 1500);
                 }
-                // 로그인 이동 경로 수정
                 location.href = "/login";
             }
         })

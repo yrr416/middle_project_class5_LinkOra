@@ -18,28 +18,29 @@
   <link rel="stylesheet" href="${pageContext.request.contextPath}/css/map.css">
 
   <style>
-    /* 화면 높이를 100%로 고정하여 지도가 꽉 차게 함 */
+    /* 화면 전체 높이를 꽉 채우기 위한 설정 */
     html, body {
       height: 100%;
       margin: 0;
       padding: 0;
     }
 
-    /* 헤더를 제외한 나머지 영역을 지도로 꽉 채우는 바구니임 */
+    /* 지도를 감싸는 바구니 크기 강제 지정 */
     .map-container {
       display: block;
       position: relative;
       width: 100%;
       height: calc(100vh - 70px) !important;
-      min-height: 500px;
+      min-height: 600px !important; /* 최소 높이 강제 고정 */
       background-color: #f8f9fa;
     }
 
-    /* 실제 카카오맵이 그려지는 도화지임 */
+    /* 실제 지도가 그려지는 도화지 영역 */
     #mainMap {
       width: 100%;
       height: 100%;
-      min-height: 500px;
+      min-height: 600px !important; /* 0px 방지용 강제 설정 */
+      display: block;
     }
   </style>
 </head>
@@ -89,7 +90,6 @@
   </div>
 
   <ul class="sidebar-nav" style="list-style: none; padding: 0; margin: 0;">
-
     <li class="accordion-item">
       <a href="#" class="accordion-toggle"
          style="display: flex; justify-content: space-between; padding: 15px 20px; text-decoration: none; color: #333; border-bottom: 1px solid #f9f9f9;">
@@ -125,7 +125,6 @@
         <li><a href="#" style="display: block; padding: 10px; color: #666; font-size: 14px; text-decoration: none;">자주 묻는 질문</a></li>
       </ul>
     </li>
-
   </ul>
 </aside>
 
@@ -145,7 +144,7 @@
     </div>
   </div>
 
-  <div id="mainMap" style="width: 100%; height: 100%;"></div>
+  <div id="mainMap"></div>
 
   <div class="chatbot-bubble" id="chatbotBtn"
        style="position: absolute; bottom: 30px; right: 30px; z-index: 10; cursor: pointer;">
@@ -162,7 +161,7 @@
 </main>
 
 <script type="text/javascript"
-        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=7508bb04c356b05484667dca670ae0cc&libraries=services">
+        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=7508bb04c356b05484667dca670ae0cc&libraries=services&autoload=false">
 </script>
 
 <script src="${pageContext.request.contextPath}/js/map.js"></script>
