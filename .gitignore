@@ -1,79 +1,64 @@
-HELP.md
+# Build Output
 target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
-
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
 build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
-.vscode/
-
-# ===== Build Output =====
-target/
+bin/
+out/
 *.class
 *.jar
 *.war
 *.ear
+!**/src/main/**/target/
+!**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-# ===== IDE =====
-# IntelliJ
-.idea/
-*.iml
-*.ipr
-*.iws
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+.mvn/
+mvnw
+mvnw.cmd
 
-# Eclipse / STS
+# STS / Eclipse
+.apt_generated
 .classpath
+.factorypath
 .project
 .settings/
 .springBeans
+.sts4-cache
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
 
 # VS Code
 .vscode/
 
-# ===== 환경 설정 (민감 정보) =====
-src/main/resources/application-local.properties
-src/main/resources/application-local.yml
-src/main/resources/db.properties
-
-# ===== 로그 =====
+# Logs
 logs/
-*.log
 log/
+*.log
 
-# ===== OS =====
+# OS
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# ===== 업로드 파일 =====
-src/main/webapp/upload/
-src/main/webapp/resources/upload/g
+# Environment Config (Sensitive Info)
+src/main/resources/application-local.properties
+src/main/resources/application-local.yml
+src/main/resources/application-secret.properties
+src/main/resources/db.properties
 
-# 팀원 담당 - User 기능 (임시 구현)
-src/main/java/org/study/project05/user/
-src/main/resources/mapper/UserMapper.xml
+# AI Logs & Temporary
+_ai_project_logs/
+tmp/
+
+# Upload Files
+src/main/webapp/upload/
+src/main/webapp/resources/upload/
+
+# Help
+HELP.md

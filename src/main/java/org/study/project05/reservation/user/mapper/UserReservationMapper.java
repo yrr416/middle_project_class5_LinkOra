@@ -23,3 +23,4 @@ public interface UserReservationMapper {
     /** 해당 지점에 완료/진행중 예약이 있는지 확인 */
     int countByUserAndBranch(@Param("userIdx") int userIdx, @Param("brnIdx") int brnIdx);
 }
+

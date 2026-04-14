@@ -168,7 +168,7 @@
         <p class="msg error">사업자회원가입 처리에 실패했습니다.</p>
         <% } %>
 
-        <form method="post" action="/partner-signup" enctype="multipart/form-data">
+        <form method="post" action="${pageContext.request.contextPath}/partner-signup" enctype="multipart/form-data">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
             <div class="form-group">
                 <label for="partnerProfileImage">프로필 이미지 (선택)</label>
