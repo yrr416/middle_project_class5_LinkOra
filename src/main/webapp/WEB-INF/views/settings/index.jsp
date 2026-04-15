@@ -130,6 +130,7 @@
             <div class="set-card">
                 <h6><i class="bi bi-person me-2"></i>관리자 계정 정보</h6>
                 <form method="post" action="${ctx}/admin/settings/account">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">관리자 ID</label>
@@ -164,6 +165,7 @@
             <div class="set-card">
                 <h6><i class="bi bi-lock me-2"></i>비밀번호 변경</h6>
                 <form method="post" action="${ctx}/admin/settings/password">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                     <div class="row g-3" style="max-width:480px;">
                         <div class="col-12">
                             <label class="form-label fw-semibold small">현재 비밀번호</label>
@@ -194,6 +196,7 @@
              ══════════════════════════════════════════════════════ -->
         <c:if test="${tab == 'policy'}">
             <form method="post" action="${ctx}/admin/settings/policy">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
                 <!-- 등급 기준 -->
                 <div class="set-card">
@@ -311,6 +314,7 @@
 
             <!-- 운영 시간 + 팝업 + 알림 -->
             <form method="post" action="${ctx}/admin/settings/service">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                 <!-- 운영 시간 -->
                 <div class="set-card">
                     <h6><i class="bi bi-clock me-2"></i>운영 시간 설정</h6>
@@ -438,6 +442,7 @@
                                     </button>
                                     <form method="post" action="${ctx}/admin/settings/template/delete"
                                           onsubmit="return confirm('템플릿을 삭제하시겠습니까?');">
+                                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                                         <input type="hidden" name="tplIdx" value="${tmpl.tplIdx}">
                                         <button type="submit" class="btn btn-outline-danger btn-sm">삭제</button>
                                     </form>
@@ -453,6 +458,7 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <form method="post" action="${ctx}/admin/settings/template/save">
+                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                             <div class="modal-header">
                                 <h6 class="modal-title fw-bold" id="templateModalTitle">템플릿 등록</h6>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -486,6 +492,7 @@
              ══════════════════════════════════════════════════════ -->
         <c:if test="${tab == 'system'}">
             <form method="post" action="${ctx}/admin/settings/system">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
                 <!-- 수수료율 -->
                 <div class="set-card">
