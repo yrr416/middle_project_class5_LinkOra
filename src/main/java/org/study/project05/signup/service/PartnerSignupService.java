@@ -23,4 +23,10 @@ public interface PartnerSignupService {
             String businessNo,
             String profileImagePath
     );
+
+    /** 사업자 테이블에 동일 p_id가 있는지 (일반 회원 여부는 별도 검사). */
+    boolean existsPartnerId(String partnerId);
+
+    /** partner 테이블에 동일 이메일이 있는지 (일반 회원 이메일은 별도 검사). */
+    boolean existsPartnerEmail(String email);
 }

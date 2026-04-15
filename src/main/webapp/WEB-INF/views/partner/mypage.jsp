@@ -15,16 +15,9 @@
             font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
             color: #243140;
         }
-        .top-bar {
-            height: 64px;
-            background: #e8e8e3;
-            border-bottom: 1px solid #d7d7d1;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
+        .header-right .btn-book {
+            display: none !important;
         }
-        .logo-image { height: 48px; width: auto; display: block; }
         .content { padding: 24px; }
         .content-box {
             max-width: 760px;
@@ -303,11 +296,7 @@
     </style>
 </head>
 <body>
-<header class="top-bar">
-    <img class="logo-image"
-         src="/assets/c__Users_ict-02_AppData_Roaming_Cursor_User_workspaceStorage_14eab3a244838b5187ba2f0dbb8a04dc_images_image-5bd41dfc-4c07-450b-9c64-6e9dc2724a93.png"
-         alt="Linkora 로고">
-</header>
+<%@include file="../layout/header.jsp"%>
 
 <main class="content">
     <section class="content-box">
@@ -320,7 +309,7 @@
                 <% } %>
             </div>
             <div class="avatar-edit">
-                <form method="post" action="${pageContext.request.contextPath}/partner/mypage/profile" enctype="multipart/form-data">
+                <form method="post" action="/partner/mypage/profile" enctype="multipart/form-data">
                     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                     <label class="profile-edit-btn" for="partnerProfileImageFile">프로필 수정</label>
                     <input id="partnerProfileImageFile" name="profileImage" type="file" accept="image/*" style="display:none" onchange="this.form.submit()">
@@ -385,7 +374,7 @@
             <% if ("failed".equals(request.getAttribute("pwdError"))) { %>
             <p class="pwd-msg err">비밀번호 변경에 실패했습니다. 다시 시도해주세요.</p>
             <% } %>
-            <form class="password-form" method="post" action="${pageContext.request.contextPath}/partner/mypage/password">
+            <form class="password-form" method="post" action="/partner/mypage/password">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                 <div class="row">
                     <label for="partnerCurrentPassword">현재 비밀번호</label>
@@ -410,7 +399,7 @@
         </section>
 
         <div class="actions">
-            <form id="partnerWithdrawForm" method="post" action="${pageContext.request.contextPath}/partner/mypage/delete">
+            <form id="partnerWithdrawForm" method="post" action="/partner/mypage/delete">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                 <input type="hidden" name="currentPassword">
                 <button type="button" class="btn-danger" onclick="openWithdrawModal('사업자')">사업자 탈퇴</button>
@@ -436,6 +425,7 @@
         </div>
     </div>
 </div>
+<%@include file="../layout/footer.jsp"%>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         var root = '${pageContext.request.contextPath}';

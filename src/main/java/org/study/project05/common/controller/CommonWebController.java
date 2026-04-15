@@ -48,6 +48,12 @@ public class CommonWebController {
         return "common/chatbot";
     }
 
+    /** 회원가입 동의용 개인정보 처리방침 안내 페이지. */
+    @GetMapping("/privacy")
+    public String privacyPage() {
+        return "common/privacy";
+    }
+
     @GetMapping("/db-check")
     @ResponseBody
     public String dbCheck() {

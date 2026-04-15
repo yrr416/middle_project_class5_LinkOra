@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<%-- 로그인 메인 화면: 일반 로그인, 소셜 로그인, 회원가입/계정찾기 진입점을 제공한다. --%>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -253,17 +254,6 @@
     String resetParam = request.getParameter("reset");
     String findIdParam = request.getParameter("findId");
 %>
-<%--<header class="top-bar">--%>
-<%--    <div class="top-left">--%>
-<%--        <img class="logo-image"--%>
-<%--             src="/assets/c__Users_ict-02_AppData_Roaming_Cursor_User_workspaceStorage_14eab3a244838b5187ba2f0dbb8a04dc_images_image-5bd41dfc-4c07-450b-9c64-6e9dc2724a93.png"--%>
-<%--             alt="Linkora 로고">--%>
-<%--    </div>--%>
-<%--    <div class="top-right">--%>
-<%--        <a class="home-btn" href="/">홈페이지</a>--%>
-<%--        <a class="mypage-btn" href="/mypage">마이페이지</a>--%>
-<%--    </div>--%>
-<%--</header>--%>
 <%@include file="../../views/layout/header.jsp"%>
 <main class="content">
     <section class="content-box">
@@ -315,7 +305,8 @@
             </p>
             <% } %>
 
-            <form method="post" action="${pageContext.request.contextPath}/perform_login">
+            <%-- Spring Security 폼 로그인 처리 URL로 아이디/비밀번호를 전송한다. --%>
+            <form method="post" action="/perform_login">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                 <div class="form-group">
                     <label for="username">아이디</label>
@@ -327,21 +318,23 @@
                 </div>
                 <button class="submit-btn" type="submit">로그인</button>
                 <div class="signup-row">
-                    <a class="signup-btn" href="${pageContext.request.contextPath}/signup">회원가입</a>
-                    <a class="partner-signup-btn" href="${pageContext.request.contextPath}/partner-signup">사업자회원가입</a>
+                    <a class="signup-btn" href="/signup">회원가입</a>
+                    <a class="partner-signup-btn" href="/partner-signup">사업자회원가입</a>
                 </div>
                 <div class="help-row">
-                    <a class="find-id-btn" href="${pageContext.request.contextPath}/forgot-id">아이디 찾기</a>
-                    <a class="forgot-btn" href="${pageContext.request.contextPath}/forgot-password">비밀번호 찾기</a>
+                    <a class="find-id-btn" href="/forgot-id">아이디 찾기</a>
+                    <a class="forgot-btn" href="/forgot-password">비밀번호 찾기</a>
                 </div>
             </form>
-            <div class="social-login">
-            <a class="social-btn kakao-btn" href="${pageContext.request.contextPath}/kakao/authorize">카카오로 로그인</a>
-            <a class="social-btn naver-btn" href="${pageContext.request.contextPath}/naver/authorize">네이버로 로그인</a>
+            <p class="divider">또는 소셜 계정으로 로그인</p>
+            <a class="social-btn kakao-btn" href="/kakao/authorize">카카오로 로그인</a>
+            <a class="social-btn naver-btn" href="/naver/authorize">네이버로 로그인</a>
         </div>
     </section>
 </main>
+<%-- 공통 푸터를 포함한다. --%>
 <%@include file="../../views/layout/footer.jsp" %>
+<%-- 헤더 우측 LOGIN 버튼 라벨/이동경로를 홈페이지로 덮어쓴다. --%>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     var root = '${pageContext.request.contextPath}';

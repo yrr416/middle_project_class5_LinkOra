@@ -129,6 +129,58 @@
             height: auto;
             padding: 6px 0;
         }
+        .id-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .id-row input {
+            flex: 1;
+            min-width: 0;
+        }
+        .dup-check-btn {
+            flex-shrink: 0;
+            height: 36px;
+            padding: 0 12px;
+            border: 1px solid #3730a3;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #3730a3;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .dup-check-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+        .id-check-msg {
+            margin: 4px 0 0;
+            font-size: 12px;
+            min-height: 1.2em;
+        }
+        .id-check-msg.ok { color: #16a34a; font-weight: 600; }
+        .id-check-msg.fail { color: #dc2626; font-weight: 600; }
+        .id-check-msg.wait { color: #64748b; }
+        .consent-block { margin-top: 12px; margin-bottom: 8px; }
+        .consent-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13px;
+            color: #334155;
+            font-weight: 500;
+            cursor: pointer;
+            line-height: 1.45;
+        }
+        .consent-label input[type="checkbox"] {
+            width: auto;
+            height: auto;
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+        .consent-label a { color: #3730a3; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -146,9 +198,9 @@
     <section class="wrap">
         <h1>사업자 회원가입</h1>
         <% if ("duplicateId".equals(errorParam)) { %>
-        <p class="msg error">이미 사용 중인 사업자 아이디입니다.</p>
+        <p class="msg error">이미 사용 중인 아이디입니다. (일반 회원·사업자 계정과 서로 중복될 수 없습니다.)</p>
         <% } else if ("duplicateEmail".equals(errorParam)) { %>
-        <p class="msg error">이미 사용 중인 이메일입니다.</p>
+        <p class="msg error">이미 사용 중인 이메일입니다. (일반 회원·사업자 계정과 서로 중복될 수 없습니다.)</p>
         <% } else if ("duplicateBizNo".equals(errorParam)) { %>
         <p class="msg error">이미 등록된 사업자번호입니다.</p>
         <% } else if ("passwordMismatch".equals(errorParam)) { %>
@@ -160,16 +212,18 @@
         <% } else if ("phoneFormat".equals(errorParam)) { %>
         <p class="msg error">전화번호 형식은 xxx-xxxx-xxxx 입니다.</p>
         <% } else if ("emailFormat".equals(errorParam)) { %>
-        <p class="msg error">이메일에는 @가 포함되어야 합니다.</p>
+        <p class="msg error">이메일에는 @와 .이 모두 포함되어야 합니다.</p>
         <% } else if ("bizNoFormat".equals(errorParam)) { %>
         <p class="msg error">사업자번호 형식은 xxx-xx-xxxxx 입니다.</p>
         <% } else if ("schema".equals(errorParam)) { %>
         <p class="msg error">partner 테이블 컬럼 확인이 필요합니다.</p>
         <% } else if ("failed".equals(errorParam)) { %>
         <p class="msg error">사업자회원가입 처리에 실패했습니다.</p>
+        <% } else if ("privacyRequired".equals(errorParam)) { %>
+        <p class="msg error">개인정보 처리방침에 동의해야 회원가입할 수 있습니다.</p>
         <% } %>
 
-        <form method="post" action="${pageContext.request.contextPath}/partner-signup" enctype="multipart/form-data">
+        <form method="post" action="/partner-signup" enctype="multipart/form-data">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
             <div class="form-group">
                 <label for="partnerProfileImage">프로필 이미지 (선택)</label>
@@ -177,7 +231,11 @@
             </div>
             <div class="form-group">
                 <label for="partnerId">사업자 아이디</label>
-                <input type="text" id="partnerId" name="partnerId" required>
+                <div class="id-row">
+                    <input type="text" id="partnerId" name="partnerId" required maxlength="64" autocomplete="username">
+                    <button type="button" class="dup-check-btn" id="partnerIdDupCheckBtn">중복 확인</button>
+                </div>
+                <p id="partnerIdCheckMsg" class="id-check-msg" role="status" aria-live="polite"></p>
             </div>
             <div class="form-group">
                 <label for="partnerPwd">비밀번호</label>
@@ -208,7 +266,11 @@
             </div>
             <div class="form-group">
                 <label for="partnerEmail">이메일</label>
-                <input type="email" id="partnerEmail" name="partnerEmail" pattern=".+@.+" required>
+                <div class="id-row">
+                    <input type="email" id="partnerEmail" name="partnerEmail" placeholder="이메일을 입력하세요" pattern=".+@.+\..+" maxlength="128" required autocomplete="email">
+                    <button type="button" class="dup-check-btn" id="partnerEmailDupCheckBtn">중복 확인</button>
+                </div>
+                <p id="partnerEmailCheckMsg" class="id-check-msg" role="status" aria-live="polite"></p>
             </div>
             <div class="form-group">
                 <label for="sample4Postcode">주소</label>
@@ -226,6 +288,13 @@
                 <input type="text" id="sample4ExtraAddress" name="extraAddress" placeholder="참고항목">
             </div>
             <input type="hidden" id="partnerAddr" name="partnerAddr">
+
+            <div class="form-group consent-block">
+                <label class="consent-label" for="agreePrivacy">
+                    <input type="checkbox" name="agreePrivacy" value="true" id="agreePrivacy" required>
+                    <span><a href="/privacy" target="_blank" rel="noopener noreferrer">개인정보 처리방침</a>을 확인하였으며 이에 동의합니다. (필수)</span>
+                </label>
+            </div>
             <button class="submit-btn" type="submit">사업자 회원가입</button>
         </form>
     </section>
@@ -309,6 +378,83 @@
         if (pwd) pwd.addEventListener('input', updatePasswordMarks);
         if (pwdConfirm) pwdConfirm.addEventListener('input', updatePasswordMarks);
 
+        var partnerIdInput = document.getElementById('partnerId');
+        var partnerDupBtn = document.getElementById('partnerIdDupCheckBtn');
+        var partnerIdMsg = document.getElementById('partnerIdCheckMsg');
+        if (partnerIdInput && partnerDupBtn && partnerIdMsg) {
+            function clearPartnerIdMsg() {
+                partnerIdMsg.textContent = '';
+                partnerIdMsg.className = 'id-check-msg';
+            }
+            partnerIdInput.addEventListener('input', clearPartnerIdMsg);
+            partnerDupBtn.addEventListener('click', function () {
+                var id = (partnerIdInput.value || '').trim();
+                if (!id) {
+                    partnerIdMsg.className = 'id-check-msg fail';
+                    partnerIdMsg.textContent = '아이디를 입력해 주세요.';
+                    return;
+                }
+                partnerDupBtn.disabled = true;
+                partnerIdMsg.className = 'id-check-msg wait';
+                partnerIdMsg.textContent = '확인 중…';
+                fetch('/api/signup/check-user-id?userId=' + encodeURIComponent(id), { method: 'GET', credentials: 'same-origin' })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        var ok = data && data.available === true;
+                        partnerIdMsg.className = ok ? 'id-check-msg ok' : 'id-check-msg fail';
+                        partnerIdMsg.textContent = (data && data.message) ? data.message : (ok ? '사용 가능합니다.' : '사용할 수 없습니다.');
+                    })
+                    .catch(function () {
+                        partnerIdMsg.className = 'id-check-msg fail';
+                        partnerIdMsg.textContent = '확인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+                    })
+                    .finally(function () {
+                        partnerDupBtn.disabled = false;
+                    });
+            });
+        }
+
+        var partnerEmailInput = document.getElementById('partnerEmail');
+        var partnerEmailDupBtn = document.getElementById('partnerEmailDupCheckBtn');
+        var partnerEmailMsg = document.getElementById('partnerEmailCheckMsg');
+        if (partnerEmailInput && partnerEmailDupBtn && partnerEmailMsg) {
+            function clearPartnerEmailMsg() {
+                partnerEmailMsg.textContent = '';
+                partnerEmailMsg.className = 'id-check-msg';
+            }
+            partnerEmailInput.addEventListener('input', clearPartnerEmailMsg);
+            partnerEmailDupBtn.addEventListener('click', function () {
+                var em = (partnerEmailInput.value || '').trim();
+                if (!em) {
+                    partnerEmailMsg.className = 'id-check-msg fail';
+                    partnerEmailMsg.textContent = '이메일을 입력해 주세요.';
+                    return;
+                }
+                if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) {
+                    partnerEmailMsg.className = 'id-check-msg fail';
+                    partnerEmailMsg.textContent = '올바른 이메일 형식이 아닙니다.';
+                    return;
+                }
+                partnerEmailDupBtn.disabled = true;
+                partnerEmailMsg.className = 'id-check-msg wait';
+                partnerEmailMsg.textContent = '확인 중…';
+                fetch('/api/signup/check-email?email=' + encodeURIComponent(em), { method: 'GET', credentials: 'same-origin' })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        var ok = data && data.available === true;
+                        partnerEmailMsg.className = ok ? 'id-check-msg ok' : 'id-check-msg fail';
+                        partnerEmailMsg.textContent = (data && data.message) ? data.message : (ok ? '사용 가능합니다.' : '사용할 수 없습니다.');
+                    })
+                    .catch(function () {
+                        partnerEmailMsg.className = 'id-check-msg fail';
+                        partnerEmailMsg.textContent = '확인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+                    })
+                    .finally(function () {
+                        partnerEmailDupBtn.disabled = false;
+                    });
+            });
+        }
+
         document.querySelector('form').addEventListener('submit', function (e) {
             if ((pwd.value || '') !== (pwdConfirm.value || '')) {
                 e.preventDefault();
@@ -326,9 +472,15 @@
                 return;
             }
             var email = document.getElementById('partnerEmail').value;
-            if (email.indexOf('@') < 0) {
+            if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
                 e.preventDefault();
-                alert('이메일에는 @가 포함되어야 합니다.');
+                alert('이메일에는 @와 .이 모두 포함되어야 합니다.');
+                return;
+            }
+            var agreePrivacyEl = document.getElementById('agreePrivacy');
+            if (agreePrivacyEl && !agreePrivacyEl.checked) {
+                e.preventDefault();
+                alert('개인정보 처리방침에 동의해 주세요.');
                 return;
             }
             var road = document.getElementById('sample4RoadAddress').value;

@@ -4,7 +4,7 @@
 
 <mapper namespace="org.study.project05.branch.mapper.FacilityMapper">
 
-    <resultMap id="facilityResultMap" type="FacilityVO">
+    <resultMap id="facilityResultMap" type="org.study.project05.branch.vo.FacilityVO">
         <id     property="facIdx"      column="f_idx"/>
         <result property="spcIdx"      column="s_idx"/>
         <result property="facCafe"     column="f_cafe"/>
@@ -31,4 +31,3 @@
     </select>
 
 </mapper>
-
