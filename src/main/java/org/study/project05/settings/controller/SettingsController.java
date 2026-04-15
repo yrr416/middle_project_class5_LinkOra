@@ -3,6 +3,8 @@ package org.study.project05.settings.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +31,20 @@ public class SettingsController {
     /** 활동 로그 페이지당 표시 수 */
     private static final int LOG_PER_PAGE = 15;
 
+    /** 현재 로그인한 관리자 ID(a_id) 반환 */
+    private String currentAdminLoginId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return (auth != null) ? auth.getName() : null;
+    }
+
+    /** 현재 로그인한 관리자의 a_idx 반환 */
+    private String currentAdminIdx() {
+        Map<String, Object> info = settingsService.getAdminInfoByLoginId(currentAdminLoginId());
+        if (info == null) return null;
+        Object idx = info.get("aIdx");
+        return idx != null ? String.valueOf(idx) : null;
+    }
+
     /**
      * 설정 메인 페이지
      * - 전체 설정 값 로드
@@ -46,8 +62,8 @@ public class SettingsController {
         Map<String, String> settings = settingsService.getAllSettings();
         model.addAttribute("settings", settings);
 
-        // 관리자 계정 정보 (a_idx=1 고정; 실제 세션에서 가져올 경우 교체)
-        Map<String, Object> adminInfo = settingsService.getAdminInfo("1");
+        // 로그인한 관리자 계정 정보
+        Map<String, Object> adminInfo = settingsService.getAdminInfoByLoginId(currentAdminLoginId());
         model.addAttribute("adminInfo", adminInfo);
 
         // 답변 템플릿 목록
@@ -80,9 +96,10 @@ public class SettingsController {
                                 HttpServletRequest request,
                                 RedirectAttributes rttr) {
 
-        settingsService.updateAdminInfo("1", aName, aEmail, aPhone);
+        String aIdx = currentAdminIdx();
+        settingsService.updateAdminInfo(aIdx, aName, aEmail, aPhone);
         // 활동 로그 기록
-        settingsService.writeLog("1", aName, "계정 정보 수정",
+        settingsService.writeLog(aIdx, aName, "계정 정보 수정",
                 "이름·이메일·연락처 변경", request.getRemoteAddr());
 
         rttr.addFlashAttribute("msg", "계정 정보가 수정되었습니다.");
@@ -106,9 +123,10 @@ public class SettingsController {
             return "redirect:/admin/settings?tab=account";
         }
 
-        boolean result = settingsService.changePassword("1", currentPwd, newPwd);
+        String aIdx = currentAdminIdx();
+        boolean result = settingsService.changePassword(aIdx, currentPwd, newPwd);
         if (result) {
-            settingsService.writeLog("1", "", "비밀번호 변경", "", request.getRemoteAddr());
+            settingsService.writeLog(aIdx, "", "비밀번호 변경", "", request.getRemoteAddr());
             rttr.addFlashAttribute("pwdMsg", "비밀번호가 변경되었습니다.");
         } else {
             rttr.addFlashAttribute("pwdMsg", "현재 비밀번호가 일치하지 않습니다.");

@@ -18,6 +18,7 @@ public interface SettingsService {
 
     // ── 관리자 계정 ──────────────────────────────────────────────
     Map<String, Object> getAdminInfo(String a_idx);
+    Map<String, Object> getAdminInfoByLoginId(String loginId);
     int updateAdminInfo(String a_idx, String a_name, String a_email, String a_phone);
     boolean changePassword(String a_idx, String currentPwd, String newPwd);
 
