@@ -60,7 +60,7 @@
         }
         </c:if>
     </style>
-    
+
     <%-- [추가] 전역 JS 변수 설정 (Context Path 및 로그인 상태) --%>
     <script>
         window.contextPath = '${pageContext.request.contextPath}';
@@ -90,6 +90,14 @@
             </ul>
         </li>
 
+<% if (loggedIn) { %>
+        <li>
+            <a href="${pageContext.request.contextPath}/reservation/mylist">
+                <div class="acc-left"><i class="fa-regular fa-calendar-check"></i> 내 예약</div>
+            </a>
+        </li>
+        <% } %>
+
         <li class="accordion-item">
             <a href="#" class="accordion-toggle">
                 <div class="acc-left"><i class="fa-regular fa-building"></i> 공간 소개</div>
@@ -108,13 +116,7 @@
             </ul>
         </li>
 
-        <% if (loggedIn) { %>
-        <li>
-            <a href="${pageContext.request.contextPath}/reservation/mylist">
-                <div class="acc-left"><i class="fa-regular fa-calendar-check"></i> 내 예약</div>
-            </a>
-        </li>
-        <% } %>
+
 
         <li class="accordion-item">
             <a href="#" class="accordion-toggle">
@@ -126,9 +128,22 @@
                 <li><a href="${pageContext.request.contextPath}/inquiry/form">자주 묻는 질문</a></li>
                 <li><a href="${pageContext.request.contextPath}/inquiry">1:1 문의</a></li>
                 <li><a href="#">이벤트</a></li>
-                <li><a href="#">사업자 관리</a></li>
             </ul>
         </li>
+
+        <%-- [수정] 사업자 전용 탭: partnerUser가 true(사업자 권한 소유)일 때만 메뉴가 노출됩니다. --%>
+        <% if (partnerUser) { %>
+        <li class="accordion-item">
+            <a href="#" class="accordion-toggle">
+                <div class="acc-left"><i class="fa-solid fa-briefcase"></i> 사업자 전용</div>
+                <i class="fa-solid fa-chevron-down acc-arrow"></i>
+            </a>
+            <ul class="accordion-content">
+                <li><a href="${pageContext.request.contextPath}/partner/branch/list">지점 관리</a></li>
+                <li><a href="${pageContext.request.contextPath}/partner/reservation/status">예약 현황</a></li>
+            </ul>
+        </li>
+        <% } %>
     </ul>
 </aside>
 
