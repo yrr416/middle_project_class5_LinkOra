@@ -132,6 +132,26 @@
         background: #2F4F4F !important;
         border-color: #2F4F4F !important;
     }
+
+    /* [추가/수정] 찜 버튼 스타일: 지도 페이지 하트 버튼과 통일감 유지 */
+    .search-wish-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 22px;
+        transition: transform 0.2s ease, color 0.2s ease;
+        padding: 5px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .search-wish-btn:hover {
+        transform: scale(1.15);
+    }
+    .search-wish-btn i {
+        pointer-events: none; /* 아이콘 클릭 시 부모 버튼이 클릭되도록 설정 */
+    }
 </style>
 
 <main class="list-page-wrapper">
@@ -247,7 +267,16 @@
                         </div>
 
                         <div class="branch-info" style="padding: 20px; flex-grow: 1; display: flex; flex-direction: column;">
-                            <h3 style="margin: 0 0 10px 0; font-size: 20px;">${branch.brnName}</h3>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <h3 style="margin: 0; font-size: 20px;">${branch.brnName}</h3>
+                                <button class="search-wish-btn"
+                                        data-brn-idx="${branch.brnIdx}"
+                                        onclick="toggleSearchWish(this, '${branch.brnIdx}')"
+                                        style="color: ${branch.isWish ? '#ff4757' : '#ccc'};">
+                                    <i class="${branch.isWish ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                                </button>
+                            </div>
+
                             <p class="location-text" style="margin-bottom: 15px;">
                                 <i class="fa-solid fa-location-dot" style="color: #2F4F4F; margin-right: 5px;"></i> ${branch.brnAddress}
                             </p>
@@ -292,6 +321,59 @@
 </main>
 
 <script>
+    /* [핵심 추가] 페이지가 로드될 때 내 찜 목록을 가져와서 지도와 동일하게 동기화합니다. */
+    document.addEventListener('DOMContentLoaded', () => {
+        fetch('/linkora/api/wishlist/my')
+            .then(res => res.json())
+            .then(wishedList => {
+                if (Array.isArray(wishedList)) {
+                    wishedList.forEach(item => {
+                        // 내 찜 목록에 있는 brnIdx와 화면의 버튼 번호를 대조합니다.
+                        const btn = document.querySelector(`.search-wish-btn[data-brn-idx="${item.brnIdx}"]`);
+                        if (btn) {
+                            btn.style.color = '#ff4757'; // 빨간색 적용
+                            const icon = btn.querySelector('i');
+                            if (icon) {
+                                icon.className = 'fa-solid fa-heart'; // 꽉 찬 하트 적용
+                            }
+                        }
+                    });
+                }
+            })
+            .catch(err => console.warn("찜 목록 동기화 중 오류 발생:", err));
+    });
+
+    /* 검색 페이지 전용 찜하기(하트) 토글 함수 */
+    window.toggleSearchWish = function(target, brnIdx) {
+        const icon = target.querySelector('i');
+
+        // 지도 페이지와 동일한 서버 API를 호출합니다.
+        fetch('/linkora/api/wishlist/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+            body: JSON.stringify({ "brnIdx": parseInt(brnIdx, 10) })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                if (data.isAdded) {
+                    // 찜 추가 성공 시
+                    target.style.color = '#ff4757';
+                    icon.className = 'fa-solid fa-heart';
+                } else {
+                    // 찜 해제 성공 시
+                    target.style.color = '#ccc';
+                    icon.className = 'fa-regular fa-heart';
+                }
+            } else if (data.status === 'login_required') {
+                alert("로그인이 필요한 서비스입니다.");
+                location.href = "/linkora/login";
+            }
+        })
+        .catch(err => console.error("찜하기 통신 중 에러 발생:", err));
+    };
+
+    /* 페이지 이동 함수 (필터 유지) */
     function goPage(page) {
         const form = document.getElementById('sidebarFilterForm');
         let pageInput = form.querySelector('input[name="page"]');
@@ -304,11 +386,13 @@
         form.submit();
     }
 
+    /* 시/도에 따른 구 목록 데이터 */
     const districtMap = {
         "서울": ["강남구", "서초구", "종로구", "마포구", "송파구", "영등포구", "성동구"],
         "인천": ["남동구", "연수구", "부평구", "미추홀구", "서구", "중구", "동구"]
     };
 
+    /* 지역 선택 시 상세 구 목록 업데이트 */
     function updateSidebarDistricts() {
         const city = document.getElementById('sidebarCity').value;
         const districtSelect = document.getElementById('sidebarDistrict');

@@ -19,7 +19,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/chat/**")
+                        // [추가] 자바스크립트로 POST 요청을 보내는 찜하기 API(/api/wishlist/**)에서 403 에러가 나지 않도록 CSRF 검사 예외 처리 추가
+                        .ignoringRequestMatchers("/chat/**", "/api/wishlist/**")
                 )
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
@@ -42,7 +43,7 @@ public class SecurityConfig {
                             } else {
                                 session.setAttribute("userIdx", userDetails.getIdx());
                             }
-                            
+
                             session.setAttribute("userName", userDetails.getRealName());
 
                             // [추가] 문의 기능 한정: 로그인 전 목적지가 있었다면 해당 페이지로 리다이렉트
