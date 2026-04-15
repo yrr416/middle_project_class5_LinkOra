@@ -28,8 +28,11 @@ public interface SettingsMapper {
     /** 관리자 계정 정보 조회 (idx 기준) */
     Map<String, Object> getAdminInfo(String a_idx);
 
-    /** 로그인 ID로 관리자 조회 (로그인용) */
+    /** 로그인 ID로 관리자 조회 (로그인용 - 비밀번호 검증용 최소 정보) */
     Map<String, Object> findAdminByLoginId(String loginId);
+
+    /** 로그인 ID로 관리자 전체 정보 조회 (설정 페이지용) */
+    Map<String, Object> getAdminInfoByLoginId(String loginId);
 
     /** 관리자 계정 정보 수정 (이름, 이메일, 연락처) */
     int updateAdminInfo(Map<String, Object> map);

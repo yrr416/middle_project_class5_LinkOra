@@ -25,16 +25,37 @@
 
     <!-- ── 관리자 계정 ──────────────────────────────────────────── -->
 
-    <!-- 로그인 ID로 관리자 조회 (로그인용) -->
+    <!-- 로그인 ID로 관리자 조회 (로그인용 - 비밀번호 검증용 최소 정보) -->
     <select id="findAdminByLoginId" parameterType="String" resultType="map">
-        SELECT a_idx, a_id, a_pwd
+        SELECT a_idx  AS aIdx,
+               a_id   AS aId,
+               a_pwd  AS aPwd
           FROM admin
          WHERE a_id = #{loginId}
     </select>
 
-    <!-- 관리자 계정 정보 조회 -->
+    <!-- 로그인 ID로 관리자 전체 정보 조회 (설정 페이지용) -->
+    <select id="getAdminInfoByLoginId" parameterType="String" resultType="map">
+        SELECT a_idx  AS aIdx,
+               a_id   AS aId,
+               a_name AS admName,
+               a_email AS aEmail,
+               a_addr  AS aAddr,
+               a_phone AS aPhone,
+               a_pwd   AS aPwd
+          FROM admin
+         WHERE a_id = #{loginId}
+    </select>
+
+    <!-- 관리자 계정 정보 조회 (a_idx 기준) -->
     <select id="getAdminInfo" parameterType="String" resultType="map">
-        SELECT a_idx, a_id, a_name AS adm_name, a_email, a_addr, a_phone, a_pwd
+        SELECT a_idx  AS aIdx,
+               a_id   AS aId,
+               a_name AS admName,
+               a_email AS aEmail,
+               a_addr  AS aAddr,
+               a_phone AS aPhone,
+               a_pwd   AS aPwd
           FROM admin
          WHERE a_idx = #{aIdx}
     </select>

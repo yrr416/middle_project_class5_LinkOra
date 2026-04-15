@@ -62,10 +62,7 @@ public class SettingsServiceImpl implements SettingsService {
     /** 로그인 ID(a_id)로 관리자 전체 정보 조회 */
     @Override
     public Map<String, Object> getAdminInfoByLoginId(String loginId) {
-        Map<String, Object> base = settingsMapper.findAdminByLoginId(loginId);
-        if (base == null) return null;
-        String aIdx = String.valueOf(base.get("aIdx"));
-        return settingsMapper.getAdminInfo(aIdx);
+        return settingsMapper.getAdminInfoByLoginId(loginId);
     }
 
     /** 관리자 이름·이메일·연락처 수정 */
