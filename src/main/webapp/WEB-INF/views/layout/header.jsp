@@ -7,8 +7,10 @@
 
 <%
     boolean loggedIn = request.getUserPrincipal() != null;
+    boolean adminUser = request.isUserInRole("ROLE_ADMIN");
     boolean partnerUser = request.isUserInRole("ROLE_PARTNER");
-    String mypageUrl = partnerUser ? (request.getContextPath() + "/partner/mypage")
+    String mypageUrl = adminUser ? (request.getContextPath() + "/admin/dashboard")
+            : partnerUser ? (request.getContextPath() + "/partner/mypage")
             : (request.getContextPath() + "/mypage");
 %>
 <!DOCTYPE html>
@@ -131,7 +133,7 @@
         <div class="header-right">
             <a href="${pageContext.request.contextPath}/detail/list" class="btn-book">예약하기</a>
             <% if (loggedIn) { %>
-            <button class="login-btn" onclick="location.href='<%= mypageUrl %>'">마이페이지</button>
+            <button class="login-btn" onclick="location.href='<%= mypageUrl %>'"><%= adminUser ? "관리자페이지" : "마이페이지" %></button>
             <% } else { %>
             <button class="login-btn" onclick="location.href='${pageContext.request.contextPath}/login'">LOGIN</button>
             <% } %>
