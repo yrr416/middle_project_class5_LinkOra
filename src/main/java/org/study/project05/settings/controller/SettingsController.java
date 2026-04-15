@@ -58,8 +58,17 @@ public class SettingsController {
                         @RequestParam(defaultValue = "account") String tab,
                         Model model) {
 
-        // 전체 설정 key→value 맵
+        // 전체 설정 key→value 맵 (DB 값 없으면 기본값 채움)
         Map<String, String> settings = settingsService.getAllSettings();
+        settings.putIfAbsent("grade_silver_count", "10");
+        settings.putIfAbsent("grade_gold_count",   "30");
+        settings.putIfAbsent("grade_silver_amount", "100000");
+        settings.putIfAbsent("grade_gold_amount",   "500000");
+        settings.putIfAbsent("point_rate",          "3");
+        settings.putIfAbsent("point_min_use",       "1000");
+        settings.putIfAbsent("cancel_period",       "24");
+        settings.putIfAbsent("refund_rate_full",    "100");
+        settings.putIfAbsent("refund_rate_half",    "50");
         model.addAttribute("settings", settings);
 
         // 로그인한 관리자 계정 정보
