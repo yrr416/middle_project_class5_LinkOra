@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!document.querySelector('script[src*="dapi.kakao.com"]')) {
             const script = document.createElement('script');
             script.type = 'text/javascript';
-            script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=7508bb04c356b05484667dca670ae0cc&libraries=services&autoload=false';
+            script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=f46b246e453c7ccbab5a79c4aa737bcc&libraries=services&autoload=false';
             script.onload = () => { window.kakao.maps.load(initMapProcess); };
             document.head.appendChild(script);
         } else {
@@ -153,7 +153,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initMapProcess() {
         let centerLatLng = new window.kakao.maps.LatLng(37.4775, 126.6325);
-        const mapOption = { center: centerLatLng, level: 4 };
+
+        // 지도를 더 하늘 높이서 넓게 보려고 숫자를 4에서 5로 바꿨어!
+        const mapOption = { center: centerLatLng, level: 5 };
+
         const map = new window.kakao.maps.Map(mapContainer, mapOption);
 
         const pinImg = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='%232F4F4F' d='M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z'/%3E%3C/svg%3E";
@@ -185,7 +188,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetchUrl = `/linkora/api/branches?keyword=${encodeURIComponent(keyword)}`;
                 const isMapPage = location.pathname.includes('/map');
                 if (centerLatLng && !isMapPage) {
-                    fetchUrl += `&lat=${centerLatLng.getLat()}&lng=${centerLatLng.getLng()}`;
+                    // 서버한테 내 주변 3000미터(3km) 안쪽에 있는 지점 다 찾아달라고 부탁하는 거야!
+                    fetchUrl += `&lat=${centerLatLng.getLat()}&lng=${centerLatLng.getLng()}&radius=3000`;
                 }
             }
 
@@ -204,22 +208,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         return;
                     }
 
-                    if (!Array.isArray(branches)) {
-                        console.warn("데이터 형식이 올바르지 않습니다.");
-                        return;
-                    }
-
-                    if (branches.length === 0) {
-                        console.warn("표시할 지점이 없습니다.");
-                        return;
-                    }
+                    // [추가] 관심 지점들이 전국에 퍼져있어도 한눈에 보이게 범위를 계산하는 도구
+                    const bounds = new window.kakao.maps.LatLngBounds();
+                    let hasPoints = false;
 
                     branches.forEach(branch => {
                         if (branch.brnLatitude && branch.brnLongitude) {
                             const markerPos = new window.kakao.maps.LatLng(branch.brnLatitude, branch.brnLongitude);
-
                             const marker = new window.kakao.maps.Marker({ position: markerPos, image: markerImage, map: map });
                             markers.push(marker);
+
+                            // 모든 마커의 위치를 범위에 포함시킴
+                            bounds.extend(markerPos);
+                            hasPoints = true;
 
                             const labelWrap = document.createElement('div');
                             labelWrap.style.cssText = `display:flex; align-items:center; background:white; color:#2F4F4F; padding:6px 16px; border-radius:10px; border:2px solid #cccccc; box-shadow:0 4px 15px rgba(0,0,0,0.2); font-family:'Pretendard',sans-serif; font-size:14px; font-weight:800; white-space:nowrap; position:relative; cursor:pointer;`;
@@ -274,13 +275,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     });
 
-                    if (keyword && type === "all" && markers.length > 0) {
-                        map.panTo(markers[0].getPosition());
+                    // [추가] 관심 지점 모드일 때만 지도가 모든 핀을 포함하도록 축소/이동
+                    if (type === "favorite" && hasPoints) {
+                        map.setBounds(bounds);
+                    } else {
+                        // 일반 모드에서는 첫 번째 마커로 이동하거나 중심 유지
+                        if (keyword && markers.length > 0) {
+                            map.panTo(markers[0].getPosition());
+                        }
                     }
 
-                    if (type === "favorite" && markers.length > 0) {
-                        map.panTo(markers[0].getPosition());
-                    }
                 }).catch(err => { console.error("지점 데이터 로드 중 오류 발생:", err); });
         };
 
@@ -312,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, (err) => {
                     console.warn("GPS 획득 실패, 기본 위치로 로드함.");
                 },
-                { timeout: 3000 }
+                { timeout: 1000 }
             );
         }
 
@@ -326,11 +330,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const tabNear = document.getElementById('tabNear');
         const tabFavorite = document.getElementById('tabFavorite');
+        // '지도로 크게 보기' 버튼을 미리 찾아둡니다.
+        const viewLargeBtn = document.querySelector('.btn-view-map');
 
         if (tabNear && tabFavorite) {
             tabNear.addEventListener('click', () => {
                 tabNear.classList.add('active'); tabNear.classList.remove('inactive');
                 tabFavorite.classList.add('inactive'); tabFavorite.classList.remove('active');
+
+                // [추가] 탭 글자 강조 로직
+                tabNear.style.fontWeight = "900"; tabNear.style.color = "#2F4F4F";
+                tabFavorite.style.fontWeight = "400"; tabFavorite.style.color = "#bbb";
+
+                // [추가] 크게 보기 버튼 링크 원복
+                if(viewLargeBtn) viewLargeBtn.href = "/linkora/map";
+
                 if (activeInfoOverlay) activeInfoOverlay.setMap(null);
                 window.loadBranches("", "all");
             });
@@ -338,6 +352,14 @@ document.addEventListener('DOMContentLoaded', () => {
             tabFavorite.addEventListener('click', () => {
                 tabFavorite.classList.add('active'); tabFavorite.classList.remove('inactive');
                 tabNear.classList.add('inactive'); tabNear.classList.remove('active');
+
+                // [추가] 탭 글자 강조 로직
+                tabFavorite.style.fontWeight = "900"; tabFavorite.style.color = "#2F4F4F";
+                tabNear.style.fontWeight = "400"; tabNear.style.color = "#bbb";
+
+                // [추가] 크게 보기 버튼 클릭 시 찜 목록 모드로 넘어가도록 설정
+                if(viewLargeBtn) viewLargeBtn.href = "/linkora/map?mode=wish";
+
                 if (activeInfoOverlay) activeInfoOverlay.setMap(null);
                 window.loadBranches("", "favorite");
             });

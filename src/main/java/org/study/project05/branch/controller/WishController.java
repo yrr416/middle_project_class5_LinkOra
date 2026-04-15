@@ -3,6 +3,9 @@ package org.study.project05.branch.controller;
 import org.study.project05.branch.vo.BranchVO;
 import org.study.project05.branch.service.WishService;
 import org.study.project05.branch.vo.WishVO;
+// [추가] 세션 정보를 정확하게 꺼내주는 공통 도구를 가져옴
+import org.study.project05.common.util.SessionUtil;
+
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,8 +32,8 @@ public class WishController {
     public Map<String, Object> toggleWish(@RequestBody WishVO wishVO, HttpSession session) {
         Map<String, Object> response = new HashMap<>();
 
-        // 세션에서 로그인한 사용자 번호를 가져옴
-        Integer userIdx = (Integer) session.getAttribute("u_idx");
+        // [수정] u_idx 대신 공통 도구인 SessionUtil을 사용하여 정확한 로그인 번호를 가져옴
+        Integer userIdx = SessionUtil.getUserIdx(session);
 
         // 로그인이 안 되어 있으면 "login_required" 상태를 보냄
         if (userIdx == null) {
@@ -56,7 +59,8 @@ public class WishController {
     // ==========================================
     @GetMapping("/my")
     public Object getMyFavoriteBranches(HttpSession session) {
-        Integer userIdx = (Integer) session.getAttribute("u_idx");
+        // [수정] 여기도 마찬가지로 SessionUtil을 사용하여 안전하게 로그인 번호를 확인함
+        Integer userIdx = SessionUtil.getUserIdx(session);
 
         if (userIdx == null) {
             Map<String, String> response = new HashMap<>();

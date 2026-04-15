@@ -186,7 +186,7 @@
                         <i class="fa-solid fa-door-closed"></i>
                         <div>
                             <h3>프라이빗 오피스</h3>
-                            <p>개인을 위한 독립된 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;공간</p>
+                            <p>개인을 위한 독립된 공간</p>
                         </div>
                     </div>
 
@@ -439,7 +439,7 @@
         }
     </script>
 
-    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=247139c78458523e2ad17488def871c6&libraries=services&autoload=false"></script>
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=f46b246e453c7ccbab5a79c4aa737bcc&libraries=services&autoload=false"></script>
     <script src="${pageContext.request.contextPath}/js/mp_script.js"></script>
 
 </main>

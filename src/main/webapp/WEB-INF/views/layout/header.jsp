@@ -87,7 +87,6 @@
             <ul class="accordion-content">
                 <li><a href="#">내 문의</a></li>
                 <li><a href="#">관심지점</a></li>
-                <li><a href="#">예약 확인하기</a></li>
             </ul>
         </li>
 
