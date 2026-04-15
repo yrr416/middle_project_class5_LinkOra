@@ -37,9 +37,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         // 관리자 테이블 먼저 확인
         Map<String, Object> admin = settingsMapper.findAdminByLoginId(key);
-        if (admin != null && admin.get("a_pwd") != null) {
-            String rawPwd = (String) admin.get("a_pwd");
-            return User.withUsername((String) admin.get("a_id"))
+        if (admin != null && admin.get("aPwd") != null) {
+            String rawPwd = (String) admin.get("aPwd");
+            return User.withUsername((String) admin.get("aId"))
                     .password("{noop}" + rawPwd)
                     .roles("ADMIN")
                     .build();
