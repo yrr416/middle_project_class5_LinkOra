@@ -21,13 +21,19 @@ public class SettingsServiceImpl implements SettingsService {
 
     // ── 설정 키-값 ──────────────────────────────────────────────
 
-    /** 전체 설정을 key→value 맵으로 반환 */
+    /** 전체 설정을 key→value 맵으로 반환 (MySQL alias 대소문자 무관 처리) */
     @Override
     public Map<String, String> getAllSettings() {
         Map<String, String> result = new HashMap<>();
         List<Map<String, String>> list = settingsMapper.getAllSettings();
         for (Map<String, String> row : list) {
-            result.put(row.get("sKey"), row.get("sValue"));
+            String key = null, value = null;
+            for (Map.Entry<String, String> e : row.entrySet()) {
+                String col = e.getKey().toLowerCase();
+                if (col.equals("skey"))   key   = e.getValue();
+                if (col.equals("svalue")) value = e.getValue();
+            }
+            if (key != null) result.put(key, value);
         }
         return result;
     }

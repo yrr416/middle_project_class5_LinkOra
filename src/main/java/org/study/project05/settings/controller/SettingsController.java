@@ -58,17 +58,18 @@ public class SettingsController {
                         @RequestParam(defaultValue = "account") String tab,
                         Model model) {
 
-        // 전체 설정 key→value 맵 (DB 값 없으면 기본값 채움)
-        Map<String, String> settings = settingsService.getAllSettings();
-        settings.putIfAbsent("grade_silver_count", "10");
-        settings.putIfAbsent("grade_gold_count",   "30");
-        settings.putIfAbsent("grade_silver_amount", "100000");
-        settings.putIfAbsent("grade_gold_amount",   "500000");
-        settings.putIfAbsent("point_rate",          "3");
-        settings.putIfAbsent("point_min_use",       "1000");
-        settings.putIfAbsent("cancel_period",       "24");
-        settings.putIfAbsent("refund_rate_full",    "100");
-        settings.putIfAbsent("refund_rate_half",    "50");
+        // 기본값 먼저 설정 후 DB 값으로 덮어쓰기 (DB 비어 있어도 항상 표시)
+        Map<String, String> settings = new java.util.LinkedHashMap<>();
+        settings.put("grade_silver_count",  "10");
+        settings.put("grade_gold_count",    "30");
+        settings.put("grade_silver_amount", "100000");
+        settings.put("grade_gold_amount",   "500000");
+        settings.put("point_rate",          "3");
+        settings.put("point_min_use",       "1000");
+        settings.put("cancel_period",       "24");
+        settings.put("refund_rate_full",    "100");
+        settings.put("refund_rate_half",    "50");
+        settings.putAll(settingsService.getAllSettings());  // DB 저장값으로 덮어씌움
         model.addAttribute("settings", settings);
 
         // 로그인한 관리자 계정 정보
