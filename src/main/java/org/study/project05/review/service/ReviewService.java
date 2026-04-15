@@ -18,9 +18,10 @@ public interface ReviewService {
 
     /**
      * 본인 리뷰 수정 (욕설 필터 적용)
+     * @param imgUrl null=기존 이미지 유지, ""=이미지 삭제, 파일명=새 이미지로 교체
      * @throws IllegalArgumentException 본인 리뷰가 아니거나 내용/별점이 유효하지 않은 경우
      */
-    void updateReview(int revIdx, int userIdx, String content, Integer rating);
+    void updateReview(int revIdx, int userIdx, String content, Integer rating, String imgUrl);
 
     /**
      * 리뷰 신고

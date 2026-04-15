@@ -94,16 +94,31 @@ public class ReviewController {
     public Map<String, Object> update(@RequestParam int revIdx,
                                       @RequestParam String content,
                                       @RequestParam Integer rating,
-                                      HttpSession session) {
+                                      @RequestParam(required = false) MultipartFile imgFile,
+                                      @RequestParam(defaultValue = "false") boolean removeImg,
+                                      HttpSession session,
+                                      HttpServletRequest request) {
         UserProfileVO user = (UserProfileVO) session.getAttribute("loginUser");
         if (user == null) {
             return Map.of("success", false, "message", "로그인이 필요합니다.");
         }
         try {
-            reviewService.updateReview(revIdx, user.getUserIdx(), content, rating);
+            // imgUrl 결정:
+            //   1) 새 파일이 있으면 → 저장 후 새 파일명
+            //   2) removeImg=true 이면 → "" (빈 문자열 = 이미지 삭제)
+            //   3) 둘 다 아니면 → null (기존 이미지 유지)
+            String imgUrl = null;
+            if (imgFile != null && !imgFile.isEmpty()) {
+                imgUrl = saveReviewImage(imgFile, request);
+            } else if (removeImg) {
+                imgUrl = ""; // 빈 문자열로 DB v_img 비움
+            }
+            reviewService.updateReview(revIdx, user.getUserIdx(), content, rating, imgUrl);
             return Map.of("success", true);
         } catch (IllegalArgumentException e) {
             return Map.of("success", false, "message", e.getMessage());
+        } catch (IOException e) {
+            return Map.of("success", false, "message", "이미지 업로드에 실패했습니다.");
         }
     }
 

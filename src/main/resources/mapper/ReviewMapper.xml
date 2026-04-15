@@ -103,12 +103,21 @@
           AND u_idx  = #{userIdx}
     </delete>
 
-    <!-- 본인 후기 수정 (revIdx + userIdx 둘 다 일치해야 수정 — 타인 수정 방지) -->
+    <!-- 본인 후기 수정 (revIdx + userIdx 둘 다 일치해야 수정 — 타인 수정 방지)
+         revImg != null 일 때만 v_img 업데이트:
+           - null → 기존 이미지 유지 (SET 절에 포함 안 함)
+           - ""   → v_img = '' (이미지 삭제)
+           - 파일명 → v_img = 새 파일명 (이미지 교체) -->
     <update id="updateByUser">
         UPDATE review
-        SET v_content    = #{revContent},
+        <set>
+            v_content    = #{revContent},
             v_rating     = #{revRating},
+            <if test="revImg != null">
+                v_img    = #{revImg},
+            </if>
             v_updated_at = NOW()
+        </set>
         WHERE v_idx  = #{revIdx}
           AND u_idx  = #{userIdx}
     </update>

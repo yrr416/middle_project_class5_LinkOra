@@ -21,7 +21,7 @@ public class UserReservationServiceImpl implements UserReservationService {
 
     @Autowired
     private SpaceMapper spaceMapper;
-
+    //DB용 타임포멧과 자바에서 시간처리를 위한 타임포멧 사전 선언
     private static final DateTimeFormatter FORM_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     private static final DateTimeFormatter DB_FMT   = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -45,6 +45,7 @@ public class UserReservationServiceImpl implements UserReservationService {
         String startTimeStr = vo.getResStartTime().replace(" ", "T");
         String endTimeStr = vo.getResEndTime().replace(" ", "T");
 
+        // 시간계산을 위한 객체로 변환
         LocalDateTime start = LocalDateTime.parse(startTimeStr, FORM_FMT);
         LocalDateTime end   = LocalDateTime.parse(endTimeStr, FORM_FMT);
 

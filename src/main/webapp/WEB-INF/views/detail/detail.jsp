@@ -532,6 +532,25 @@
                      focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none"
               placeholder="수정할 내용을 입력해주세요."></textarea>
 
+    <%-- 기존 이미지 미리보기: 이미지가 있을 때만 표시 --%>
+    <div id="editImgPreviewWrap" class="mb-3 hidden">
+      <img id="editImgPreview" src="" alt="현재 이미지"
+           class="max-h-40 rounded-xl object-cover border border-gray-100 mb-1 block">
+      <button type="button" onclick="removeEditImg()"
+              class="text-xs text-red-400 hover:text-red-600">이미지 삭제</button>
+    </div>
+
+    <%-- 새 이미지 첨부 --%>
+    <label class="block text-xs text-gray-400 mb-1">사진 첨부 (선택, 최대 10MB)</label>
+    <input type="file" id="editImgFile" accept="image/*"
+           class="block w-full text-xs text-gray-500 mb-3
+                  file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0
+                  file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-600
+                  hover:file:bg-indigo-100"
+           onchange="previewEditImg(this)">
+    <%-- 이미지 삭제 요청 여부 전달용 hidden 필드 --%>
+    <input type="hidden" id="editRemoveImg" value="false">
+
     <p id="editMsg" class="text-xs text-red-400 mb-3 hidden"></p>
 
     <div class="flex gap-2">
@@ -828,6 +847,7 @@
                        data-rev-idx="\${r.revIdx}"
                        data-content="\${esc(r.revContent)}"
                        data-rating="\${r.revRating}"
+                       data-img="\${r.revImg ? esc(r.revImg) : ''}"
                        class="text-xs text-gray-300 hover:text-indigo-500 transition ml-2"
                        title="리뷰 수정">수정</button>`
             : '';
@@ -1106,10 +1126,28 @@
     editTargetIdx = parseInt(btn.dataset.revIdx);
     const content = btn.dataset.content || '';
     const rating  = parseInt(btn.dataset.rating) || 0;
+    const img     = btn.dataset.img || ''; // 기존 이미지 파일명
+
     // esc()로 HTML 엔티티 처리된 값을 원래 문자로 복원
     const textarea = document.getElementById('editContent');
     textarea.value = content.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"');
     setEditRating(rating);
+
+    // 이미지 관련 초기화
+    document.getElementById('editImgFile').value = '';
+    document.getElementById('editRemoveImg').value = 'false';
+
+    // 기존 이미지가 있으면 미리보기 표시
+    const previewWrap = document.getElementById('editImgPreviewWrap');
+    const preview     = document.getElementById('editImgPreview');
+    if (img) {
+      preview.src = CTX + '/static/upload/review/' + img;
+      previewWrap.classList.remove('hidden');
+    } else {
+      previewWrap.classList.add('hidden');
+      preview.src = '';
+    }
+
     document.getElementById('editMsg').classList.add('hidden');
     document.getElementById('editModal').classList.remove('hidden');
   }
@@ -1117,7 +1155,34 @@
   /** 수정 모달 닫기 */
   function closeEditModal() {
     document.getElementById('editModal').classList.add('hidden');
+    document.getElementById('editImgFile').value = '';
+    document.getElementById('editImgPreviewWrap').classList.add('hidden');
+    document.getElementById('editRemoveImg').value = 'false';
     editTargetIdx = 0;
+  }
+
+  /** 수정 모달 - 새 이미지 선택 시 미리보기 갱신 */
+  function previewEditImg(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = document.getElementById('editImgPreview');
+        preview.src   = e.target.result;
+        document.getElementById('editImgPreviewWrap').classList.remove('hidden');
+        // 새 파일을 선택했으므로 삭제 플래그 해제
+        document.getElementById('editRemoveImg').value = 'false';
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  /** 수정 모달 - 이미지 삭제 버튼: 서버에 removeImg=true 전달 */
+  function removeEditImg() {
+    document.getElementById('editImgFile').value = '';
+    document.getElementById('editImgPreviewWrap').classList.add('hidden');
+    document.getElementById('editImgPreview').src = '';
+    // 서버에서 v_img를 비워달라는 신호
+    document.getElementById('editRemoveImg').value = 'true';
   }
 
   /** 수정 모달 별점 설정 */
@@ -1132,18 +1197,43 @@
   /** 수정 제출 */
   function submitEdit() {
     if (editTargetIdx === 0) return;
-    const content = document.getElementById('editContent').value.trim();
-    const rating  = parseInt(document.getElementById('editRating').value);
-    const msgEl   = document.getElementById('editMsg');
+    const content   = document.getElementById('editContent').value.trim();
+    const rating    = parseInt(document.getElementById('editRating').value);
+    const msgEl     = document.getElementById('editMsg');
+    const imgFile   = document.getElementById('editImgFile');
+    const removeImg = document.getElementById('editRemoveImg').value;
 
-    if (!rating) { msgEl.textContent = '별점을 선택해주세요.'; msgEl.classList.remove('hidden'); return; }
-    if (!content) { msgEl.textContent = '내용을 입력해주세요.'; msgEl.classList.remove('hidden'); return; }
+    if (!rating)  { msgEl.textContent = '별점을 선택해주세요.'; msgEl.classList.remove('hidden'); return; }
+    if (!content) { msgEl.textContent = '내용을 입력해주세요.';  msgEl.classList.remove('hidden'); return; }
+
+    // 파일 크기 10MB 제한
+    if (imgFile && imgFile.files.length > 0 && imgFile.files[0].size > 10 * 1024 * 1024) {
+      msgEl.textContent = '이미지는 10MB 이하만 첨부할 수 있습니다.';
+      msgEl.classList.remove('hidden');
+      return;
+    }
+
+    // 파일 업로드가 있으므로 FormData로 전송 (write와 동일한 방식)
+    const formData = new FormData();
+    formData.append('revIdx',     editTargetIdx);
+    formData.append('content',    content);
+    formData.append('rating',     rating);
+    formData.append('removeImg',  removeImg); // 'true' 이면 서버에서 이미지 삭제
+    if (imgFile && imgFile.files.length > 0) {
+      formData.append('imgFile', imgFile.files[0]);
+    }
+
+    const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
 
     $.ajax({
-      url:      CTX + '/review/update',
-      type:     'POST',
-      data:     { revIdx: editTargetIdx, content: content, rating: rating },
-      dataType: 'json',
+      url:         CTX + '/review/update',
+      type:        'POST',
+      data:        formData,
+      processData: false,
+      contentType: false,
+      beforeSend:  function(xhr) { xhr.setRequestHeader(csrfHeader, csrfToken); },
+      dataType:    'json',
       success: function(res) {
         if (res.success) {
           closeEditModal();

@@ -87,7 +87,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public void updateReview(int revIdx, int userIdx, String content, Integer rating) {
+    public void updateReview(int revIdx, int userIdx, String content, Integer rating, String imgUrl) {
         if (rating == null || rating < 1 || rating > 5) throw new IllegalArgumentException("별점은 1~5 사이여야 합니다.");
         if (content == null || content.isBlank()) throw new IllegalArgumentException("후기 내용을 입력해주세요.");
 
@@ -100,6 +100,11 @@ public class ReviewServiceImpl implements ReviewService {
         vo.setUserIdx(userIdx);
         vo.setRevContent(filtered);
         vo.setRevRating(rating);
+        // imgUrl: null=기존 유지(SQL에서 제외), ""=삭제, 파일명=교체
+        // → null 이외의 값만 세팅해야 SQL <if> 조건이 작동함
+        if (imgUrl != null) {
+            vo.setRevImg(imgUrl);
+        }
 
         // updateByUser는 revIdx + userIdx 모두 일치할 때만 수정하고 영향받은 행 수를 반환
         int updated = reviewMapper.updateByUser(vo);
