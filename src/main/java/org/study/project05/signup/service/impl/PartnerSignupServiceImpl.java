@@ -5,6 +5,7 @@ package org.study.project05.signup.service.impl;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.study.project05.member.service.UserProfileService;
 import org.study.project05.partner.mapper.PartnerMapper;
 import org.study.project05.signup.service.PartnerSignupService;
 
@@ -12,10 +13,38 @@ import org.study.project05.signup.service.PartnerSignupService;
 public class PartnerSignupServiceImpl implements PartnerSignupService {
     private final PartnerMapper partnerMapper;
     private final PasswordEncoder passwordEncoder;
+    private final UserProfileService userProfileService;
 
-    public PartnerSignupServiceImpl(PartnerMapper partnerMapper, PasswordEncoder passwordEncoder) {
+    public PartnerSignupServiceImpl(
+            PartnerMapper partnerMapper,
+            PasswordEncoder passwordEncoder,
+            UserProfileService userProfileService
+    ) {
         this.partnerMapper = partnerMapper;
         this.passwordEncoder = passwordEncoder;
+        this.userProfileService = userProfileService;
+    }
+
+    public boolean existsPartnerId(String partnerId) {
+        if (partnerId == null || partnerId.isBlank()) {
+            return false;
+        }
+        try {
+            return partnerMapper.countByPartnerId(partnerId.trim()) > 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean existsPartnerEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return false;
+        }
+        try {
+            return partnerMapper.countByEmail(email.trim()) > 0;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public PartnerSignupResult register(
@@ -28,12 +57,26 @@ public class PartnerSignupServiceImpl implements PartnerSignupService {
             String businessNo,
             String profileImagePath
     ) {
+        String id = userId != null ? userId.trim() : "";
+        if (id.isEmpty()) {
+            return PartnerSignupResult.FAILED;
+        }
+        userId = id;
+        String mail = email != null ? email.trim() : "";
         try {
+            if (userProfileService.existsUserId(userId)) {
+                return PartnerSignupResult.duplicateId;
+            }
             if (partnerMapper.countByPartnerId(userId) > 0) {
                 return PartnerSignupResult.duplicateId;
             }
-            if (email != null && !email.isBlank() && partnerMapper.countByEmail(email) > 0) {
-                return PartnerSignupResult.duplicateEmail;
+            if (!mail.isBlank()) {
+                if (userProfileService.existsEmail(mail)) {
+                    return PartnerSignupResult.duplicateEmail;
+                }
+                if (partnerMapper.countByEmail(mail) > 0) {
+                    return PartnerSignupResult.duplicateEmail;
+                }
             }
             if (businessNo != null && !businessNo.isBlank() && partnerMapper.countByBusinessNo(businessNo) > 0) {
                 return PartnerSignupResult.duplicateBizNo;
@@ -46,7 +89,7 @@ public class PartnerSignupServiceImpl implements PartnerSignupService {
                     userId,
                     passwordEncoder.encode(password),
                     name,
-                    email,
+                    mail,
                     address,
                     phone,
                     businessNo,

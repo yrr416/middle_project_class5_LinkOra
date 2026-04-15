@@ -151,6 +151,58 @@
             color: #dc2626;
             visibility: visible;
         }
+        .id-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .id-row input {
+            flex: 1;
+            min-width: 0;
+        }
+        .dup-check-btn {
+            flex-shrink: 0;
+            height: 36px;
+            padding: 0 12px;
+            border: 1px solid #162a4a;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #162a4a;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .dup-check-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+        .id-check-msg {
+            margin: 4px 0 0;
+            font-size: 12px;
+            min-height: 1.2em;
+        }
+        .id-check-msg.ok { color: #16a34a; font-weight: 600; }
+        .id-check-msg.fail { color: #dc2626; font-weight: 600; }
+        .id-check-msg.wait { color: #64748b; }
+        .consent-block { margin-top: 12px; margin-bottom: 8px; }
+        .consent-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13px;
+            color: #334155;
+            font-weight: 500;
+            cursor: pointer;
+            line-height: 1.45;
+        }
+        .consent-label input[type="checkbox"] {
+            width: auto;
+            height: auto;
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+        .consent-label a { color: #162a4a; font-weight: 700; }
     </style>
 </head>
 <%@include file="../layout/header.jsp"%>
@@ -164,9 +216,9 @@
         <h1>회원가입</h1>
 
         <% if ("duplicateId".equals(errorParam)) { %>
-        <p class="msg error">이미 사용 중인 아이디입니다.</p>
+        <p class="msg error">이미 사용 중인 아이디입니다. (일반 회원·사업자 계정과 서로 중복될 수 없습니다.)</p>
         <% } else if ("duplicateEmail".equals(errorParam)) { %>
-        <p class="msg error">이미 사용 중인 이메일입니다.</p>
+        <p class="msg error">이미 사용 중인 이메일입니다. (일반 회원·사업자 계정과 서로 중복될 수 없습니다.)</p>
         <% } else if ("failed".equals(errorParam)) { %>
         <p class="msg error">회원가입 처리에 실패했습니다.</p>
         <% } else if ("invalidImage".equals(errorParam)) { %>
@@ -180,10 +232,12 @@
         <% } else if ("phoneFormat".equals(errorParam)) { %>
         <p class="msg error">전화번호 형식은 xxx-xxxx-xxxx 입니다.</p>
         <% } else if ("emailFormat".equals(errorParam)) { %>
-        <p class="msg error">이메일에는 @가 포함되어야 합니다.</p>
+        <p class="msg error">이메일에는 @와 .이 모두 포함되어야 합니다.</p>
+        <% } else if ("privacyRequired".equals(errorParam)) { %>
+        <p class="msg error">개인정보 처리방침에 동의해야 회원가입할 수 있습니다.</p>
         <% } %>
 
-        <form method="post" action="${pageContext.request.contextPath}/signup" enctype="multipart/form-data">
+        <form method="post" action="/signup" enctype="multipart/form-data">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
             <div class="form-group">
@@ -194,7 +248,11 @@
 
             <div class="form-group">
                 <label for="userId">아이디</label>
-                <input type="text" id="userId" name="userId" placeholder="아이디를 입력하세요" required>
+                <div class="id-row">
+                    <input type="text" id="userId" name="userId" placeholder="아이디를 입력하세요" required maxlength="64" autocomplete="username">
+                    <button type="button" class="dup-check-btn" id="userIdDupCheckBtn">중복 확인</button>
+                </div>
+                <p id="userIdCheckMsg" class="id-check-msg" role="status" aria-live="polite"></p>
             </div>
             <div class="form-group">
                 <label for="userPwd">비밀번호</label>
@@ -221,7 +279,11 @@
             </div>
             <div class="form-group">
                 <label for="userEmail">이메일</label>
-                <input type="email" id="userEmail" name="userEmail" placeholder="이메일을 입력하세요" pattern=".+@.+" required>
+                <div class="id-row">
+                    <input type="email" id="userEmail" name="userEmail" placeholder="이메일을 입력하세요" pattern=".+@.+\..+" maxlength="128" required autocomplete="email">
+                    <button type="button" class="dup-check-btn" id="userEmailDupCheckBtn">중복 확인</button>
+                </div>
+                <p id="userEmailCheckMsg" class="id-check-msg" role="status" aria-live="polite"></p>
             </div>
 
             <div class="form-group">
@@ -241,6 +303,13 @@
             </div>
 
             <input type="hidden" id="userAddr" name="userAddr">
+
+            <div class="form-group consent-block">
+                <label class="consent-label" for="agreePrivacy">
+                    <input type="checkbox" name="agreePrivacy" value="true" id="agreePrivacy" required>
+                    <span><a href="/privacy" target="_blank" rel="noopener noreferrer">개인정보 처리방침</a>을 확인하였으며 이에 동의합니다. (필수)</span>
+                </label>
+            </div>
             <button class="submit-btn" type="submit">회원가입</button>
         </form>
     </section>
@@ -288,6 +357,89 @@
 
     document.getElementById('userPwd').addEventListener('input', updatePasswordMatchUi);
     document.getElementById('userPwdConfirm').addEventListener('input', updatePasswordMatchUi);
+
+    (function () {
+        var userIdInput = document.getElementById('userId');
+        var dupBtn = document.getElementById('userIdDupCheckBtn');
+        var msgEl = document.getElementById('userIdCheckMsg');
+        if (!userIdInput || !dupBtn || !msgEl) {
+            return;
+        }
+        function clearIdCheckMsg() {
+            msgEl.textContent = '';
+            msgEl.className = 'id-check-msg';
+        }
+        userIdInput.addEventListener('input', clearIdCheckMsg);
+        dupBtn.addEventListener('click', function () {
+            var id = (userIdInput.value || '').trim();
+            if (!id) {
+                msgEl.className = 'id-check-msg fail';
+                msgEl.textContent = '아이디를 입력해 주세요.';
+                return;
+            }
+            dupBtn.disabled = true;
+            msgEl.className = 'id-check-msg wait';
+            msgEl.textContent = '확인 중…';
+            fetch('/api/signup/check-user-id?userId=' + encodeURIComponent(id), { method: 'GET', credentials: 'same-origin' })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    var ok = data && data.available === true;
+                    msgEl.className = ok ? 'id-check-msg ok' : 'id-check-msg fail';
+                    msgEl.textContent = (data && data.message) ? data.message : (ok ? '사용 가능합니다.' : '사용할 수 없습니다.');
+                })
+                .catch(function () {
+                    msgEl.className = 'id-check-msg fail';
+                    msgEl.textContent = '확인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+                })
+                .finally(function () {
+                    dupBtn.disabled = false;
+                });
+        });
+    })();
+
+    (function () {
+        var emailInput = document.getElementById('userEmail');
+        var emailDupBtn = document.getElementById('userEmailDupCheckBtn');
+        var emailMsg = document.getElementById('userEmailCheckMsg');
+        if (!emailInput || !emailDupBtn || !emailMsg) {
+            return;
+        }
+        function clearEmailCheckMsg() {
+            emailMsg.textContent = '';
+            emailMsg.className = 'id-check-msg';
+        }
+        emailInput.addEventListener('input', clearEmailCheckMsg);
+        emailDupBtn.addEventListener('click', function () {
+            var em = (emailInput.value || '').trim();
+            if (!em) {
+                emailMsg.className = 'id-check-msg fail';
+                emailMsg.textContent = '이메일을 입력해 주세요.';
+                return;
+            }
+            if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) {
+                emailMsg.className = 'id-check-msg fail';
+                emailMsg.textContent = '올바른 이메일 형식이 아닙니다.';
+                return;
+            }
+            emailDupBtn.disabled = true;
+            emailMsg.className = 'id-check-msg wait';
+            emailMsg.textContent = '확인 중…';
+            fetch('/api/signup/check-email?email=' + encodeURIComponent(em), { method: 'GET', credentials: 'same-origin' })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    var ok = data && data.available === true;
+                    emailMsg.className = ok ? 'id-check-msg ok' : 'id-check-msg fail';
+                    emailMsg.textContent = (data && data.message) ? data.message : (ok ? '사용 가능합니다.' : '사용할 수 없습니다.');
+                })
+                .catch(function () {
+                    emailMsg.className = 'id-check-msg fail';
+                    emailMsg.textContent = '확인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+                })
+                .finally(function () {
+                    emailDupBtn.disabled = false;
+                });
+        });
+    })();
     document.getElementById('userPhone').addEventListener('input', function () {
         var raw = this.value || '';
         var onlyDigits = raw.replace(/\D/g, '').substring(0, 11);
@@ -370,9 +522,15 @@
             return;
         }
         var email = document.getElementById('userEmail').value;
-        if (email.indexOf('@') < 0) {
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
             e.preventDefault();
-            alert('이메일에는 @가 포함되어야 합니다.');
+            alert('이메일에는 @와 .이 모두 포함되어야 합니다.');
+            return;
+        }
+        var agreePrivacy = document.getElementById('agreePrivacy');
+        if (agreePrivacy && !agreePrivacy.checked) {
+            e.preventDefault();
+            alert('개인정보 처리방침에 동의해 주세요.');
             return;
         }
         var road = document.getElementById('sample4RoadAddress').value;
