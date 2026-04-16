@@ -14,6 +14,15 @@
         <result property="brnFile" column="b_file"/>
         <result property="brnActive" column="b_active"/>
         <result property="isWish" column="isWish"/>
+
+        <result property="facParking" column="fac_parking"/>
+        <result property="facHours24" column="fac_hours24"/>
+        <result property="facPet" column="fac_pet"/>
+        <result property="facWifi" column="fac_wifi"/>
+        <result property="facCoffee" column="fac_coffee"/>
+        <result property="facPrinter" column="fac_printer"/>
+        <result property="facLocker" column="fac_locker"/>
+        <result property="mainImgUrl" column="main_img_url"/>
     </resultMap>
 
     <select id="checkWish" parameterType="WishVO" resultType="int">
@@ -43,8 +52,19 @@
             b.b_phone,
             b.b_file,
             b.b_active,
-            1 AS isWish FROM branch b
-                                 INNER JOIN wishlist w ON b.b_idx = w.b_idx
+            1 AS isWish,
+
+            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_parking = 1) as fac_parking,
+            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_hours24 = 1) as fac_hours24,
+            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_pet = 1) as fac_pet,
+            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_desk = 1 OR f.f_wifi = 1)) as fac_wifi,
+            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_cafe = 1 OR f.f_coffee = 1)) as fac_coffee,
+            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_fax = 1 OR f.f_printer = 1)) as fac_printer,
+            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_storage = 1 OR f.f_locker = 1)) as fac_locker,
+            (SELECT bi_url FROM branch_img WHERE branch_img.b_idx = b.b_idx AND bi_is_main = 1 LIMIT 1) as main_img_url
+
+        FROM branch b
+            INNER JOIN wishlist w ON b.b_idx = w.b_idx
         WHERE w.u_idx = #{userIdx}
     </select>
 

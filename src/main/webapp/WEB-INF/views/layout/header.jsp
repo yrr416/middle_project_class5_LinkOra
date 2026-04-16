@@ -86,7 +86,7 @@
             </a>
             <ul class="accordion-content">
                 <li><a href="#">내 문의</a></li>
-                <li><a href="#">관심지점</a></li>
+                <li><a href="${pageContext.request.contextPath}/api/wishlist/view">관심지점</a></li>
             </ul>
         </li>
 
