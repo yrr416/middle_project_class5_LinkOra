@@ -36,4 +36,23 @@ public interface InquiryMapper {
      * @return 성공 여부
      */
     int deleteInquiry(@Param("inqIdx") Integer inqIdx);
+
+    /* ===== 관리자 전용 ===== */
+
+    /** 전체 문의 수 (상태·검색어 필터) */
+    int countAllForAdmin(@Param("statusFilter") String statusFilter,
+                         @Param("searchWord")   String searchWord);
+
+    /** 미답변 문의 수 */
+    int countPending();
+
+    /** 전체 문의 목록 (페이징 + 필터) */
+    List<InquiryVO> selectAllForAdmin(@Param("statusFilter") String statusFilter,
+                                      @Param("searchWord")   String searchWord,
+                                      @Param("offset")       int    offset,
+                                      @Param("limit")        int    limit);
+
+    /** 관리자 답변 저장 (상태 → COMPLETE, i_answered = NOW()) */
+    int answerInquiry(@Param("inqIdx")    Integer inqIdx,
+                      @Param("inqAnswer") String  inqAnswer);
 }
