@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.study.project05.reservation.user.mapper.UserReservationMapper;
 import org.study.project05.reservation.user.vo.UserReservationVO;
 import org.study.project05.branch.mapper.BranchDetailSpaceMapper;
-import org.study.project05.branch.vo.SpaceVO;
+import org.study.project05.branch.vo.BranchSpaceVO;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -28,7 +28,7 @@ public class UserReservationServiceImpl implements UserReservationService {
     @Transactional
     @Override
     public void reserve(UserReservationVO vo) {
-        SpaceVO space = spaceMapper.selectById(vo.getSpcIdx());
+        BranchSpaceVO space = spaceMapper.selectById(vo.getSpcIdx());
         if (space == null) {
             throw new IllegalArgumentException("선택하신 공간 정보를 찾을 수 없습니다. (ID: " + vo.getSpcIdx() + ")");
         }

@@ -228,7 +228,7 @@ public class ChatServiceImpl implements ChatService {
             int spcIdx = Integer.parseInt(parts[0].replace("#", "").trim());
             String date = parts[1].trim();
 
-            org.study.project05.branch.vo.SpaceVO space = spaceMapper.selectById(spcIdx);
+            org.study.project05.branch.vo.BranchSpaceVO space = spaceMapper.selectById(spcIdx);
             int maxCap = space.getSpcMaxCapacity();
             java.util.Map<Integer, Integer> remaining = reservationService.getRemainingSeats(spcIdx, date, maxCap);
 
@@ -370,8 +370,8 @@ public class ChatServiceImpl implements ChatService {
                 String distInfo = (b.getDistance() > 0) ? String.format("(%.1fkm 거리) ", b.getDistance()) : "";
                 sb.append("- ").append(b.getBrnName()).append(distInfo).append(":\n");
                 
-                List<org.study.project05.branch.vo.SpaceVO> spaces = spaceMapper.selectByBranch(b.getBrnIdx());
-                for (org.study.project05.branch.vo.SpaceVO s : spaces) {
+                List<org.study.project05.branch.vo.BranchSpaceVO> spaces = spaceMapper.selectByBranch(b.getBrnIdx());
+                for (org.study.project05.branch.vo.BranchSpaceVO s : spaces) {
                     // 시설 정보 가져오기
                     org.study.project05.branch.vo.FacilityVO f = facilityMapper.selectBySpaceIdx(s.getSpcIdx());
                     String facInfos = (f != null) ? getFacilitySummary(f) : "기본 시설";

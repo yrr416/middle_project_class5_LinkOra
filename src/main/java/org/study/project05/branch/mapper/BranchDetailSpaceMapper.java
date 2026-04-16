@@ -1,16 +1,16 @@
 package org.study.project05.branch.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.study.project05.branch.vo.SpaceVO;
+import org.study.project05.branch.vo.BranchSpaceVO;
 
 import java.util.List;
 
 @Mapper
 public interface BranchDetailSpaceMapper {
 
-    List<SpaceVO> selectAll();
+    List<BranchSpaceVO> selectAll();
 
-    SpaceVO selectById(int spaceIdx);
+    BranchSpaceVO selectById(int spaceIdx);
 
-    List<SpaceVO> selectByBranch(int bIdx);
+    List<BranchSpaceVO> selectByBranch(int bIdx);
 }

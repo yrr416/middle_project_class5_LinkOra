@@ -4,7 +4,7 @@
 
 <mapper namespace="org.study.project05.branch.mapper.BranchDetailSpaceMapper">
 
-    <resultMap id="spaceResultMap" type="SpaceVO">
+    <resultMap id="spaceResultMap" type="BranchSpaceVO">
         <id     property="spcIdx"          column="s_idx"/>
         <result property="brnIdx"          column="b_idx"/>
         <result property="spcType"         column="s_type"/>
