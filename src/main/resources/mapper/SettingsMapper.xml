@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05.settings.mapper.SettingsMapper">
+
+    <!-- ── 설정 키-값 ──────────────────────────────────────────── -->
+
+    <!-- 전체 설정 목록 조회 -->
+    <select id="getAllSettings" resultType="map">
+        SELECT s_key AS sKey, s_value AS sValue FROM settings
+    </select>
+
+    <!-- 특정 설정 값 조회 -->
+    <select id="getSettingValue" parameterType="String" resultType="String">
+        SELECT s_value FROM settings WHERE s_key = #{sKey}
+    </select>
+
+    <!-- 설정 저장: 이미 있으면 value 갱신 (UPSERT) -->
+    <insert id="upsertSetting" parameterType="map">
+        INSERT INTO settings (s_key, s_value)
+        VALUES (#{sKey}, #{sValue})
+        ON DUPLICATE KEY UPDATE s_value = #{sValue}
+    </insert>
+
+    <!-- ── 관리자 계정 ──────────────────────────────────────────── -->
+
+    <!-- 로그인 ID로 관리자 조회 (로그인용 - 비밀번호 검증용 최소 정보) -->
+    <select id="findAdminByLoginId" parameterType="String" resultType="map">
+        SELECT a_idx  AS aIdx,
+               a_id   AS aId,
+               a_pwd  AS aPwd
+          FROM admin
+         WHERE a_id = #{loginId}
+    </select>
+
+    <!-- 로그인 ID로 관리자 전체 정보 조회 (설정 페이지용) -->
+    <select id="getAdminInfoByLoginId" parameterType="String" resultType="map">
+        SELECT a_idx  AS aIdx,
+               a_id   AS aId,
+               a_name AS admName,
+               a_email AS aEmail,
+               a_addr  AS aAddr,
+               a_phone AS aPhone,
+               a_pwd   AS aPwd
+          FROM admin
+         WHERE a_id = #{loginId}
+    </select>
+
+    <!-- 관리자 계정 정보 조회 (a_idx 기준) -->
+    <select id="getAdminInfo" parameterType="String" resultType="map">
+        SELECT a_idx  AS aIdx,
+               a_id   AS aId,
+               a_name AS admName,
+               a_email AS aEmail,
+               a_addr  AS aAddr,
+               a_phone AS aPhone,
+               a_pwd   AS aPwd
+          FROM admin
+         WHERE a_idx = #{aIdx}
+    </select>
+
+    <!-- 관리자 이름·이메일·연락처 수정 -->
+    <update id="updateAdminInfo" parameterType="map">
+        UPDATE admin
+           SET a_name  = #{aName},
+               a_email = #{aEmail},
+               a_phone = #{aPhone}
+         WHERE a_idx = #{aIdx}
+    </update>
+
+    <!-- 비밀번호 변경 -->
+    <update id="updateAdminPassword" parameterType="map">
+        UPDATE admin
+           SET a_pwd = #{aPwd}
+         WHERE a_idx = #{aIdx}
+    </update>
+
+    <!-- ── 답변 템플릿 ──────────────────────────────────────────── -->
+
+    <!-- 템플릿 전체 목록 (최신 등록순) -->
+    <select id="getTemplateList" resultType="TemplateVO">
+        SELECT t_idx    AS tpl_idx,
+               t_title  AS tpl_title,
+               t_content AS tpl_content,
+               DATE_FORMAT(t_created, '%Y-%m-%d') AS tpl_created
+          FROM inquiry_template
+         ORDER BY t_created DESC
+    </select>
+
+    <!-- 템플릿 등록 -->
+    <insert id="insertTemplate" parameterType="TemplateVO">
+        INSERT INTO inquiry_template (t_title, t_content)
+        VALUES (#{tplTitle}, #{tplContent})
+    </insert>
+
+    <!-- 템플릿 수정 -->
+    <update id="updateTemplate" parameterType="TemplateVO">
+        UPDATE inquiry_template
+           SET t_title   = #{tplTitle},
+               t_content = #{tplContent}
+         WHERE t_idx = #{tplIdx}
+    </update>
+
+    <!-- 템플릿 삭제 -->
+    <delete id="deleteTemplate" parameterType="String">
+        DELETE FROM inquiry_template WHERE t_idx = #{tplIdx}
+    </delete>
+
+    <!-- ── 관리자 활동 로그 ──────────────────────────────────────── -->
+
+    <!-- 로그 전체 수 -->
+    <select id="getLogCount" resultType="int">
+        SELECT COUNT(*) FROM admin_log
+    </select>
+
+    <!-- 로그 목록 (최신순, 페이징) -->
+    <select id="getLogList" parameterType="map" resultType="AdminLogVO">
+        SELECT l_idx    AS alog_idx,
+               a_idx    AS adm_idx,
+               a_name   AS adm_name,
+               l_action AS alog_action,
+               l_detail AS alog_detail,
+               l_ip     AS alog_ip,
+               DATE_FORMAT(l_created, '%Y-%m-%d %H:%i:%s') AS alog_created
+          FROM admin_log
+         ORDER BY l_created DESC
+         LIMIT #{numPerPage} OFFSET #{offset}
+    </select>
+
+    <!-- 로그 기록 -->
+    <insert id="insertLog" parameterType="AdminLogVO">
+        INSERT INTO admin_log (a_idx, a_name, l_action, l_detail, l_ip)
+        VALUES (#{admIdx}, #{admName}, #{alogAction}, #{alogDetail}, #{alogIp})
+    </insert>
+
+</mapper>
