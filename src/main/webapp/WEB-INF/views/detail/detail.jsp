@@ -45,7 +45,7 @@
   /* 예약 바(64px)에 footer가 가려지지 않도록 padding-bottom을 늘림 */
   .main-footer { padding-bottom: 80px; }
   /* 챗봇 버튼을 예약 바 위로 올려서 겹치지 않게 함 */
-  .chatbot-floating { bottom: 80px; }
+  #chatbot-container { bottom: 95px !important; }
   #mapbtn { margin: 10px; }
 </style>
 
