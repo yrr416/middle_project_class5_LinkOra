@@ -259,6 +259,7 @@
                                         <i class="bi bi-pencil me-1"></i>수정
                                     </a>
                                     <form method="post" action="${ctx}/admin/space/toggle" class="flex-grow-1 m-0">
+                                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                                         <input type="hidden" name="spcIdx" value="${s.spcIdx}">
                                         <input type="hidden" name="nowPage" value="${nowPage}">
                                         <input type="hidden" name="typeFilter" value="${spaceVO.typeFilter}">
@@ -395,6 +396,7 @@
                                         <td class="text-center">
                                             <!-- 수락 -->
                                             <form method="post" action="${ctx}/admin/space/approve" class="d-inline">
+                                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                                                 <input type="hidden" name="spcIdx" value="${p.spcIdx}">
                                                 <button type="submit" class="btn btn-success btn-sm"
                                                         onclick="return confirm('이 공간을 수락하시겠습니까?\n수락하면 바로 활성화됩니다.')">
@@ -403,6 +405,7 @@
                                             </form>
                                             <!-- 거부 -->
                                             <form method="post" action="${ctx}/admin/space/reject" class="d-inline ms-1">
+                                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                                                 <input type="hidden" name="spcIdx" value="${p.spcIdx}">
                                                 <button type="submit" class="btn btn-danger btn-sm"
                                                         onclick="return confirm('이 공간을 거부하시겠습니까?\n거부하면 데이터가 완전히 삭제됩니다.')">

@@ -78,6 +78,7 @@
             <c:otherwise><c:set var="formAction" value="${ctx}/admin/space/updateok"/></c:otherwise>
         </c:choose>
         <form method="post" action="${formAction}" enctype="multipart/form-data" id="spaceForm">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 
             <c:if test="${mode == 'update'}">
                 <input type="hidden" name="spcIdx" value="${svo.spcIdx}">
@@ -285,6 +286,7 @@
         <c:if test="${mode == 'update'}">
             <form id="deleteForm" method="post" action="${ctx}/admin/space/delete">
                 <input type="hidden" name="spcIdx" value="${svo.spcIdx}">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
             </form>
         </c:if>
 
