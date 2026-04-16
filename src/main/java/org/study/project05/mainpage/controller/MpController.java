@@ -4,7 +4,7 @@ import org.study.project05.branch.service.BranchService;
 import org.study.project05.mainpage.service.SearchService;
 import org.study.project05.branch.vo.BranchVO;
 import org.study.project05.mainpage.vo.SearchLogVO;
-import org.study.project05.review.mapper.ReviewMapper;
+import org.study.project05.review.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,7 +19,7 @@ public class MpController {
 
     private final BranchService branchService;
     private final SearchService searchService;
-    private final ReviewMapper reviewMapper;
+    private final ReviewService reviewService;
 
     @GetMapping("/")
     public String index(
@@ -49,7 +49,7 @@ public class MpController {
         model.addAttribute("topTags", topTags);
         model.addAttribute("keyword", keyword);
         model.addAttribute("region", region);
-        model.addAttribute("recentReviews", reviewMapper.selectRecent(6));
+        model.addAttribute("recentReviews", reviewService.getRecentReviews(6));
 
         return "index";
     }

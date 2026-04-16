@@ -22,6 +22,7 @@
         <result property="reportCount"  column="report_count"/>
     <result property="revImg"       column="v_img"/>
     <result property="branchName"   column="b_name"/>
+    <result property="brnIdx"       column="b_idx"/>
     </resultMap>
 
     <!-- 지점 최상위 후기 목록 (페이징)
@@ -96,6 +97,7 @@
                IFNULL(u.u_name, '탈퇴한 유저') AS u_name,
                s.s_name,
                b.b_name,
+               b.b_idx,
                r.v_created_at,
                r.v_img
         FROM review r

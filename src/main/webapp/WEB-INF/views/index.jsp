@@ -271,7 +271,7 @@
             <div class="review-slider-wrapper">
                 <div class="review-grid" id="reviewGrid">
                     <c:forEach var="rev" items="${recentReviews}">
-                        <a href="${pageContext.request.contextPath}/review/detail?revIdx=${rev.revIdx}" class="review-card">
+                        <a href="${pageContext.request.contextPath}/detail/detail?brnIdx=${rev.brnIdx}" class="review-card">
                             <div class="rev-img-box" style="height: 180px; flex-shrink: 0; overflow: hidden;">
                                 <c:choose>
                                     <c:when test="${not empty rev.revImg}">
