@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05.branch.mapper.BranchDetailSpaceMapper">
+
+    <resultMap id="spaceResultMap" type="BranchSpaceVO">
+        <id     property="spcIdx"          column="s_idx"/>
+        <result property="brnIdx"          column="b_idx"/>
+        <result property="spcType"         column="s_type"/>
+        <result property="spcName"         column="s_name"/>
+        <result property="spcPrice"        column="s_price"/>
+        <result property="spcMaxCapacity"  column="s_max_capacity"/>
+        <result property="spcDescription"  column="s_description"/>
+        <result property="spcImg"          column="s_img"/>
+    </resultMap>
+
+    <!-- 전체 공간 목록 -->
+    <select id="selectAll" resultMap="spaceResultMap">
+        SELECT s_idx, b_idx, s_type, s_name, s_price, s_max_capacity, s_description, s_img
+        FROM space
+        ORDER BY s_idx ASC
+    </select>
+
+    <!-- 공간 단건 -->
+    <select id="selectById" parameterType="int" resultMap="spaceResultMap">
+        SELECT s_idx, b_idx, s_type, s_name, s_price, s_max_capacity, s_description, s_img
+        FROM space
+        WHERE s_idx = #{spcIdx}
+    </select>
+
+    <!-- 지점에 속한 공간 목록 -->
+    <select id="selectByBranch" parameterType="int" resultMap="spaceResultMap">
+        SELECT s_idx, b_idx, s_type, s_name, s_price, s_max_capacity, s_description, s_img
+        FROM space
+        WHERE b_idx = #{brnIdx}
+        ORDER BY s_type ASC, s_idx ASC
+    </select>
+
+</mapper>

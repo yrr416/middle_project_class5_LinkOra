@@ -2,40 +2,144 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.study.project05.branch.mapper.BranchDetailSpaceMapper">
+<mapper namespace="org.study.project05.space.mapper.SpaceMapper">
 
-    <resultMap id="spaceResultMap" type="BranchSpaceVO">
-        <id     property="spcIdx"          column="s_idx"/>
-        <result property="brnIdx"          column="b_idx"/>
-        <result property="spcType"         column="s_type"/>
-        <result property="spcName"         column="s_name"/>
-        <result property="spcPrice"        column="s_price"/>
-        <result property="spcMaxCapacity"  column="s_max_capacity"/>
-        <result property="spcDescription"  column="s_description"/>
-        <result property="spcImg"          column="s_img"/>
-    </resultMap>
+    <!-- 공간 목록 검색 조건 (활성/비활성만: s_active IN (1,2)) -->
+    <sql id="searchCondition">
+        <where>
+            s.s_active IN (1, 2)
+            <if test="spaceVO.typeFilter != null and spaceVO.typeFilter != ''">
+                AND s.s_type = #{spaceVO.typeFilter}
+            </if>
+            <if test="spaceVO.activeFilter != null and spaceVO.activeFilter != ''">
+                AND s.s_active = #{spaceVO.activeFilter}
+            </if>
+            <if test="spaceVO.searchWord != null and spaceVO.searchWord != ''">
+                AND s.s_name LIKE CONCAT('%', #{spaceVO.searchWord}, '%')
+            </if>
+        </where>
+    </sql>
 
-    <!-- 전체 공간 목록 -->
-    <select id="selectAll" resultMap="spaceResultMap">
-        SELECT s_idx, b_idx, s_type, s_name, s_price, s_max_capacity, s_description, s_img
-        FROM space
-        ORDER BY s_idx ASC
+    <!-- 전체 공간 수 (활성/비활성) -->
+    <select id="getSpaceCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+          FROM space s
+          LEFT JOIN branch b ON s.b_idx = b.b_idx
+        <include refid="searchCondition"/>
     </select>
 
-    <!-- 공간 단건 -->
-    <select id="selectById" parameterType="int" resultMap="spaceResultMap">
-        SELECT s_idx, b_idx, s_type, s_name, s_price, s_max_capacity, s_description, s_img
-        FROM space
+    <!-- 공간 목록 (카드형, 페이징 + 필터) -->
+    <select id="getSpaceList" parameterType="map" resultType="SpaceVO">
+        SELECT s.s_idx          AS spc_idx,
+               s.b_idx          AS brn_idx,
+               b.b_name         AS brn_name,
+               s.s_name         AS spc_name,
+               s.s_type         AS spc_type,
+               s.s_price        AS spc_price,
+               s.s_max_capacity AS spc_max_capacity,
+               s.s_description  AS spc_description,
+               s.s_img          AS spc_img,
+               s.s_active       AS spc_active,
+               s.s_created      AS spc_created,
+               (SELECT COUNT(*) FROM reservation r WHERE r.s_idx = s.s_idx) AS reservation_cnt
+          FROM space s
+          LEFT JOIN branch b ON s.b_idx = b.b_idx
+        <include refid="searchCondition"/>
+         ORDER BY s.s_created DESC
+         LIMIT #{numPerPage} OFFSET #{offset}
+    </select>
+
+    <!-- 파트너 신청 대기 목록 (s_active = 0) -->
+    <select id="getPendingSpaceList" resultType="SpaceVO">
+        SELECT s.s_idx          AS spc_idx,
+               s.b_idx          AS brn_idx,
+               b.b_name         AS brn_name,
+               s.s_name         AS spc_name,
+               s.s_type         AS spc_type,
+               s.s_price        AS spc_price,
+               s.s_max_capacity AS spc_max_capacity,
+               s.s_description  AS spc_description,
+               s.s_img          AS spc_img,
+               s.s_active       AS spc_active,
+               s.s_created      AS spc_created
+          FROM space s
+          LEFT JOIN branch b ON s.b_idx = b.b_idx
+         WHERE s.s_active = 0
+         ORDER BY s.s_created ASC
+    </select>
+
+    <!-- 공간 상세 조회 -->
+    <select id="getSpaceDetail" parameterType="String" resultType="SpaceVO">
+        SELECT s.s_idx          AS spc_idx,
+               s.b_idx          AS brn_idx,
+               b.b_name         AS brn_name,
+               s.s_name         AS spc_name,
+               s.s_type         AS spc_type,
+               s.s_price        AS spc_price,
+               s.s_max_capacity AS spc_max_capacity,
+               s.s_description  AS spc_description,
+               s.s_img          AS spc_img,
+               s.s_active       AS spc_active,
+               s.s_created      AS spc_created,
+               (SELECT COUNT(*) FROM reservation r WHERE r.s_idx = s.s_idx) AS reservation_cnt
+          FROM space s
+          LEFT JOIN branch b ON s.b_idx = b.b_idx
+         WHERE s.s_idx = #{spcIdx}
+    </select>
+
+    <!-- 공간 등록 -->
+    <insert id="insertSpace" parameterType="SpaceVO">
+        INSERT INTO space (b_idx, s_name, s_type, s_price, s_max_capacity, s_description, s_img, s_active, s_created)
+        VALUES (#{brnIdx}, #{spcName}, #{spcType}, #{spcPrice}, #{spcMaxCapacity}, #{spcDescription}, #{spcImg}, #{spcActive}, NOW())
+    </insert>
+
+    <!-- 공간 정보 수정 -->
+    <update id="updateSpace" parameterType="SpaceVO">
+        UPDATE space
+        <set>
+            <if test="brnIdx != null and brnIdx != ''">b_idx = #{brnIdx},</if>
+            s_name         = #{spcName},
+            s_type         = #{spcType},
+            s_price        = #{spcPrice},
+            s_max_capacity = #{spcMaxCapacity},
+            s_description  = #{spcDescription}
+            <if test="spcImg != null and spcImg != ''">, s_img = #{spcImg}</if>
+        </set>
         WHERE s_idx = #{spcIdx}
-    </select>
+    </update>
 
-    <!-- 지점에 속한 공간 목록 -->
-    <select id="selectByBranch" parameterType="int" resultMap="spaceResultMap">
-        SELECT s_idx, b_idx, s_type, s_name, s_price, s_max_capacity, s_description, s_img
-        FROM space
-        WHERE b_idx = #{brnIdx}
-        ORDER BY s_type ASC, s_idx ASC
+    <!-- 활성/비활성 토글 (1→2, 2→1) -->
+    <update id="toggleSpaceActive" parameterType="SpaceVO">
+        UPDATE space
+           SET s_active = #{spcActive}
+         WHERE s_idx = #{spcIdx}
+    </update>
+
+    <!-- 파트너 매물 수락 → s_active = 1 -->
+    <update id="approveSpace" parameterType="String">
+        UPDATE space
+           SET s_active = 1
+         WHERE s_idx = #{spcIdx}
+    </update>
+
+    <!-- 공간 삭제 전처리: facilities 삭제 -->
+    <delete id="deleteFacilitiesBySpcIdx" parameterType="String">
+        DELETE FROM facilities WHERE s_idx = #{spcIdx}
+    </delete>
+
+    <!-- 파트너 매물 거부 → DELETE space -->
+    <delete id="rejectSpace" parameterType="String">
+        DELETE FROM space WHERE s_idx = #{spcIdx}
+    </delete>
+
+    <!-- 공간 삭제 (수정 페이지 삭제 버튼) -->
+    <delete id="deleteSpace" parameterType="String">
+        DELETE FROM space WHERE s_idx = #{spcIdx}
+    </delete>
+
+    <!-- 지점 목록 (등록 폼 드롭다운) -->
+    <select id="getBranchList" resultType="map">
+        SELECT b_idx AS brn_idx, b_name AS brn_name FROM branch ORDER BY b_name
     </select>
 
 </mapper>
-
