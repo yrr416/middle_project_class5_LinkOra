@@ -8,8 +8,6 @@ import java.util.List;
 @Mapper
 public interface SpaceMapper {
 
-    List<SpaceVO> selectAll();
-
     SpaceVO selectById(int spaceIdx);
 
     List<SpaceVO> selectByBranch(int bIdx);
