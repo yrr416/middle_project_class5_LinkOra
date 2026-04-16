@@ -77,8 +77,7 @@
             <c:when test="${mode == 'register'}"><c:set var="formAction" value="${ctx}/admin/space/registerok"/></c:when>
             <c:otherwise><c:set var="formAction" value="${ctx}/admin/space/updateok"/></c:otherwise>
         </c:choose>
-        <form method="post" action="${formAction}" enctype="multipart/form-data" id="spaceForm">
-            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+        <form method="post" action="${formAction}?${_csrf.parameterName}=${_csrf.token}" enctype="multipart/form-data" id="spaceForm">
 
             <c:if test="${mode == 'update'}">
                 <input type="hidden" name="spcIdx" value="${svo.spcIdx}">
