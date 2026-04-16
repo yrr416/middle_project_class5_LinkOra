@@ -22,6 +22,7 @@ public class ReviewVO {
     private Integer revRating;      // 1~5, 최상위 후기만 (답글은 NULL)
     private String  authorName;     // JOIN으로 가져오는 작성자 이름
     private String  spaceName;
+    private String  branchName;     // 메인 페이지 최신 리뷰 출력할때 지점 출력용
     private Date    revCreatedAt;    // DB의 v_created_at (포맷은 JSP/JS에서 처리)
 
     /** 첨부 이미지 파일명 (v_img) — 없으면 null */
