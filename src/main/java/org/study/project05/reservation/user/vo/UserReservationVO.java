@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReservationVO {
+public class UserReservationVO {
 
     private int    resIdx;
     private int    spcIdx;

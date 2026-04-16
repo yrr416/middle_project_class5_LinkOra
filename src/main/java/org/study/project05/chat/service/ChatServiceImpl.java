@@ -20,7 +20,7 @@ public class ChatServiceImpl implements ChatService {
     // 예약 시스템 연동을 위한 서비스 주입
     private final org.study.project05.reservation.user.service.UserReservationService reservationService;
     private final org.study.project05.branch.mapper.BranchMapper branchMapper;
-    private final org.study.project05.branch.mapper.SpaceMapper spaceMapper;
+    private final org.study.project05.branch.mapper.BranchDetailSpaceMapper spaceMapper;
     private final org.study.project05.branch.mapper.FacilityMapper facilityMapper;
 
     @Override
@@ -228,7 +228,7 @@ public class ChatServiceImpl implements ChatService {
             int spcIdx = Integer.parseInt(parts[0].replace("#", "").trim());
             String date = parts[1].trim();
 
-            org.study.project05.branch.vo.SpaceVO space = spaceMapper.selectById(spcIdx);
+            org.study.project05.branch.vo.BranchSpaceVO space = spaceMapper.selectById(spcIdx);
             int maxCap = space.getSpcMaxCapacity();
             java.util.Map<Integer, Integer> remaining = reservationService.getRemainingSeats(spcIdx, date, maxCap);
 
@@ -261,9 +261,9 @@ public class ChatServiceImpl implements ChatService {
             String content = tag.replace("[[COMMIT_BOOKING:", "").replace("]]", "");
             String[] parts = content.split("\\|");
 
-            org.study.project05.reservation.user.vo.ReservationVO vo = new org.study.project05.reservation.user.vo.ReservationVO();
+            org.study.project05.reservation.user.vo.UserReservationVO vo = new org.study.project05.reservation.user.vo.UserReservationVO();
             vo.setSpcIdx(Integer.parseInt(parts[0].replace("#", "").trim()));
-            
+
             // 날짜 정보가 누락되고 시간(HH:mm)만 넘어온 경우 처리
             String todayPrefix = java.time.LocalDate.now().toString();
             String startTime = parts[1].length() <= 5 ? todayPrefix + "T" + parts[1] : parts[1];
@@ -300,7 +300,7 @@ public class ChatServiceImpl implements ChatService {
 
             String resIdxStr = tag.replace("[[CANCEL_BOOKING:", "").replace("]]", "");
             int resIdx = Integer.parseInt(resIdxStr.replace("#", "").trim());
-            org.study.project05.reservation.user.vo.ReservationVO vo = new org.study.project05.reservation.user.vo.ReservationVO();
+            org.study.project05.reservation.user.vo.UserReservationVO vo = new org.study.project05.reservation.user.vo.UserReservationVO();
             vo.setResIdx(resIdx);
             vo.setUserIdx(userIdx.intValue());
             
@@ -323,9 +323,9 @@ public class ChatServiceImpl implements ChatService {
             String content = userMessage.substring(startIdx + 17, endIdx);
             String[] parts = content.split("\\|");
 
-            org.study.project05.reservation.user.vo.ReservationVO vo = new org.study.project05.reservation.user.vo.ReservationVO();
+            org.study.project05.reservation.user.vo.UserReservationVO vo = new org.study.project05.reservation.user.vo.UserReservationVO();
             vo.setSpcIdx(Integer.parseInt(parts[0].replace("#", "").trim()));
-            
+
             String todayPrefix = java.time.LocalDate.now().toString();
             String startTime = parts[1].length() <= 5 ? todayPrefix + "T" + parts[1] : parts[1];
             String endTime = parts[2].length() <= 5 ? todayPrefix + "T" + parts[2] : parts[2];
@@ -370,8 +370,8 @@ public class ChatServiceImpl implements ChatService {
                 String distInfo = (b.getDistance() > 0) ? String.format("(%.1fkm 거리) ", b.getDistance()) : "";
                 sb.append("- ").append(b.getBrnName()).append(distInfo).append(":\n");
                 
-                List<org.study.project05.branch.vo.SpaceVO> spaces = spaceMapper.selectByBranch(b.getBrnIdx());
-                for (org.study.project05.branch.vo.SpaceVO s : spaces) {
+                List<org.study.project05.branch.vo.BranchSpaceVO> spaces = spaceMapper.selectByBranch(b.getBrnIdx());
+                for (org.study.project05.branch.vo.BranchSpaceVO s : spaces) {
                     // 시설 정보 가져오기
                     org.study.project05.branch.vo.FacilityVO f = facilityMapper.selectBySpaceIdx(s.getSpcIdx());
                     String facInfos = (f != null) ? getFacilitySummary(f) : "기본 시설";
@@ -421,7 +421,7 @@ public class ChatServiceImpl implements ChatService {
         if (userIdx == null || userIdx <= 0L) return "가입 후 첫 예약을 진행해 보세요!"; // 게스트인 경우 내역 조회 스킵
         
         try {
-            List<org.study.project05.reservation.user.vo.ReservationVO> list = reservationService.getMyReservations(userIdx.intValue());
+            List<org.study.project05.reservation.user.vo.UserReservationVO> list = reservationService.getMyReservations(userIdx.intValue());
             StringBuilder sb = new StringBuilder();
             java.time.LocalDateTime now = java.time.LocalDateTime.now();
             
@@ -434,7 +434,7 @@ public class ChatServiceImpl implements ChatService {
                 .toFormatter();
 
             boolean hasActive = false;
-            for (org.study.project05.reservation.user.vo.ReservationVO r : list) {
+            for (org.study.project05.reservation.user.vo.UserReservationVO r : list) {
                 try {
                     String startTimeStrRaw = r.getResStartTime();
                     String endTimeStrRaw = r.getResEndTime();

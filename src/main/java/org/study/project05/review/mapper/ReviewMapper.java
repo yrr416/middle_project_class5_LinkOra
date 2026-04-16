@@ -40,4 +40,17 @@ public interface ReviewMapper {
 
     /** 동일 사용자가 해당 리뷰를 이미 신고했는지 확인 (1 = 이미 신고함) */
     int countReport(@Param("vIdx") int vIdx, @Param("userIdx") int userIdx);
+
+    /* ===== 관리자 전용 ===== */
+
+    /** 전체 리뷰 수 (검색어 포함) */
+    int countAll(@Param("searchWord") String searchWord);
+
+    /** 전체 리뷰 목록 (페이징 + 검색) */
+    List<ReviewVO> selectAllForAdmin(@Param("searchWord") String searchWord,
+                                     @Param("offset")     int    offset,
+                                     @Param("limit")      int    limit);
+
+    /** 관리자 리뷰 강제 삭제 */
+    int deleteByAdmin(@Param("revIdx") int revIdx);
 }

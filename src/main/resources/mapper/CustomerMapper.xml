@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05.customer.mapper.CustomerMapper">
+
+    <!-- ===================== 검색 조건 SQL 조각 ===================== -->
+
+    <sql id="userSearchCondition">
+        <where>
+            <if test="customerVO.statusFilter != null and customerVO.statusFilter != ''">
+                AND u.u_active = #{customerVO.statusFilter}
+            </if>
+            <if test="customerVO.searchWord != null and customerVO.searchWord != ''">
+                <choose>
+                    <when test="customerVO.searchType == 'name'">AND u.u_name  LIKE CONCAT('%',#{customerVO.searchWord},'%')</when>
+                    <when test="customerVO.searchType == 'email'">AND u.u_email LIKE CONCAT('%',#{customerVO.searchWord},'%')</when>
+                    <when test="customerVO.searchType == 'phone'">AND u.u_phone LIKE CONCAT('%',#{customerVO.searchWord},'%')</when>
+                    <otherwise>AND (u.u_name LIKE CONCAT('%',#{customerVO.searchWord},'%') OR u.u_email LIKE CONCAT('%',#{customerVO.searchWord},'%'))</otherwise>
+                </choose>
+            </if>
+        </where>
+    </sql>
+
+    <sql id="partnerSearchCondition">
+        <where>
+            <if test="customerVO.statusFilter != null and customerVO.statusFilter != ''">
+                AND p.p_active = #{customerVO.statusFilter}
+            </if>
+            <if test="customerVO.searchWord != null and customerVO.searchWord != ''">
+                <choose>
+                    <when test="customerVO.searchType == 'name'">AND p.p_name  LIKE CONCAT('%',#{customerVO.searchWord},'%')</when>
+                    <when test="customerVO.searchType == 'email'">AND p.p_email LIKE CONCAT('%',#{customerVO.searchWord},'%')</when>
+                    <when test="customerVO.searchType == 'phone'">AND p.p_phone LIKE CONCAT('%',#{customerVO.searchWord},'%')</when>
+                    <otherwise>AND (p.p_name LIKE CONCAT('%',#{customerVO.searchWord},'%') OR p.p_email LIKE CONCAT('%',#{customerVO.searchWord},'%'))</otherwise>
+                </choose>
+            </if>
+        </where>
+    </sql>
+
+    <!-- ===================== 통계 카운트 ===================== -->
+
+    <select id="getTotalUserCount" resultType="int">
+        SELECT COUNT(*) FROM user
+    </select>
+
+    <select id="getTotalPartnerCount" resultType="int">
+        SELECT COUNT(*) FROM partner
+    </select>
+
+    <!-- ===================== 목록/페이징 ===================== -->
+
+    <!-- 전체 수 (roleFilter 에 따라 분기) -->
+    <select id="getCustomerCount" parameterType="map" resultType="int">
+        SELECT COUNT(*) FROM (
+            <choose>
+                <when test="customerVO.roleFilter == 'user'">
+                    SELECT u.u_idx AS idx FROM user u
+                    <include refid="userSearchCondition"/>
+                </when>
+                <when test="customerVO.roleFilter == 'partner'">
+                    SELECT p.p_idx AS idx FROM partner p
+                    <include refid="partnerSearchCondition"/>
+                </when>
+                <otherwise>
+                    SELECT u.u_idx AS idx FROM user u
+                    <include refid="userSearchCondition"/>
+                    UNION ALL
+                    SELECT p.p_idx AS idx FROM partner p
+                    <include refid="partnerSearchCondition"/>
+                </otherwise>
+            </choose>
+        ) AS combined
+    </select>
+
+    <!-- 목록 조회 (roleFilter 에 따라 분기) -->
+    <select id="getCustomerList" parameterType="map" resultType="CustomerVO">
+        SELECT * FROM (
+            <choose>
+                <when test="customerVO.roleFilter == 'user'">
+                    SELECT u.u_idx     AS userIdx,
+                           u.u_id      AS userId,
+                           u.u_name    AS userName,
+                           u.u_email   AS userEmail,
+                           u.u_phone   AS userPhone,
+                           u.u_addr    AS userAddr,
+                           u.u_created AS userCreated,
+                           u.u_active  AS userActive,
+                           (SELECT COUNT(*) FROM reservation r WHERE r.u_idx = u.u_idx) AS reserveCnt,
+                           'user'      AS memberType,
+                           ''          AS partnerNumber
+                    FROM user u
+                    <include refid="userSearchCondition"/>
+                </when>
+                <when test="customerVO.roleFilter == 'partner'">
+                    SELECT p.p_idx     AS userIdx,
+                           p.p_id      AS userId,
+                           p.p_name    AS userName,
+                           p.p_email   AS userEmail,
+                           p.p_phone   AS userPhone,
+                           p.p_addr    AS userAddr,
+                           NULL        AS userCreated,
+                           p.p_active  AS userActive,
+                           0           AS reserveCnt,
+                           'partner'   AS memberType,
+                           p.p_number  AS partnerNumber
+                    FROM partner p
+                    <include refid="partnerSearchCondition"/>
+                </when>
+                <otherwise>
+                    SELECT u.u_idx     AS userIdx,
+                           u.u_id      AS userId,
+                           u.u_name    AS userName,
+                           u.u_email   AS userEmail,
+                           u.u_phone   AS userPhone,
+                           u.u_addr    AS userAddr,
+                           u.u_created AS userCreated,
+                           u.u_active  AS userActive,
+                           (SELECT COUNT(*) FROM reservation r WHERE r.u_idx = u.u_idx) AS reserveCnt,
+                           'user'      AS memberType,
+                           ''          AS partnerNumber
+                    FROM user u
+                    <include refid="userSearchCondition"/>
+                    UNION ALL
+                    SELECT p.p_idx     AS userIdx,
+                           p.p_id      AS userId,
+                           p.p_name    AS userName,
+                           p.p_email   AS userEmail,
+                           p.p_phone   AS userPhone,
+                           p.p_addr    AS userAddr,
+                           NULL        AS userCreated,
+                           p.p_active  AS userActive,
+                           0           AS reserveCnt,
+                           'partner'   AS memberType,
+                           p.p_number  AS partnerNumber
+                    FROM partner p
+                    <include refid="partnerSearchCondition"/>
+                </otherwise>
+            </choose>
+        ) AS combined
+        ORDER BY userCreated DESC
+        LIMIT #{numPerPage} OFFSET #{offset}
+    </select>
+
+    <!-- ===================== 회원(user) CRUD ===================== -->
+
+    <!-- 회원 단건 상세 조회 -->
+    <select id="getCustomerDetail" parameterType="String" resultType="CustomerVO">
+        SELECT u.u_idx     AS userIdx,
+               u.u_id      AS userId,
+               u.u_name    AS userName,
+               u.u_email   AS userEmail,
+               u.u_phone   AS userPhone,
+               u.u_addr    AS userAddr,
+               u.u_created AS userCreated,
+               u.u_active  AS userActive,
+               (SELECT COUNT(*) FROM reservation r WHERE r.u_idx = u.u_idx) AS reserveCnt,
+               'user'      AS memberType,
+               ''          AS partnerNumber
+          FROM user u WHERE u.u_idx = #{userIdx}
+    </select>
+
+    <!-- 회원 등록 -->
+    <insert id="insertCustomer" parameterType="CustomerVO">
+        INSERT INTO user (u_id, u_pwd, u_name, u_email, u_phone, u_addr, u_active, u_created)
+        VALUES (0, #{userPwd}, #{userName}, #{userEmail}, #{userPhone}, #{userAddr}, 0, CURDATE())
+    </insert>
+
+    <!-- 회원 정보 수정 -->
+    <update id="updateCustomer" parameterType="CustomerVO">
+        UPDATE user SET u_name=#{userName}, u_email=#{userEmail}, u_phone=#{userPhone}, u_addr=#{userAddr}
+        WHERE u_idx=#{userIdx}
+    </update>
+
+    <!-- 회원 상태 변경 (정상 ↔ 숨김) -->
+    <update id="updateCustomerStatus" parameterType="CustomerVO">
+        UPDATE user SET u_active=#{userActive} WHERE u_idx=#{userIdx}
+    </update>
+
+    <!-- 회원 소프트 삭제 (숨김 처리) -->
+    <update id="deleteCustomer" parameterType="String">
+        UPDATE user SET u_active=1 WHERE u_idx=#{userIdx}
+    </update>
+
+    <!-- 아이디 중복 확인 -->
+    <select id="checkDuplicateId" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM user WHERE u_id=#{userId}
+    </select>
+
+    <!-- 이메일 중복 확인 -->
+    <select id="checkDuplicateEmail" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM user WHERE u_email=#{userEmail}
+    </select>
+
+    <!-- ===================== 파트너(partner) CRUD ===================== -->
+
+    <!-- 파트너 단건 상세 조회 -->
+    <select id="getPartnerDetail" parameterType="String" resultType="CustomerVO">
+        SELECT p.p_idx     AS userIdx,
+               p.p_id      AS userId,
+               p.p_name    AS userName,
+               p.p_email   AS userEmail,
+               p.p_phone   AS userPhone,
+               p.p_addr    AS userAddr,
+               NULL        AS userCreated,
+               p.p_active  AS userActive,
+               0           AS reserveCnt,
+               'partner'   AS memberType,
+               p.p_number  AS partnerNumber
+          FROM partner p WHERE p.p_idx = #{userIdx}
+    </select>
+
+    <!-- 파트너 정보 수정 -->
+    <update id="updatePartner" parameterType="CustomerVO">
+        UPDATE partner SET p_name=#{userName}, p_email=#{userEmail}, p_phone=#{userPhone}, p_addr=#{userAddr}
+        WHERE p_idx=#{userIdx}
+    </update>
+
+    <!-- 파트너 상태 변경 -->
+    <update id="updatePartnerStatus" parameterType="CustomerVO">
+        UPDATE partner SET p_active=#{userActive} WHERE p_idx=#{userIdx}
+    </update>
+
+    <!-- 파트너 소프트 삭제 (숨김) -->
+    <update id="deletePartner" parameterType="String">
+        UPDATE partner SET p_active=1 WHERE p_idx=#{userIdx}
+    </update>
+
+</mapper>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05.chatbot.mapper.ChatbotMapper">
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         공통 검색 조건 (WHERE 절, camelCase 파라미터 참조)
+         - searchWord : 고객명(u_name) 또는 이메일(u_email) LIKE 검색
+         - dateFrom   : 상담일 시작 범위 (c_time >= dateFrom)
+         - dateTo     : 상담일 종료 범위 (c_time <= dateTo)
+         ═══════════════════════════════════════════════════════════════ -->
+    <sql id="searchWhere">
+        <where>
+            <!-- 고객명 또는 이메일 검색 -->
+            <if test="chatbotVO != null and chatbotVO.searchWord != null and chatbotVO.searchWord != ''">
+                AND (u.u_name  LIKE CONCAT('%', #{chatbotVO.searchWord}, '%')
+                  OR u.u_email LIKE CONCAT('%', #{chatbotVO.searchWord}, '%'))
+            </if>
+            <!-- 날짜 범위 필터 - 시작일 -->
+            <if test="chatbotVO != null and chatbotVO.dateFrom != null and chatbotVO.dateFrom != ''">
+                AND c.c_time &gt;= #{chatbotVO.dateFrom}
+            </if>
+            <!-- 날짜 범위 필터 - 종료일 -->
+            <if test="chatbotVO != null and chatbotVO.dateTo != null and chatbotVO.dateTo != ''">
+                AND c.c_time &lt;= #{chatbotVO.dateTo}
+            </if>
+        </where>
+    </sql>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         공통 상태 필터 (HAVING 절)
+         - "미해결": 세션 내 응답 없는 메시지가 1건 이상
+         - "완료"  : 세션 내 응답 없는 메시지가 0건
+         ═══════════════════════════════════════════════════════════════ -->
+    <sql id="statusHaving">
+        <trim prefix="HAVING" suffixOverrides="AND">
+            <if test="chatbotVO != null and chatbotVO.statusFilter == '미해결'">
+                SUM(CASE WHEN (c.c_response IS NULL OR c.c_response = '') THEN 1 ELSE 0 END) &gt; 0
+            </if>
+            <if test="chatbotVO != null and chatbotVO.statusFilter == '완료'">
+                SUM(CASE WHEN (c.c_response IS NULL OR c.c_response = '') THEN 1 ELSE 0 END) = 0
+            </if>
+        </trim>
+    </sql>
+
+    <!-- 전체 세션 수 조회 (페이지 계산용) -->
+    <select id="getSessionCount" parameterType="map" resultType="int">
+        SELECT COUNT(*) FROM (
+            SELECT c.c_session
+            FROM chatbot c
+            LEFT JOIN user u ON c.u_idx = u.u_idx
+            <include refid="searchWhere"/>
+            GROUP BY c.c_session, u.u_idx
+            <include refid="statusHaving"/>
+        ) AS session_count
+    </select>
+
+    <!-- 세션 목록 조회 (목록 페이지용) -->
+    <select id="getSessionList" parameterType="map" resultType="ChatbotVO">
+        SELECT
+            c.c_session                               AS chat_session,
+            u.u_idx                                   AS user_idx,
+            u.u_name                                  AS user_name,
+            u.u_email                                 AS user_email,
+            DATE_FORMAT(u.u_created, '%Y-%m-%d')      AS user_created,
+            /* 세션 최초 메시지 (c_idx 오름차순 첫 번째) */
+            (SELECT c2.c_message
+               FROM chatbot c2
+              WHERE c2.c_session = c.c_session
+              ORDER BY c2.c_idx ASC
+              LIMIT 1)                                AS first_message,
+            COUNT(c.c_idx)                            AS msg_count,
+            DATE_FORMAT(MIN(c.c_time), '%Y-%m-%d')   AS start_time,
+            DATE_FORMAT(MAX(c.c_time), '%Y-%m-%d')   AS end_time,
+            /* 미해결 메시지 수 (c_response 가 비어 있는 건) */
+            SUM(CASE WHEN (c.c_response IS NULL OR c.c_response = '')
+                     THEN 1 ELSE 0 END)               AS unresolved_count
+        FROM chatbot c
+        LEFT JOIN user u ON c.u_idx = u.u_idx
+        <include refid="searchWhere"/>
+        GROUP BY c.c_session, u.u_idx, u.u_name, u.u_email,  u.u_created
+        <include refid="statusHaving"/>
+        ORDER BY start_time DESC
+        LIMIT #{numPerPage} OFFSET #{offset}
+    </select>
+
+    <!-- 세션 요약 조회 (상세 페이지 상단 고객 정보·상담 메타용) -->
+    <select id="getSessionSummary" parameterType="int" resultType="ChatbotVO">
+        SELECT
+            c.c_session                               AS chat_session,
+            u.u_idx                                   AS user_idx,
+            u.u_name                                  AS user_name,
+            u.u_email                                 AS user_email,
+            DATE_FORMAT(u.u_created, '%Y-%m-%d')      AS user_created,
+            COUNT(c.c_idx)                            AS msg_count,
+            DATE_FORMAT(MIN(c.c_time), '%Y-%m-%d')    AS start_time,
+            DATE_FORMAT(MAX(c.c_time), '%Y-%m-%d')    AS end_time,
+            SUM(CASE WHEN (c.c_response IS NULL OR c.c_response = '')
+                     THEN 1 ELSE 0 END)               AS unresolved_count
+        FROM chatbot c
+        LEFT JOIN user u ON c.u_idx = u.u_idx
+        WHERE c.c_session = #{chatSession}
+        GROUP BY c.c_session, u.u_idx, u.u_name, u.u_email,  u.u_created
+    </select>
+
+    <!-- 세션 메시지 목록 조회 (상세 페이지 말풍선 대화 내역용) -->
+    <select id="getMessageList" parameterType="int" resultType="ChatbotVO">
+        SELECT
+            c.c_idx                                   AS chat_idx,
+            c.u_idx                                   AS user_idx,
+            c.c_session                               AS chat_session,
+            c.c_message                               AS chat_message,
+            c.c_response                              AS chat_response,
+            c.c_intent                                AS chat_intent,
+            c.c_page                                  AS chat_page,
+            DATE_FORMAT(c.c_time, '%Y-%m-%d')         AS chat_time
+        FROM chatbot c
+        WHERE c.c_session = #{chatSession}
+        ORDER BY c.c_idx ASC
+    </select>
+
+</mapper>

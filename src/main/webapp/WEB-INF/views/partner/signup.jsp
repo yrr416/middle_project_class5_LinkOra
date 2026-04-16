@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
-<%-- 사업자 회원가입 화면: 사업자 정보(사업자번호 포함) 입력 후 가입 요청을 전송한다. --%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -191,7 +192,7 @@
     <img class="logo-image"
          src="/assets/c__Users_ict-02_AppData_Roaming_Cursor_User_workspaceStorage_14eab3a244838b5187ba2f0dbb8a04dc_images_image-5bd41dfc-4c07-450b-9c64-6e9dc2724a93.png"
          alt="Linkora 로고">
-    <a class="home-btn" href="/loginPage">로그인으로</a>
+    <a class="home-btn" href="${ctx}/loginPage">로그인으로</a>
 </header>
 
 <main class="content">
@@ -223,7 +224,7 @@
         <p class="msg error">개인정보 처리방침에 동의해야 회원가입할 수 있습니다.</p>
         <% } %>
 
-        <form method="post" action="/partner-signup" enctype="multipart/form-data">
+        <form method="post" action="${ctx}/partner-signup" enctype="multipart/form-data">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
             <div class="form-group">
                 <label for="partnerProfileImage">프로필 이미지 (선택)</label>
