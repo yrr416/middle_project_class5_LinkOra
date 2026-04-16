@@ -122,6 +122,53 @@
           AND u_idx  = #{userIdx}
     </update>
 
+    <!-- ===== 관리자 전용 ===== -->
+
+    <!-- 전체 리뷰 수 (검색어 필터) -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*)
+        FROM review r
+        LEFT JOIN user  u ON r.u_idx = u.u_idx
+        LEFT JOIN space s ON r.s_idx = s.s_idx
+        WHERE r.v_parent_idx = 0
+        <if test="searchWord != null and searchWord != ''">
+            AND (u.u_name LIKE CONCAT('%', #{searchWord}, '%')
+              OR s.s_name LIKE CONCAT('%', #{searchWord}, '%')
+              OR r.v_content LIKE CONCAT('%', #{searchWord}, '%'))
+        </if>
+    </select>
+
+    <!-- 전체 리뷰 목록 (페이징 + 검색) -->
+    <select id="selectAllForAdmin" resultMap="reviewResultMap">
+        SELECT r.v_idx,
+               r.s_idx,
+               r.u_idx,
+               r.v_parent_idx,
+               r.v_content,
+               r.v_rating,
+               IFNULL(u.u_name, '알 수 없음') AS u_name,
+               s.s_name,
+               r.v_created_at,
+               r.v_img,
+               (SELECT COUNT(*) FROM review_report rr WHERE rr.v_idx = r.v_idx) AS report_count
+        FROM review r
+        LEFT JOIN user  u ON r.u_idx = u.u_idx
+        LEFT JOIN space s ON r.s_idx = s.s_idx
+        WHERE r.v_parent_idx = 0
+        <if test="searchWord != null and searchWord != ''">
+            AND (u.u_name LIKE CONCAT('%', #{searchWord}, '%')
+              OR s.s_name LIKE CONCAT('%', #{searchWord}, '%')
+              OR r.v_content LIKE CONCAT('%', #{searchWord}, '%'))
+        </if>
+        ORDER BY r.v_idx DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 관리자 강제 삭제 (신고 누적 등) -->
+    <delete id="deleteByAdmin">
+        DELETE FROM review WHERE v_idx = #{revIdx}
+    </delete>
+
     <!-- 후기/답글 등록 -->
     <insert id="insert" parameterType="ReviewVO">
         INSERT INTO review (s_idx, u_idx, v_parent_idx, v_content, v_rating, v_img, v_active, v_time, v_created_at, v_updated_at)
