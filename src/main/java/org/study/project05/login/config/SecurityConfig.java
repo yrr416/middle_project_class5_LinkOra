@@ -41,7 +41,10 @@ public class SecurityConfig {
 
                             // instanceof 패턴으로 안전하게 캐스팅 (DevTools 핫리로드 시 ClassCastException 방지)
                             if (authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
-                                if (isPartner) {
+                                if (isAdmin) {
+                                    session.setAttribute("userIdx", userDetails.getIdx());
+                                    session.setAttribute("isAdmin", true); // SSH 추가: 관리자 여부 세션에 저장
+                                } else if (isPartner) {
                                     session.setAttribute("partnerIdx", userDetails.getIdx());
                                     session.setAttribute("userIdx", userDetails.getIdx());
                                 } else {
@@ -64,7 +67,7 @@ public class SecurityConfig {
                                 return;
                             }
 
-                            String target = isPartner ? "/partner/mypage" : "/";
+                            String target = isAdmin ? "/admin/dashboard" : isPartner ? "/partner/mypage" : "/";
                             response.sendRedirect(request.getContextPath() + target);
                         })
                         .failureUrl("/loginPage?error")

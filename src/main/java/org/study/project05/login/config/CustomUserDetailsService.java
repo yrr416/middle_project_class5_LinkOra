@@ -38,11 +38,19 @@ public class CustomUserDetailsService implements UserDetailsService {
         // 관리자 테이블 먼저 확인
         Map<String, Object> admin = settingsMapper.findAdminByLoginId(key);
         if (admin != null && admin.get("aPwd") != null) {
+            String rawId  = (String) admin.get("aId");
             String rawPwd = (String) admin.get("aPwd");
-            return User.withUsername((String) admin.get("aId"))
-                    .password("{noop}" + rawPwd)
-                    .roles("ADMIN")
-                    .build();
+            // 평문이면 {noop} 접두사 추가, bcrypt·delegating 형식이면 그대로 사용
+            String encodedPwd = (rawPwd.startsWith("{") || rawPwd.startsWith("$2"))
+                    ? rawPwd : "{noop}" + rawPwd;
+            return new CustomUserDetails(
+                    rawId,
+                    encodedPwd,
+                    java.util.Collections.singletonList(
+                            new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN")),
+                    ((Number) admin.get("aIdx")).longValue(),
+                    "관리자"
+            );
         }
 
         PartnerVO partner = partnerService.getByPartnerId(key);

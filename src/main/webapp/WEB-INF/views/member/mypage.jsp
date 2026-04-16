@@ -394,9 +394,9 @@
     <section class="content-box">
         <div class="profile-head">
             <div class="manage-links">
-                <a class="manage-btn" href="/review-management">리뷰관리</a>
-                <a class="manage-btn" href="/inquiry-management">문의관리</a>
-                <a class="manage-btn" href="/reservation-management">예약관리</a>
+                <a class="manage-btn" href="${pageContext.request.contextPath}/review-management">리뷰관리</a>
+                <a class="manage-btn" href="${pageContext.request.contextPath}/inquiry/mylist">문의관리</a>
+                <a class="manage-btn" href="${pageContext.request.contextPath}/reservation/mylist">예약관리</a>
             </div>
             <div class="avatar" aria-hidden="true">
                 <% if (request.getAttribute("profileImage") != null && !((String) request.getAttribute("profileImage")).isBlank()) { %>
