@@ -261,7 +261,7 @@ public class ChatServiceImpl implements ChatService {
             String content = tag.replace("[[COMMIT_BOOKING:", "").replace("]]", "");
             String[] parts = content.split("\\|");
 
-            org.study.project05.reservation.user.vo.ReservationVO vo = new org.study.project05.reservation.user.vo.ReservationVO();
+            org.study.project05.reservation.user.vo.UserReservationVO vo = new org.study.project05.reservation.user.vo.UserReservationVO();
             vo.setSpcIdx(Integer.parseInt(parts[0].replace("#", "").trim()));
             
             // 날짜 정보가 누락되고 시간(HH:mm)만 넘어온 경우 처리
@@ -300,7 +300,7 @@ public class ChatServiceImpl implements ChatService {
 
             String resIdxStr = tag.replace("[[CANCEL_BOOKING:", "").replace("]]", "");
             int resIdx = Integer.parseInt(resIdxStr.replace("#", "").trim());
-            org.study.project05.reservation.user.vo.ReservationVO vo = new org.study.project05.reservation.user.vo.ReservationVO();
+            org.study.project05.reservation.user.vo.UserReservationVO vo = new org.study.project05.reservation.user.vo.UserReservationVO();
             vo.setResIdx(resIdx);
             vo.setUserIdx(userIdx.intValue());
             
@@ -323,7 +323,7 @@ public class ChatServiceImpl implements ChatService {
             String content = userMessage.substring(startIdx + 17, endIdx);
             String[] parts = content.split("\\|");
 
-            org.study.project05.reservation.user.vo.ReservationVO vo = new org.study.project05.reservation.user.vo.ReservationVO();
+            org.study.project05.reservation.user.vo.UserReservationVO vo = new org.study.project05.reservation.user.vo.UserReservationVO();
             vo.setSpcIdx(Integer.parseInt(parts[0].replace("#", "").trim()));
             
             String todayPrefix = java.time.LocalDate.now().toString();
@@ -421,7 +421,7 @@ public class ChatServiceImpl implements ChatService {
         if (userIdx == null || userIdx <= 0L) return "가입 후 첫 예약을 진행해 보세요!"; // 게스트인 경우 내역 조회 스킵
         
         try {
-            List<org.study.project05.reservation.user.vo.ReservationVO> list = reservationService.getMyReservations(userIdx.intValue());
+            List<org.study.project05.reservation.user.vo.UserReservationVO> list = reservationService.getMyReservations(userIdx.intValue());
             StringBuilder sb = new StringBuilder();
             java.time.LocalDateTime now = java.time.LocalDateTime.now();
             
@@ -434,7 +434,7 @@ public class ChatServiceImpl implements ChatService {
                 .toFormatter();
 
             boolean hasActive = false;
-            for (org.study.project05.reservation.user.vo.ReservationVO r : list) {
+            for (org.study.project05.reservation.user.vo.UserReservationVO r : list) {
                 try {
                     String startTimeStrRaw = r.getResStartTime();
                     String endTimeStrRaw = r.getResEndTime();

@@ -7,7 +7,7 @@ import lombok.Data;
  * camelCase 필드명 사용 (MyBatis map-underscore-to-camel-case 자동 매핑)
  */
 @Data
-public class ReservationVO {
+public class AdminReservationVO {
 
     /* reservation 컬럼 */
     private int    resIdx;         // 예약 고유번호 (PK)

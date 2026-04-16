@@ -6,7 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.study.project05.reservation.service.ReservationService;
-import org.study.project05.reservation.vo.ReservationVO;
+import org.study.project05.reservation.vo.AdminReservationVO;
 
 import java.util.List;
 import java.util.Map;
@@ -27,7 +27,7 @@ public class ReservationController {
 
     /* 예약 목록 */
     @GetMapping({"/list", "", "/"})
-    public String list(ReservationVO searchVO,
+    public String list(AdminReservationVO searchVO,
                        @RequestParam(defaultValue = "1") int nowPage,
                        Model model) {
 
@@ -39,8 +39,8 @@ public class ReservationController {
         int beginBlock = ((nowPage - 1) / BLOCK_SIZE) * BLOCK_SIZE + 1;
         int endBlock   = Math.min(beginBlock + BLOCK_SIZE - 1, totalPage);
 
-        List<ReservationVO>  list    = reservationService.getReservationList(offset, NUM_PER_PAGE, searchVO);
-        List<ReservationVO>  spaces  = reservationService.getSpaceListForFilter();
+        List<AdminReservationVO>  list    = reservationService.getReservationList(offset, NUM_PER_PAGE, searchVO);
+        List<AdminReservationVO>  spaces  = reservationService.getSpaceListForFilter();
         Map<String, Integer> summary = reservationService.getStatusSummary(searchVO);
 
         model.addAttribute("reservationList", list);
@@ -59,10 +59,10 @@ public class ReservationController {
     @GetMapping("/view")
     public String view(@RequestParam int resIdx,
                        @RequestParam(defaultValue = "1") int nowPage,
-                       @ModelAttribute ReservationVO searchVO,
+                       @ModelAttribute AdminReservationVO searchVO,
                        Model model) {
-        ReservationVO rvo = reservationService.getReservationDetail(resIdx);
-        List<ReservationVO> recentList = reservationService.getRecentReservationsByUser(rvo.getUserIdx(), resIdx);
+        AdminReservationVO rvo = reservationService.getReservationDetail(resIdx);
+        List<AdminReservationVO> recentList = reservationService.getRecentReservationsByUser(rvo.getUserIdx(), resIdx);
         model.addAttribute("rvo",        rvo);
         model.addAttribute("recentList", recentList);
         model.addAttribute("nowPage",    nowPage);
@@ -73,7 +73,7 @@ public class ReservationController {
     /* 상세 조회 (AJAX - 기존 호환용) */
     @GetMapping("/detail")
     @ResponseBody
-    public ReservationVO detail(@RequestParam int resIdx) {
+    public AdminReservationVO detail(@RequestParam int resIdx) {
         return reservationService.getReservationDetail(resIdx);
     }
 
@@ -82,7 +82,7 @@ public class ReservationController {
     public String confirm(@RequestParam int resIdx,
                           @RequestParam(defaultValue = "1") int nowPage,
                           @RequestParam(defaultValue = "false") boolean fromDetail,
-                          @ModelAttribute ReservationVO searchVO,
+                          @ModelAttribute AdminReservationVO searchVO,
                           RedirectAttributes rttr) {
         reservationService.confirmReservation(resIdx);
         rttr.addFlashAttribute("alertMsg",  "예약이 확정되었습니다.");
@@ -96,7 +96,7 @@ public class ReservationController {
     public String complete(@RequestParam int resIdx,
                            @RequestParam(defaultValue = "1") int nowPage,
                            @RequestParam(defaultValue = "false") boolean fromDetail,
-                           @ModelAttribute ReservationVO searchVO,
+                           @ModelAttribute AdminReservationVO searchVO,
                            RedirectAttributes rttr) {
         reservationService.completeReservation(resIdx);
         rttr.addFlashAttribute("alertMsg",  "이용 완료 처리되었습니다.");
@@ -112,7 +112,7 @@ public class ReservationController {
                          @RequestParam(defaultValue = "false") boolean refundChecked,
                          @RequestParam(defaultValue = "1") int nowPage,
                          @RequestParam(defaultValue = "false") boolean fromDetail,
-                         @ModelAttribute ReservationVO searchVO,
+                         @ModelAttribute AdminReservationVO searchVO,
                          RedirectAttributes rttr) {
         reservationService.cancelReservation(resIdx, cancelReason);
         String msg = refundChecked
@@ -124,7 +124,7 @@ public class ReservationController {
         return buildRedirect(nowPage, searchVO);
     }
 
-    private String buildSearch(ReservationVO vo) {
+    private String buildSearch(AdminReservationVO vo) {
         StringBuilder sb = new StringBuilder();
         if (vo.getStartDate()    != null && !vo.getStartDate().isEmpty())    sb.append("&startDate=").append(vo.getStartDate());
         if (vo.getEndDate()      != null && !vo.getEndDate().isEmpty())      sb.append("&endDate=").append(vo.getEndDate());
@@ -134,7 +134,7 @@ public class ReservationController {
         return sb.toString();
     }
 
-    private String buildRedirect(int nowPage, ReservationVO vo) {
+    private String buildRedirect(int nowPage, AdminReservationVO vo) {
         return "redirect:/admin/reservation/list?nowPage=" + nowPage + buildSearch(vo);
     }
 }

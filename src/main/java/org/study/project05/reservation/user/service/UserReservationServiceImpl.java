@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.study.project05.reservation.user.mapper.UserReservationMapper;
-import org.study.project05.reservation.user.vo.ReservationVO;
+import org.study.project05.reservation.user.vo.UserReservationVO;
 import org.study.project05.branch.mapper.BranchDetailSpaceMapper;
 import org.study.project05.branch.vo.SpaceVO;
 
@@ -27,7 +27,7 @@ public class UserReservationServiceImpl implements UserReservationService {
 
     @Transactional
     @Override
-    public void reserve(ReservationVO vo) {
+    public void reserve(UserReservationVO vo) {
         SpaceVO space = spaceMapper.selectById(vo.getSpcIdx());
         if (space == null) {
             throw new IllegalArgumentException("선택하신 공간 정보를 찾을 수 없습니다. (ID: " + vo.getSpcIdx() + ")");
@@ -79,7 +79,7 @@ public class UserReservationServiceImpl implements UserReservationService {
 
     /** 내 예약 목록 */
     @Override
-    public List<ReservationVO> getMyReservations(int userIdx) {
+    public List<UserReservationVO> getMyReservations(int userIdx) {
         return reservationMapper.selectByUser(userIdx);
     }
 
@@ -93,11 +93,11 @@ public class UserReservationServiceImpl implements UserReservationService {
     /** 특정 날짜의 점유된 시간(0~23) 목록 반환 - AJAX용 */
     @Override
     public List<Integer> getUnavailableSlots(int spaceIdx, String date) {
-        List<ReservationVO> reservations = reservationMapper.getSlotsByDate(spaceIdx, date);
+        List<UserReservationVO> reservations = reservationMapper.getSlotsByDate(spaceIdx, date);
         Set<Integer> unavailable = new HashSet<>();
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-        for (ReservationVO r : reservations) {
+        for (UserReservationVO r : reservations) {
             LocalDateTime start = LocalDateTime.parse(r.getResStartTime(), fmt);
             LocalDateTime end   = LocalDateTime.parse(r.getResEndTime(),   fmt);
             for (int h = start.getHour(); h < end.getHour(); h++) {
@@ -124,12 +124,12 @@ public class UserReservationServiceImpl implements UserReservationService {
      */
     @Override
     public Map<Integer, Integer> getRemainingSeats(int spaceIdx, String date, int maxCapacity) {
-        List<ReservationVO> reservations = reservationMapper.getSlotsByDate(spaceIdx, date);
+        List<UserReservationVO> reservations = reservationMapper.getSlotsByDate(spaceIdx, date);
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         // 시간대별 예약 인원 합산
         Map<Integer, Integer> bookedPerHour = new HashMap<>();
-        for (ReservationVO r : reservations) {
+        for (UserReservationVO r : reservations) {
             LocalDateTime start = LocalDateTime.parse(r.getResStartTime(), fmt);
             LocalDateTime end   = LocalDateTime.parse(r.getResEndTime(),   fmt);
             for (int h = start.getHour(); h < end.getHour(); h++) {
