@@ -1,34 +1,39 @@
 package org.study.project05.inquiry.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.study.project05.inquiry.vo.InquiryVO;
-
 import java.util.List;
-import java.util.Map;
 
-/**
- * 1:1 문의 관리 Mapper 인터페이스
- */
 @Mapper
 public interface InquiryMapper {
-
-    /** 전체 문의 수 (필터 포함) */
-    int getInquiryCount(Map<String, Object> map);
-
-    /** 문의 목록 조회 (미답변 우선 정렬) */
-    List<InquiryVO> getInquiryList(Map<String, Object> map);
-
-    /** 문의 단건 상세 조회 */
-    InquiryVO getInquiryDetail(String i_idx);
+    // 문의글 등록
+    int insertInquiry(InquiryVO vo);
+    
+    // 특정 사용자의 전체 문의 개수 조회 (페이징용)
+    int countInquiriesByUser(@Param("userIdx") Long userIdx);
+    
+    // 특정 사용자의 문의 내역 리스트 조회 (페이징 적용)
+    List<InquiryVO> selectInquiryListByUser(@Param("userIdx") Long userIdx, @Param("limit") int limit, @Param("offset") int offset);
+    
+    /**
+     * 특정 문의 상세 내용 및 관리자 답변 조회
+     * @param inqIdx 문의 ID
+     * @return 문의 정보
+     */
+    InquiryVO selectInquiryDetail(@Param("inqIdx") Integer inqIdx);
 
     /**
-     * 답변 저장 + 상태 자동 변경
-     * - i_answer 저장
-     * - i_status = 'COMPLETE'
-     * - i_answered = NOW()
+     * 문의 수정
+     * @param vo 수정할 문의 정보
+     * @return 성공 여부
      */
-    int saveAnswer(Map<String, Object> map);
+    int updateInquiry(InquiryVO vo);
 
-    /** 미답변 문의 수 (대시보드용) */
-    int getPendingCount();
+    /**
+     * 문의 삭제
+     * @param inqIdx 삭제할 문의 ID
+     * @return 성공 여부
+     */
+    int deleteInquiry(@Param("inqIdx") Integer inqIdx);
 }

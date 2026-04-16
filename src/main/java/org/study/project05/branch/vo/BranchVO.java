@@ -49,7 +49,22 @@ public class BranchVO {
 
     // [상세 조회 및 연관 데이터]
     private String partnerName;          // 파트너 브랜드명
-    private List<BranchSpaceVO> spaces;        // 지점 내 공간 목록
+    private List<SpaceVO> spaces;        // 지점 내 공간 목록
     private List<BranchImgVO> images;    // 지점 이미지 목록
 
+    // [검색 목록용 대표 이미지] - branch_img 테이블에서 bi_is_main=1인 이미지 URL
+    private String mainImgUrl;
+
+    // 로그인한 사용자의 찜 여부를 저장하는 공간
+    private boolean isWish;
+
+    // [핵심 추가] JSP EL (${branch.isWish}) 호환성을 위한 수동 Getter/Setter
+    // Lombok이 생성하는 이름과 겹칠 수 있지만, 명시적으로 작성하면 JSP가 에러 없이 정확히 찾아냅니다.
+    public boolean getIsWish() {
+        return isWish;
+    }
+
+    public void setIsWish(boolean isWish) {
+        this.isWish = isWish;
+    }
 }

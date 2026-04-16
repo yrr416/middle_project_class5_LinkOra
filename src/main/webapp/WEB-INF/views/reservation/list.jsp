@@ -1,7 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -75,18 +74,16 @@
         <div class="sidebar-brand"><i class="bi bi-building me-2"></i>오피스 예약</div>
         <nav class="nav flex-column mt-2">
             <span class="nav-link text-white-50 small px-3 pt-3 pb-1">관리자 메뉴</span>
-            <a class="nav-link" href="${ctx}/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
-            <a class="nav-link" href="${ctx}/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
+            <a class="nav-link" href="/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
+            <a class="nav-link" href="/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
             <!-- 현재 페이지: 예약 관리 (active) -->
-            <a class="nav-link" href="${ctx}/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
-            <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
-            <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
-            <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
+            <a class="nav-link active" href="/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
+            <a class="nav-link" href="#"><i class="bi bi-building"></i>오피스 관리</a>
+            <a class="nav-link" href="#"><i class="bi bi-star"></i>리뷰 관리</a>
+            <a class="nav-link" href="#"><i class="bi bi-bell"></i>공지 관리</a>
+            <a class="nav-link" href="#"><i class="bi bi-chat-left-text"></i>문의 내역</a>
             <hr class="border-secondary mx-3">
-            <hr class="border-secondary mx-3">
-                        <a class="nav-link" href="${ctx}/" target="_blank"><i class="bi bi-house"></i>홈페이지 이동</a>
-            <a class="nav-link" href="${ctx}/admin/settings"><i class="bi bi-gear"></i>설정</a>
-            <a class="nav-link text-danger" href="${ctx}/logout"><i class="bi bi-box-arrow-right"></i>로그아웃</a>
+            <a class="nav-link" href="#"><i class="bi bi-gear"></i>설정</a>
         </nav>
     </div>
 
@@ -151,40 +148,40 @@
 
         <!-- ── 필터 영역 ──────────────────────────────────── -->
         <div class="filter-card">
-            <form method="get" action="${ctx}/admin/reservation/list" class="row g-2 align-items-end">
+            <form method="get" action="/admin/reservation/list" class="row g-2 align-items-end">
 
                 <!-- 날짜 범위 (시작) -->
                 <div class="col-md-2">
                     <label class="form-label small mb-1">시작일</label>
-                    <input type="date" name="startDate" class="form-control form-control-sm"
-                           value="${searchVO.startDate}">
+                    <input type="date" name="start_date" class="form-control form-control-sm"
+                           value="${searchVO.start_date}">
                 </div>
                 <!-- 날짜 범위 (종료) -->
                 <div class="col-md-2">
                     <label class="form-label small mb-1">종료일</label>
-                    <input type="date" name="endDate" class="form-control form-control-sm"
-                           value="${searchVO.endDate}">
+                    <input type="date" name="end_date" class="form-control form-control-sm"
+                           value="${searchVO.end_date}">
                 </div>
                 <!-- 상태 필터 -->
                 <div class="col-md-2">
                     <label class="form-label small mb-1">예약 상태</label>
-                    <select name="statusFilter" class="form-select form-select-sm">
+                    <select name="status_filter" class="form-select form-select-sm">
                         <option value="">전체</option>
-                        <option value="PENDING"   ${searchVO.statusFilter == 'PENDING'   ? 'selected':''}>대기</option>
-                        <option value="CONFIRMED" ${searchVO.statusFilter == 'CONFIRMED' ? 'selected':''}>확정</option>
-                        <option value="USING"     ${searchVO.statusFilter == 'USING'     ? 'selected':''}>이용중</option>
-                        <option value="COMPLETED" ${searchVO.statusFilter == 'COMPLETED' ? 'selected':''}>완료</option>
-                        <option value="CANCELLED" ${searchVO.statusFilter == 'CANCELLED' ? 'selected':''}>취소</option>
+                        <option value="PENDING"   ${searchVO.status_filter == 'PENDING'   ? 'selected':''}>대기</option>
+                        <option value="CONFIRMED" ${searchVO.status_filter == 'CONFIRMED' ? 'selected':''}>확정</option>
+                        <option value="USING"     ${searchVO.status_filter == 'USING'     ? 'selected':''}>이용중</option>
+                        <option value="COMPLETED" ${searchVO.status_filter == 'COMPLETED' ? 'selected':''}>완료</option>
+                        <option value="CANCELLED" ${searchVO.status_filter == 'CANCELLED' ? 'selected':''}>취소</option>
                     </select>
                 </div>
                 <!-- 공간별 필터 -->
                 <div class="col-md-2">
                     <label class="form-label small mb-1">공간</label>
-                    <select name="spaceFilter" class="form-select form-select-sm">
+                    <select name="space_filter" class="form-select form-select-sm">
                         <option value="">전체 공간</option>
                         <c:forEach var="sp" items="${spaceList}">
                             <option value="${sp.spcIdx}"
-                                    ${searchVO.spaceFilter == sp.spcIdx.toString() ? 'selected':''}>
+                                    ${searchVO.space_filter == sp.spcIdx.toString() ? 'selected':''}>
                                 ${sp.spcName}
                             </option>
                         </c:forEach>
@@ -193,15 +190,15 @@
                 <!-- 고객명 검색 -->
                 <div class="col-md-2">
                     <label class="form-label small mb-1">고객명</label>
-                    <input type="text" name="searchWord" class="form-control form-control-sm"
-                           placeholder="고객명 검색" value="${searchVO.searchWord}">
+                    <input type="text" name="search_word" class="form-control form-control-sm"
+                           placeholder="고객명 검색" value="${searchVO.search_word}">
                 </div>
                 <!-- 검색 버튼 -->
                 <div class="col-md-2">
                     <button type="submit" class="btn btn-primary btn-sm me-1">
                         <i class="bi bi-search me-1"></i>검색
                     </button>
-                    <a href="${ctx}/admin/reservation/list" class="btn btn-outline-secondary btn-sm">
+                    <a href="/admin/reservation/list" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-arrow-counterclockwise"></i>
                     </a>
                 </div>
@@ -213,8 +210,8 @@
             <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
                 <span class="small text-muted">
                     총 <strong>${totalRecord}</strong>건
-                    <c:if test="${not empty searchVO.searchWord}">
-                        (검색: <strong>${searchVO.searchWord}</strong>)
+                    <c:if test="${not empty searchVO.search_word}">
+                        (검색: <strong>${searchVO.search_word}</strong>)
                     </c:if>
                 </span>
                 <span class="small text-muted">${nowPage} / ${totalPage} 페이지</span>
@@ -246,11 +243,12 @@
                         </c:if>
 
                         <c:forEach var="r" items="${reservationList}">
-                            <tr onclick="location.href='${ctx}/admin/reservation/view?resIdx=${r.resIdx}&nowPage=${nowPage}'" style="cursor:pointer;">
+                            <!-- 행 클릭 시 상세 모달 오픈 -->
+                            <tr onclick="openDetailModal(${r.resIdx})" style="cursor:pointer;">
                                 <td class="ps-4 text-muted">#${r.resIdx}</td>
                                 <td>
-                                    <div class="fw-semibold">${r.userName}</div>
-                                    <div class="text-muted small">${r.userPhone}</div>
+                                    <div class="fw-semibold">${r.uName}</div>
+                                    <div class="text-muted small">${r.uPhone}</div>
                                 </td>
                                 <td>
                                     <div class="fw-semibold">${r.spcName}</div>
@@ -288,10 +286,10 @@
                                     </c:choose>
                                 </td>
                                 <td class="text-center" onclick="event.stopPropagation()">
-                                    <a href="${ctx}/admin/reservation/view?resIdx=${r.resIdx}&nowPage=${nowPage}"
-                                       class="btn btn-outline-primary btn-sm py-0 px-2">
+                                    <button class="btn btn-outline-primary btn-sm py-0 px-2"
+                                            onclick="openDetailModal(${r.resIdx})">
                                         <i class="bi bi-eye"></i>
-                                    </a>
+                                    </button>
                                 </td>
                             </tr>
                         </c:forEach>
@@ -306,7 +304,7 @@
                         <c:if test="${beginBlock > 1}">
                             <li class="page-item">
                                 <a class="page-link"
-                                   href="${ctx}/admin/reservation/list?nowPage=${beginBlock-1}&startDate=${searchVO.startDate}&endDate=${searchVO.endDate}&statusFilter=${searchVO.statusFilter}&spaceFilter=${searchVO.spaceFilter}&searchWord=${searchVO.searchWord}">
+                                   href="/admin/reservation/list?nowPage=${beginBlock-1}&start_date=${searchVO.start_date}&end_date=${searchVO.end_date}&status_filter=${searchVO.status_filter}&space_filter=${searchVO.space_filter}&search_word=${searchVO.search_word}">
                                     <i class="bi bi-chevron-left"></i>
                                 </a>
                             </li>
@@ -314,7 +312,7 @@
                         <c:forEach var="p" begin="${beginBlock}" end="${endBlock}">
                             <li class="page-item ${nowPage == p ? 'active':''}">
                                 <a class="page-link"
-                                   href="${ctx}/admin/reservation/list?nowPage=${p}&startDate=${searchVO.startDate}&endDate=${searchVO.endDate}&statusFilter=${searchVO.statusFilter}&spaceFilter=${searchVO.spaceFilter}&searchWord=${searchVO.searchWord}">
+                                   href="/admin/reservation/list?nowPage=${p}&start_date=${searchVO.start_date}&end_date=${searchVO.end_date}&status_filter=${searchVO.status_filter}&space_filter=${searchVO.space_filter}&search_word=${searchVO.search_word}">
                                     ${p}
                                 </a>
                             </li>
@@ -322,7 +320,7 @@
                         <c:if test="${endBlock < totalPage}">
                             <li class="page-item">
                                 <a class="page-link"
-                                   href="${ctx}/admin/reservation/list?nowPage=${endBlock+1}&startDate=${searchVO.startDate}&endDate=${searchVO.endDate}&statusFilter=${searchVO.statusFilter}&spaceFilter=${searchVO.spaceFilter}&searchWord=${searchVO.searchWord}">
+                                   href="/admin/reservation/list?nowPage=${endBlock+1}&start_date=${searchVO.start_date}&end_date=${searchVO.end_date}&status_filter=${searchVO.status_filter}&space_filter=${searchVO.space_filter}&search_word=${searchVO.search_word}">
                                     <i class="bi bi-chevron-right"></i>
                                 </a>
                             </li>
@@ -469,15 +467,15 @@
                         <div class="fw-semibold text-danger mb-2">
                             <i class="bi bi-exclamation-triangle me-1"></i>강제 취소 처리
                         </div>
-                        <form method="post" action="${ctx}/admin/reservation/cancel" id="cancelFormTag">
+                        <form method="post" action="/admin/reservation/cancel" id="cancelFormTag">
                             <!-- 현재 필터 유지용 hidden 값은 JavaScript 에서 동적 추가 -->
-                            <input type="hidden" name="resIdx"       id="cancel_r_idx">
+                            <input type="hidden" name="resIdx"      id="cancel_r_idx">
                             <input type="hidden" name="nowPage"     value="${nowPage}">
-                            <input type="hidden" name="startDate"  value="${searchVO.startDate}">
-                            <input type="hidden" name="endDate"    value="${searchVO.endDate}">
-                            <input type="hidden" name="statusFilter" value="${searchVO.statusFilter}">
-                            <input type="hidden" name="spaceFilter"  value="${searchVO.spaceFilter}">
-                            <input type="hidden" name="searchWord"   value="${searchVO.searchWord}">
+                            <input type="hidden" name="start_date"  value="${searchVO.start_date}">
+                            <input type="hidden" name="end_date"    value="${searchVO.end_date}">
+                            <input type="hidden" name="status_filter" value="${searchVO.status_filter}">
+                            <input type="hidden" name="space_filter"  value="${searchVO.space_filter}">
+                            <input type="hidden" name="search_word"   value="${searchVO.search_word}">
 
                             <!-- 취소 사유 입력 (필수) -->
                             <div class="mb-3">
@@ -540,7 +538,6 @@
 /* ══════════════════════════════════════════════
    현재 페이지의 nowPage 값 (리다이렉트 URL 구성용)
    ══════════════════════════════════════════════ */
-const ctx = '${pageContext.request.contextPath}';
 const CURRENT_PAGE = ${nowPage};
 
 /* 상태 코드 → 한국어 레이블·배지 CSS 맵 */
@@ -567,7 +564,7 @@ function openDetailModal(rIdx) {
     modal.show();
 
     /* AJAX 상세 조회 */
-    fetch(ctx + '/admin/reservation/detail?resIdx=' + rIdx)
+    fetch('/admin/reservation/detail?resIdx=' + rIdx)
         .then(res => {
             if (!res.ok) throw new Error('데이터 조회 실패');
             return res.json();
@@ -594,9 +591,9 @@ function renderModal(d) {
     document.getElementById('d_r_headcount').textContent  = (d.resHeadcount || 0) + '명';
     document.getElementById('d_r_total_price').textContent = '₩ ' + fmtNum(d.resTotalPrice);
 
-    /* 취소 상태일 때는 r_content 를 "취소 사유"로 표시 */
+    /* 취소 상태일 때는 resContent 를 "취소 사유"로 표시 */
     const contentLabel = d.resStatus === 'CANCELLED' ? '[취소 사유] ' : '';
-    document.getElementById('d_r_content').textContent = contentLabel + (d.r_content || '-');
+    document.getElementById('d_r_content').textContent = contentLabel + (d.resContent || '-');
 
     /* 상태 배지 */
     const statusInfo = STATUS_MAP[d.resStatus] || { label: d.resStatus, css: '' };
@@ -604,9 +601,9 @@ function renderModal(d) {
         '<span class="badge ' + statusInfo.css + ' px-3 py-1 rounded-pill">' + statusInfo.label + '</span>';
 
     /* ② 예약자 정보 */
-    document.getElementById('d_u_name').textContent  = d.userName  || '-';
-    document.getElementById('d_u_email').textContent = d.userEmail || '-';
-    document.getElementById('d_u_phone').textContent = d.userPhone || '-';
+    document.getElementById('d_u_name').textContent  = d.uName  || '-';
+    document.getElementById('d_u_email').textContent = d.uEmail || '-';
+    document.getElementById('d_u_phone').textContent = d.uPhone || '-';
 
     /* ③ 공간 정보 */
     document.getElementById('d_s_name').textContent  = d.spcName  || '-';
@@ -617,7 +614,7 @@ function renderModal(d) {
     /* ④ 이력 타임라인 렌더링 */
     renderTimeline(d);
 
-    /* ⑤ 취소 폼 — r_idx 및 환불 금액 미리 세팅 */
+    /* ⑤ 취소 폼 — resIdx 및 환불 금액 미리 세팅 */
     document.getElementById('cancel_r_idx').value      = d.resIdx;
     document.getElementById('cancelRefundAmount').textContent = '₩ ' + fmtNum(d.resTotalPrice);
 
@@ -644,7 +641,7 @@ function renderTimeline(d) {
     /* 예약 접수 (항상 첫 번째) */
     events.push({ time: d.resCreated, text: '예약 접수 (PENDING)', dot: '' });
 
-    /* 마지막 상태 변경 (r_updated 가 r_created 와 다를 때만 표시) */
+    /* 마지막 상태 변경 (resUpdated 가 resCreated 와 다를 때만 표시) */
     if (d.resUpdated && d.resUpdated !== d.resCreated) {
         let dotClass = '';
         let eventText = '상태 변경 → ' + statusInfo.label;
@@ -679,14 +676,14 @@ function renderFooterButtons(d) {
 
     /* PENDING → 예약 확정 버튼 */
     if (d.resStatus === 'PENDING') {
-        html = '<form method="post" action="${ctx}/admin/reservation/confirm" class="d-inline">' +
-               '  <input type="hidden" name="resIdx"         value="' + d.resIdx + '">' +
+        html = '<form method="post" action="/admin/reservation/confirm" class="d-inline">' +
+               '  <input type="hidden" name="resIdx"        value="' + d.resIdx + '">' +
                '  <input type="hidden" name="nowPage"       value="' + CURRENT_PAGE + '">' +
-               '  <input type="hidden" name="startDate"    value="${searchVO.startDate}">' +
-               '  <input type="hidden" name="endDate"      value="${searchVO.endDate}">' +
-               '  <input type="hidden" name="statusFilter" value="${searchVO.statusFilter}">' +
-               '  <input type="hidden" name="spaceFilter"  value="${searchVO.spaceFilter}">' +
-               '  <input type="hidden" name="searchWord"   value="${searchVO.searchWord}">' +
+               '  <input type="hidden" name="start_date"    value="${searchVO.start_date}">' +
+               '  <input type="hidden" name="end_date"      value="${searchVO.end_date}">' +
+               '  <input type="hidden" name="status_filter" value="${searchVO.status_filter}">' +
+               '  <input type="hidden" name="space_filter"  value="${searchVO.space_filter}">' +
+               '  <input type="hidden" name="search_word"   value="${searchVO.search_word}">' +
                '  <button type="submit" class="btn btn-primary btn-sm me-1"' +
                '    onclick="return confirm(\'이 예약을 확정 처리하시겠습니까?\')">' +
                '    <i class="bi bi-check-circle me-1"></i>예약 확정' +
@@ -696,14 +693,14 @@ function renderFooterButtons(d) {
 
     /* CONFIRMED / USING → 이용 완료 처리 버튼 */
     if (d.resStatus === 'CONFIRMED' || d.resStatus === 'USING') {
-        html = '<form method="post" action="${ctx}/admin/reservation/complete" class="d-inline">' +
-               '  <input type="hidden" name="resIdx"         value="' + d.resIdx + '">' +
+        html = '<form method="post" action="/admin/reservation/complete" class="d-inline">' +
+               '  <input type="hidden" name="resIdx"        value="' + d.resIdx + '">' +
                '  <input type="hidden" name="nowPage"       value="' + CURRENT_PAGE + '">' +
-               '  <input type="hidden" name="startDate"    value="${searchVO.startDate}">' +
-               '  <input type="hidden" name="endDate"      value="${searchVO.endDate}">' +
-               '  <input type="hidden" name="statusFilter" value="${searchVO.statusFilter}">' +
-               '  <input type="hidden" name="spaceFilter"  value="${searchVO.spaceFilter}">' +
-               '  <input type="hidden" name="searchWord"   value="${searchVO.searchWord}">' +
+               '  <input type="hidden" name="start_date"    value="${searchVO.start_date}">' +
+               '  <input type="hidden" name="end_date"      value="${searchVO.end_date}">' +
+               '  <input type="hidden" name="status_filter" value="${searchVO.status_filter}">' +
+               '  <input type="hidden" name="space_filter"  value="${searchVO.space_filter}">' +
+               '  <input type="hidden" name="search_word"   value="${searchVO.search_word}">' +
                '  <button type="submit" class="btn btn-success btn-sm me-1"' +
                '    onclick="return confirm(\'이용 완료 처리하시겠습니까?\')">' +
                '    <i class="bi bi-check2-all me-1"></i>이용 완료' +

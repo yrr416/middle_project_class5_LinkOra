@@ -1,45 +1,35 @@
 package org.study.project05.review.vo;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-/**
- * review 테이블 매핑 VO
- * camelCase 필드명 사용 (MyBatis map-underscore-to-camel-case 자동 매핑)
- *
- * revActive 값 정의:
- *   0 = 일반 (미처리, 관리자 확인 필요)
- *   1 = 처리완료 (관리자 답글 → 관리자 페이지 숨김)
- *   2 = 블라인드 처리
- */
+import java.util.Date;
+import java.util.List;
+
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class ReviewVO {
 
-    private String revIdx;           // PK
-    private String userIdx;          // 작성자 FK
-    private String userName;         // 작성자명 (JOIN)
-    private String spcIdx;           // 공간 FK
-    private String spcName;          // 공간명 (JOIN)
-    private String revTime;          // 이용 시간
-    private String revRating;        // 별점 (1~5)
-    private String revContent;       // 리뷰 내용
-    private String revParentIdx;     // 0=원본 리뷰, 양수=답글 (부모 revIdx)
-    private String revCreatedAt;     // 작성일
-    private String revUpdatedAt;     // 수정일
-    private String revActive;        // 0=일반, 1=처리완료(숨김), 2=블라인드
-    private String revImg;           // 첨부 이미지
+    private int     revIdx;
+    private int     spcIdx;
+    private int     userIdx;
+    private Integer revParentIdx;   // NULL = 최상위 후기, 값 = 답글
+    private String  revContent;
+    private Integer revRating;      // 1~5, 최상위 후기만 (답글은 NULL)
+    private String  authorName;     // JOIN으로 가져오는 작성자 이름
+    private String  spaceName;
+    private Date    revCreatedAt;    // DB의 v_created_at (포맷은 JSP/JS에서 처리)
 
-    // 통계/조인용 (DB 컬럼 아님)
-    private String reportCnt;        // 신고 횟수
-    private String adminReply;       // 관리자 답글 내용 (조회용)
-    private String adminReplyAt;     // 관리자 답글 작성일
+    /** 첨부 이미지 파일명 (v_img) — 없으면 null */
+    private String revImg;
 
-    // 검색/필터용
-    private String ratingFilter;     // 별점 필터
-    private String blindFilter;      // 블라인드 필터 (""=전체, "0"=정상, "2"=블라인드)
-    private String answerFilter;     // 답변 필터 (""=전체, "Y"=답변완료, "N"=미답변)
-    private String searchWord;       // 검색어 (작성자 or 내용)
-    private String sortReported;     // "1" = 신고된 리뷰 우선
+    /** 신고 누적 수 — 조회 시 서브쿼리로 계산 (신고 3회 이상이면 블라인드 처리) */
+    private int reportCount;
+
+    /** 서비스 레이어에서 조립 — 이 후기에 달린 답글 목록 */
+    private List<ReviewVO> replies;
 }

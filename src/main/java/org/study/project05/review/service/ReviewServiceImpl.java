@@ -1,183 +1,146 @@
 package org.study.project05.review.service;
 
+import org.study.project05.common.badword.BadWordFiltering;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.study.project05.common.Paging;
 import org.study.project05.review.mapper.ReviewMapper;
-import org.study.project05.review.vo.ReviewReportVO;
 import org.study.project05.review.vo.ReviewVO;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 리뷰 관리 서비스 구현 클래스
- */
 @Service
 public class ReviewServiceImpl implements ReviewService {
 
     @Autowired
     private ReviewMapper reviewMapper;
 
-    // ─── 리뷰 목록 ───────────────────────────────────────────────
+    @Autowired
+    private BadWordFiltering badWordFiltering;
 
-    /** 전체 리뷰 수 (원본 리뷰만) */
     @Override
-    public int getReviewCount(ReviewVO reviewVO) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("reviewVO", reviewVO);
-        return reviewMapper.getReviewCount(map);
+    public Map<String, Object> getReviewPage(int bIdx, int page) {
+
+        int total = reviewMapper.countParentsByBranch(bIdx);
+
+        Paging paging = new Paging();
+        int pagesize  = 5;
+        int blocksize = 5;
+        paging.setNumPerPage(pagesize);
+        paging.setPagePerBlock(blocksize);
+        paging.setTotalRecord(total);
+        paging.setNowPage(page);
+
+        if (total <= pagesize) {
+            paging.setTotalPage(1);
+        } else {
+            int totalPage = total / pagesize;
+            if (total % pagesize != 0) {
+                paging.setTotalPage(++totalPage);
+            } else {
+                paging.setTotalPage(totalPage);
+            }
+        }
+
+        paging.setOffset((paging.getNowPage() - 1) * paging.getNumPerPage());
+        paging.setBeginBlock(((paging.getNowPage() - 1) / paging.getPagePerBlock()) * paging.getPagePerBlock() + 1);
+        paging.setEndBlock(paging.getBeginBlock() + paging.getPagePerBlock() - 1);
+
+        if (paging.getEndBlock() >= paging.getTotalPage()) {
+            paging.setEndBlock(paging.getTotalPage());
+        }
+
+        List<ReviewVO> reviews = reviewMapper.selectParentsByBranch(bIdx, paging.getOffset(), pagesize);
+        for (ReviewVO r : reviews) {
+            r.setReplies(reviewMapper.selectRepliesByParent(r.getRevIdx()));
+        }
+
+        double avg = reviewMapper.avgRatingByBranch(bIdx);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("reviews",   reviews);
+        result.put("paging",    paging);
+        result.put("avgRating", Math.round(avg * 10.0) / 10.0);
+        return result;
     }
 
-    /** 답변완료 리뷰 수 */
     @Override
-    public int getAnsweredReviewCount() {
-        return reviewMapper.getAnsweredReviewCount();
+    public void writeReview(int spcIdx, int userIdx, String content, Integer rating, String imgUrl) {
+        if (rating == null || rating < 1 || rating > 5) throw new IllegalArgumentException("별점은 1~5 사이여야 합니다.");
+        if (content == null || content.isBlank()) throw new IllegalArgumentException("후기 내용을 입력해주세요.");
+
+        // 욕설 필터 적용: 감지된 욕설을 *** 로 치환하여 저장
+        // change(text, sings) : 단어 사이에 공백·특수문자가 끼어 있어도 감지 (예: "개 새끼", "개.새끼")
+        String filtered = badWordFiltering.change(content.trim(),
+                new String[]{" ", "　", ".", "!", "*", "-", "_", "~", "ㅡ"});
+
+        ReviewVO vo = new ReviewVO();
+        vo.setSpcIdx(spcIdx);
+        vo.setUserIdx(userIdx);
+        vo.setRevParentIdx(0);
+        vo.setRevContent(filtered);
+        vo.setRevRating(rating);
+        vo.setRevImg(imgUrl);
+        reviewMapper.insert(vo);
     }
 
-    /** 리뷰 목록 조회 */
     @Override
-    public List<ReviewVO> getReviewList(int numPerPage, int offset, ReviewVO reviewVO) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("numPerPage", numPerPage);
-        map.put("offset", offset);
-        map.put("reviewVO", reviewVO);
-        return reviewMapper.getReviewList(map);
+    public void updateReview(int revIdx, int userIdx, String content, Integer rating, String imgUrl) {
+        if (rating == null || rating < 1 || rating > 5) throw new IllegalArgumentException("별점은 1~5 사이여야 합니다.");
+        if (content == null || content.isBlank()) throw new IllegalArgumentException("후기 내용을 입력해주세요.");
+
+        // 욕설 필터 적용 (writeReview와 동일한 방식)
+        String filtered = badWordFiltering.change(content.trim(),
+                new String[]{" ", "　", ".", "!", "*", "-", "_", "~", "ㅡ"});
+
+        ReviewVO vo = new ReviewVO();
+        vo.setRevIdx(revIdx);
+        vo.setUserIdx(userIdx);
+        vo.setRevContent(filtered);
+        vo.setRevRating(rating);
+        // imgUrl: null=기존 유지(SQL에서 제외), ""=삭제, 파일명=교체
+        // → null 이외의 값만 세팅해야 SQL <if> 조건이 작동함
+        if (imgUrl != null) {
+            vo.setRevImg(imgUrl);
+        }
+
+        // updateByUser는 revIdx + userIdx 모두 일치할 때만 수정하고 영향받은 행 수를 반환
+        int updated = reviewMapper.updateByUser(vo);
+        if (updated == 0) {
+            throw new IllegalArgumentException("수정 권한이 없거나 존재하지 않는 리뷰입니다.");
+        }
     }
 
-    /** 리뷰 상세 단건 조회 */
     @Override
-    public ReviewVO getReviewDetail(String v_idx) {
-        return reviewMapper.getReviewDetail(v_idx);
+    public void deleteReview(int revIdx, int userIdx) {
+        // deleteByUser는 revIdx + userIdx가 모두 일치할 때만 삭제하고 영향받은 행 수를 반환
+        // 0이면 본인 리뷰가 아니거나 이미 삭제된 것
+        int deleted = reviewMapper.deleteByUser(revIdx, userIdx);
+        if (deleted == 0) {
+            throw new IllegalArgumentException("삭제 권한이 없거나 존재하지 않는 리뷰입니다.");
+        }
     }
 
-    // ─── 관리자 답글 ──────────────────────────────────────────────
-
-    /**
-     * 관리자 답글 등록
-     * 1) 원본 리뷰 정보 조회 (s_idx 가져오기 위해)
-     * 2) 답글 레코드 INSERT (v_parent_idx = 원본 v_idx, u_idx = 0 관리자)
-     * - 원본 리뷰의 v_active는 변경하지 않음
-     * - 답글(v_parent_idx != 0)이 존재하면 SQL의 NOT EXISTS 조건으로
-     *   원본 리뷰가 관리자 페이지 목록에서 자동으로 숨겨짐
-     */
     @Override
-    public int insertAdminReply(String v_idx, String replyContent) {
-        // 1) 원본 리뷰 조회 (s_idx 참조용)
-        ReviewVO original = reviewMapper.getReviewDetail(v_idx);
-        if (original == null) return 0;
-
-        // 2) 답글 VO 구성 (userIdx=null 관리자, revRating=0, revParentIdx=원본 revIdx)
-        ReviewVO reply = new ReviewVO();
-        reply.setUserIdx(null);                   // 관리자 답글 식별값 (null = 관리자)
-        reply.setSpcIdx(original.getSpcIdx());    // 동일 공간
-        reply.setRevContent(replyContent);        // 답글 내용
-        reply.setRevParentIdx(v_idx);             // 원본 리뷰 번호 → 이 값이 존재하면 원본 리뷰 숨김
-        reply.setRevRating("0");                  // 답글은 별점 없음
-        reply.setRevActive("0");                  // 답글 자체 상태
-
-        return reviewMapper.insertAdminReply(reply);
+    public void reportReview(int revIdx, int userIdx, String reason) {
+        if (reviewMapper.countReport(revIdx, userIdx) > 0) {
+            throw new IllegalStateException("이미 신고한 후기입니다.");
+        }
+        reviewMapper.insertReport(revIdx, userIdx, reason);
     }
 
-    // ─── 블라인드 처리 ────────────────────────────────────────────
-
-    /** 리뷰 블라인드 처리 (rev_active = 2) */
     @Override
-    public int blindReview(String v_idx) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("revIdx", v_idx);
-        map.put("revActive", "2");
-        return reviewMapper.updateReviewActive(map);
-    }
+    public void writeReply(int spcIdx, int revParentIdx, int userIdx, String content) {
+        if (content == null || content.isBlank()) throw new IllegalArgumentException("답글 내용을 입력해주세요.");
 
-    /** 리뷰 블라인드 해제 (rev_active = 0, 미처리 상태로 복귀) */
-    @Override
-    public int unblindReview(String v_idx) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("revIdx", v_idx);
-        map.put("revActive", "0");
-        return reviewMapper.updateReviewActive(map);
-    }
-
-    // ─── 신고 처리 ────────────────────────────────────────────────
-
-    /** 신고 전체 수 */
-    @Override
-    public int getReportCount(String statusFilter) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("statusFilter", statusFilter);
-        return reviewMapper.getReportCount(map);
-    }
-
-    /** 신고 목록 조회 */
-    @Override
-    public List<ReviewReportVO> getReportList(int numPerPage, int offset, String statusFilter) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("numPerPage", numPerPage);
-        map.put("offset", offset);
-        map.put("statusFilter", statusFilter);
-        return reviewMapper.getReportList(map);
-    }
-
-    /**
-     * 신고 블라인드 처리
-     * 1) review_report.rr_status = 'BLINDED' + 관리자 알림 메시지 저장
-     * 2) 대상 review.v_active = 2 (블라인드)
-     */
-    @Override
-    public int processReportBlind(String rr_idx, String v_idx, String adminReply) {
-        // 1) 신고 상태 업데이트
-        Map<String, Object> map = new HashMap<>();
-        map.put("rvrIdx", rr_idx);
-        map.put("rvrStatus", "BLINDED");
-        map.put("rvrAdminReply", adminReply);
-        reviewMapper.updateReportStatus(map);
-
-        // 2) 대상 리뷰 블라인드
-        Map<String, Object> blindMap = new HashMap<>();
-        blindMap.put("revIdx", v_idx);
-        blindMap.put("revActive", "2");
-        return reviewMapper.updateReviewActive(blindMap);
-    }
-
-    /**
-     * 신고 반려 처리 (문제없음)
-     * - review_report.rr_status = 'DISMISSED' + 관리자 알림 메시지 저장
-     * - 리뷰 상태는 변경하지 않음
-     */
-    @Override
-    public int processReportDismiss(String rr_idx, String adminReply) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("rvrIdx", rr_idx);
-        map.put("rvrStatus", "DISMISSED");
-        map.put("rvrAdminReply", adminReply);
-        return reviewMapper.updateReportStatus(map);
-    }
-
-    /** 특정 리뷰의 전체 신고 목록 조회 */
-    @Override
-    public List<ReviewReportVO> getReportsByRevIdx(String revIdx) {
-        return reviewMapper.getReportsByRevIdx(revIdx);
-    }
-
-    /** 리뷰 삭제 (관련 답글 포함) */
-    @Override
-    public int deleteReview(String revIdx) {
-        return reviewMapper.deleteReview(revIdx);
-    }
-
-    /** 관리자 답글 수정 */
-    @Override
-    public int updateAdminReply(String revIdx, String replyContent) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("revIdx", revIdx);
-        map.put("replyContent", replyContent);
-        return reviewMapper.updateAdminReply(map);
-    }
-
-    /** 관리자 답글 삭제 */
-    @Override
-    public int deleteAdminReply(String revIdx) {
-        return reviewMapper.deleteAdminReply(revIdx);
+        ReviewVO vo = new ReviewVO();
+        vo.setSpcIdx(spcIdx);
+        vo.setUserIdx(userIdx);
+        vo.setRevParentIdx(revParentIdx);
+        vo.setRevContent(content.trim());
+        vo.setRevRating(0);
+        reviewMapper.insert(vo);
     }
 }

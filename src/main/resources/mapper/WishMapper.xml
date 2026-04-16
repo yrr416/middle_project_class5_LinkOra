@@ -3,7 +3,7 @@
 
 <mapper namespace="org.study.project05.branch.mapper.WishMapper">
 
-    <resultMap id="BranchResultMap" type="org.study.project05.branch.vo.BranchVO">
+    <resultMap id="BranchResultMap" type="BranchVO">
         <id property="brnIdx" column="b_idx"/>
         <result property="brnName" column="b_name"/>
         <result property="brnAddress" column="b_address"/>
@@ -16,18 +16,18 @@
         <result property="isWish" column="isWish"/>
     </resultMap>
 
-    <select id="checkWish" parameterType="org.study.project05.branch.vo.WishVO" resultType="int">
+    <select id="checkWish" parameterType="WishVO" resultType="int">
         SELECT COUNT(*)
         FROM wishlist
         WHERE u_idx = #{userIdx} AND b_idx = #{brnIdx}
     </select>
 
-    <insert id="insertWish" parameterType="org.study.project05.branch.vo.WishVO">
+    <insert id="insertWish" parameterType="WishVO">
         INSERT INTO wishlist (u_idx, b_idx)
         VALUES (#{userIdx}, #{brnIdx})
     </insert>
 
-    <delete id="deleteWish" parameterType="org.study.project05.branch.vo.WishVO">
+    <delete id="deleteWish" parameterType="WishVO">
         DELETE FROM wishlist
         WHERE u_idx = #{userIdx} AND b_idx = #{brnIdx}
     </delete>

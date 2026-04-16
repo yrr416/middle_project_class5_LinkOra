@@ -1,77 +1,31 @@
 package org.study.project05.review.service;
 
-import org.study.project05.review.vo.ReviewReportVO;
-import org.study.project05.review.vo.ReviewVO;
+import java.util.Map;
 
-import java.util.List;
-
-/**
- * 리뷰 관리 서비스 인터페이스
- */
 public interface ReviewService {
 
-    // ─── 리뷰 목록 ───────────────────────────────────────────────
+    Map<String, Object> getReviewPage(int bIdx, int page);
 
-    /** 전체 리뷰 수 (필터 포함) */
-    int getReviewCount(ReviewVO reviewVO);
+    void writeReply(int spcIdx, int revParentIdx, int userIdx, String content);
 
-    /** 답변완료 리뷰 수 */
-    int getAnsweredReviewCount();
-
-    /** 리뷰 목록 조회 (페이징 + 필터) */
-    List<ReviewVO> getReviewList(int numPerPage, int offset, ReviewVO reviewVO);
-
-    /** 리뷰 상세 조회 */
-    ReviewVO getReviewDetail(String v_idx);
-
-    // ─── 관리자 답글 ──────────────────────────────────────────────
+    void writeReview(int spcIdx, int userIdx, String content, Integer rating, String imgUrl);
 
     /**
-     * 관리자 답글 등록
-     * - 새 review 레코드 insert (v_parent_idx = 원본 v_idx, u_idx = 0 관리자)
-     * - 원본 리뷰의 v_active는 변경하지 않음
-     * - 관리자 목록 숨김은 v_parent_idx 존재 여부로 판단
+     * 본인 리뷰 삭제
+     * @throws IllegalArgumentException 본인 리뷰가 아닌 경우
      */
-    int insertAdminReply(String v_idx, String replyContent);
-
-    // ─── 블라인드 처리 ────────────────────────────────────────────
-
-    /** 리뷰 블라인드 처리 (v_active = 2) */
-    int blindReview(String v_idx);
-
-    /** 리뷰 블라인드 해제 (v_active = 0) */
-    int unblindReview(String v_idx);
-
-    // ─── 신고 처리 ────────────────────────────────────────────────
-
-    /** 신고 전체 수 */
-    int getReportCount(String statusFilter);
-
-    /** 신고 목록 조회 */
-    List<ReviewReportVO> getReportList(int numPerPage, int offset, String statusFilter);
+    void deleteReview(int revIdx, int userIdx);
 
     /**
-     * 신고 블라인드 처리
-     * - review_report.rr_status = 'BLINDED' + rr_admin_reply 저장
-     * - 대상 review.v_active = 2 (블라인드)
+     * 본인 리뷰 수정 (욕설 필터 적용)
+     * @param imgUrl null=기존 이미지 유지, ""=이미지 삭제, 파일명=새 이미지로 교체
+     * @throws IllegalArgumentException 본인 리뷰가 아니거나 내용/별점이 유효하지 않은 경우
      */
-    int processReportBlind(String rr_idx, String v_idx, String adminReply);
+    void updateReview(int revIdx, int userIdx, String content, Integer rating, String imgUrl);
 
     /**
-     * 신고 반려 처리 (문제없음)
-     * - review_report.rr_status = 'DISMISSED' + rr_admin_reply 저장
+     * 리뷰 신고
+     * @throws IllegalStateException 이미 신고한 경우
      */
-    int processReportDismiss(String rr_idx, String adminReply);
-
-    /** 특정 리뷰의 전체 신고 목록 조회 */
-    List<ReviewReportVO> getReportsByRevIdx(String revIdx);
-
-    /** 리뷰 삭제 (관련 답글 포함) */
-    int deleteReview(String revIdx);
-
-    /** 관리자 답글 수정 */
-    int updateAdminReply(String revIdx, String replyContent);
-
-    /** 관리자 답글 삭제 */
-    int deleteAdminReply(String revIdx);
+    void reportReview(int revIdx, int userIdx, String reason);
 }

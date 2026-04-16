@@ -1,6 +1,4 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -74,8 +72,8 @@
     <h1>로그인 성공</h1>
     <p>카카오 또는 네이버 인증을 통해 접속되었습니다.</p>
     <div class="actions">
-        <a class="btn btn-logout" href="${ctx}/logoutNow">로그아웃</a>
-        <a class="btn btn-back" href="${ctx}/loginPage">로그인 페이지로 돌아가기</a>
+        <a class="btn btn-logout" href="${pageContext.request.contextPath}/logoutNow">로그아웃</a>
+        <a class="btn btn-back" href="${pageContext.request.contextPath}/loginPage">로그인 페이지로 돌아가기</a>
     </div>
 </main>
 </body>

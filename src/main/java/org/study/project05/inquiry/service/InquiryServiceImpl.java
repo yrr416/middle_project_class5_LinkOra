@@ -4,61 +4,92 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.study.project05.inquiry.mapper.InquiryMapper;
 import org.study.project05.inquiry.vo.InquiryVO;
-
-import java.util.HashMap;
+import org.study.project05.common.Paging;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
-/**
- * 1:1 문의 관리 서비스 구현 클래스
- */
 @Service
 public class InquiryServiceImpl implements InquiryService {
+    
+    private final InquiryMapper inquiryMapper;
 
     @Autowired
-    private InquiryMapper inquiryMapper;
-
-    /** 전체 문의 수 (상태 필터 포함) */
-    @Override
-    public int getInquiryCount(InquiryVO inquiryVO) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("inquiryVO", inquiryVO);
-        return inquiryMapper.getInquiryCount(map);
+    public InquiryServiceImpl(InquiryMapper inquiryMapper) {
+        this.inquiryMapper = inquiryMapper;
     }
 
-    /** 문의 목록 조회 (미답변 PENDING 우선 정렬) */
     @Override
-    public List<InquiryVO> getInquiryList(int numPerPage, int offset, InquiryVO inquiryVO) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("numPerPage", numPerPage);
-        map.put("offset", offset);
-        map.put("inquiryVO", inquiryVO);
-        return inquiryMapper.getInquiryList(map);
+    public int registerInquiry(InquiryVO vo) {
+        // [보완] 필수 입력값 검증 (서버 측)
+        if (vo.getInqTitle() == null || vo.getInqTitle().trim().isEmpty()) return 0;
+        if (vo.getInqContent() == null || vo.getInqContent().trim().isEmpty()) return 0;
+        
+        return inquiryMapper.insertInquiry(vo);
     }
 
-    /** 문의 단건 상세 조회 */
     @Override
-    public InquiryVO getInquiryDetail(String iIdx) {
-        return inquiryMapper.getInquiryDetail(iIdx);
+    public Map<String, Object> getInquiryList(Long userIdx, int page) {
+        int totalRecord = inquiryMapper.countInquiriesByUser(userIdx);
+        
+        Paging paging = new Paging();
+        paging.setTotalRecord(totalRecord);
+        paging.setNowPage(page);
+        
+        // 전체 페이지 수 계산
+        int totalPage = (int) Math.ceil((double) totalRecord / paging.getNumPerPage());
+        paging.setTotalPage(totalPage > 0 ? totalPage : 1);
+        
+        // MySQL LIMIT용 offset 계산
+        paging.setOffset((paging.getNowPage() - 1) * paging.getNumPerPage());
+        
+        // 블록 계산 (이전/다음 버튼용)
+        int beginBlock = ((paging.getNowPage() - 1) / paging.getPagePerBlock()) * paging.getPagePerBlock() + 1;
+        paging.setBeginBlock(beginBlock);
+        int endBlock = beginBlock + paging.getPagePerBlock() - 1;
+        paging.setEndBlock(endBlock > paging.getTotalPage() ? paging.getTotalPage() : endBlock);
+        
+        List<InquiryVO> list = inquiryMapper.selectInquiryListByUser(userIdx, paging.getNumPerPage(), paging.getOffset());
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("inquiryList", list);
+        result.put("paging", paging);
+        
+        return result;
     }
 
-    /**
-     * 답변 저장
-     * - iAnswer 저장
-     * - iStatus = 'COMPLETE' 자동 변경
-     * - iAnswered = NOW()
-     */
     @Override
-    public int saveAnswer(String iIdx, String answer) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("inqIdx",    iIdx);
-        map.put("inqAnswer", answer);
-        return inquiryMapper.saveAnswer(map);
+    public InquiryVO getInquiryDetail(Integer inqIdx) {
+        return inquiryMapper.selectInquiryDetail(inqIdx);
     }
 
-    /** 미답변 문의 수 (대시보드 알림용) */
     @Override
-    public int getPendingCount() {
-        return inquiryMapper.getPendingCount();
+    public String updateInquiry(InquiryVO vo, int userIdx) {
+        InquiryVO original = inquiryMapper.selectInquiryDetail(vo.getInqIdx());
+        if (original == null) return "존재하지 않는 문의글입니다.";
+        if (original.getUserIdx() != userIdx) return "수정 권한이 없습니다.";
+        
+        // [보완] 공백 유무와 상관없이 '답변 완료' 상태를 유연하게 체크
+        String status = original.getInqStatus() != null ? original.getInqStatus().replace(" ", "") : "";
+        if ("답변완료".equals(status)) {
+            return "답변이 완료된 문의는 수정할 수 없습니다.";
+        }
+
+        // [보완] 입력값 검증
+        if (vo.getInqTitle() == null || vo.getInqTitle().trim().isEmpty()) return "제목을 입력해 주세요.";
+        if (vo.getInqContent() == null || vo.getInqContent().trim().isEmpty()) return "내용을 입력해 주세요.";
+
+        int res = inquiryMapper.updateInquiry(vo);
+        return (res > 0) ? "success" : "수정에 실패했습니다.";
+    }
+
+    @Override
+    public String deleteInquiry(Integer inqIdx, int userIdx) {
+        InquiryVO original = inquiryMapper.selectInquiryDetail(inqIdx);
+        if (original == null) return "존재하지 않는 문의글입니다.";
+        if (original.getUserIdx() != userIdx) return "삭제 권한이 없습니다.";
+
+        int res = inquiryMapper.deleteInquiry(inqIdx);
+        return (res > 0) ? "success" : "삭제에 실패했습니다.";
     }
 }

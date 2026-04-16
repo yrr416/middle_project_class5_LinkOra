@@ -1,264 +1,184 @@
 package org.study.project05.review.controller;
 
-import lombok.extern.slf4j.Slf4j;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+import org.study.project05.member.vo.UserProfileVO;
 import org.study.project05.review.service.ReviewService;
-import org.study.project05.review.vo.ReviewReportVO;
-import org.study.project05.review.vo.ReviewVO;
 
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
-/**
- * 리뷰 관리 컨트롤러
- * /admin/review/** 요청 처리
- */
-@Slf4j
 @Controller
-@RequestMapping("/admin/review")
+@RequestMapping("/review")
 public class ReviewController {
 
     @Autowired
     private ReviewService reviewService;
 
-    /** 페이지당 리뷰 표시 수 */
-    private static final int NUM_PER_PAGE   = 10;
-    /** 페이지 블록당 표시 수 */
-    private static final int PAGE_PER_BLOCK = 5;
-
-    /**
-     * 리뷰 관리 메인 페이지
-     * GET /admin/review/list
-     */
+    /** 지점 이용후기 목록 (AJAX GET) */
     @GetMapping("/list")
-    public String list(@RequestParam(defaultValue = "1") int nowPage,
-                       @RequestParam(defaultValue = "1") int reportPage,
-                       ReviewVO reviewVO,
-                       Model model) {
-
-        // ── 답변완료 수 ───────────────────────────────────────────
-        int answeredCount = reviewService.getAnsweredReviewCount();
-
-        // ── 리뷰 목록 페이징 계산 ──────────────────────────────────
-        int totalRecord = reviewService.getReviewCount(reviewVO);
-        int totalPage   = (totalRecord <= 0) ? 1
-                : (int) Math.ceil((double) totalRecord / NUM_PER_PAGE);
-
-        if (nowPage < 1) nowPage = 1;
-        if (nowPage > totalPage) nowPage = totalPage;
-
-        int offset     = (nowPage - 1) * NUM_PER_PAGE;
-        int beginBlock = (int)(Math.floor((double)(nowPage - 1) / PAGE_PER_BLOCK) * PAGE_PER_BLOCK) + 1;
-        int endBlock   = Math.min(beginBlock + PAGE_PER_BLOCK - 1, totalPage);
-
-        List<ReviewVO> reviewList = reviewService.getReviewList(NUM_PER_PAGE, offset, reviewVO);
-
-        // ── 신고 목록 페이징 계산 (PENDING 신고만) ─────────────────
-        int reportTotal = reviewService.getReportCount("PENDING");
-        int reportTotalPage = (reportTotal <= 0) ? 1
-                : (int) Math.ceil((double) reportTotal / NUM_PER_PAGE);
-
-        if (reportPage < 1) reportPage = 1;
-        if (reportPage > reportTotalPage) reportPage = reportTotalPage;
-
-        int reportOffset = (reportPage - 1) * NUM_PER_PAGE;
-        List<ReviewReportVO> reportList = reviewService.getReportList(NUM_PER_PAGE, reportOffset, "PENDING");
-
-        // ── 모델 바인딩 ───────────────────────────────────────────
-        model.addAttribute("reviewList",      reviewList);
-        model.addAttribute("totalRecord",     totalRecord);
-        model.addAttribute("answeredCount",   answeredCount);
-        model.addAttribute("totalPage",       totalPage);
-        model.addAttribute("nowPage",         nowPage);
-        model.addAttribute("beginBlock",      beginBlock);
-        model.addAttribute("endBlock",        endBlock);
-        model.addAttribute("reviewVO",        reviewVO);
-
-        model.addAttribute("reportList",      reportList);
-        model.addAttribute("reportTotal",     reportTotal);
-        model.addAttribute("reportPage",      reportPage);
-        model.addAttribute("reportTotalPage", reportTotalPage);
-
-        return "review/list";
+    @ResponseBody
+    public Map<String, Object> list(@RequestParam int brnIdx,
+                                    @RequestParam(defaultValue = "1") int page) {
+        return reviewService.getReviewPage(brnIdx, page);
     }
 
-    /**
-     * 리뷰 상세 페이지
-     * GET /admin/review/detail
-     */
-    @GetMapping("/detail")
-    public String detail(@RequestParam("revIdx")                              String revIdx,
-                         @RequestParam(name = "nowPage", defaultValue = "1")  int nowPage,
-                         ReviewVO reviewVO,
-                         Model model) {
+    /** 이용후기 등록 (로그인 필요) */
+    @PostMapping("/write")
+    @ResponseBody
+    public Map<String, Object> write(@RequestParam int spcIdx,
+                                     @RequestParam String content,
+                                     @RequestParam Integer rating,
+                                     @RequestParam(required = false) MultipartFile imgFile,
+                                     HttpSession session,
+                                     HttpServletRequest request) {
+        UserProfileVO user = (UserProfileVO) session.getAttribute("loginUser");
+        if (user == null) {
+            return Map.of("success", false, "message", "로그인이 필요합니다.");
+        }
+        try {
+            String imgUrl = null;
+            if (imgFile != null && !imgFile.isEmpty()) {
+                imgUrl = saveReviewImage(imgFile, request);
+            }
+            reviewService.writeReview(spcIdx, user.getUserIdx(), content, rating, imgUrl);
+            return Map.of("success", true);
+        } catch (IllegalArgumentException e) {
+            return Map.of("success", false, "message", e.getMessage());
+        } catch (IOException e) {
+            return Map.of("success", false, "message", "이미지 업로드에 실패했습니다.");
+        }
+    }
 
-        ReviewVO review = reviewService.getReviewDetail(revIdx);
-        if (review == null) {
-            return "redirect:/admin/review/list?nowPage=" + nowPage;
+    // 허용된 이미지 확장자 목록 (소문자로 비교)
+    // .jsp, .sh, .exe 같은 실행 파일 업로드를 막기 위해 화이트리스트 방식 사용
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp");
+
+    /**
+     * 리뷰 이미지를 /static/upload/review/ 에 저장하고 파일명을 반환
+     * JSP에서 contextPath + /static/upload/review/ + 파일명 으로 접근
+     */
+    private String saveReviewImage(MultipartFile file, HttpServletRequest request) throws IOException {
+        String ext = StringUtils.getFilenameExtension(file.getOriginalFilename());
+
+        // 확장자가 없거나 허용 목록에 없으면 업로드 거부
+        // 악의적 사용자가 .jsp/.sh 등을 올려 서버에서 실행되는 것을 방지
+        if (ext == null || !ALLOWED_EXTENSIONS.contains(ext.toLowerCase())) {
+            throw new IllegalArgumentException("이미지 파일만 업로드 가능합니다. (jpg, jpeg, png, gif, webp)");
         }
 
-        List<ReviewReportVO> reportList = reviewService.getReportsByRevIdx(revIdx);
+        String uploadDir = request.getServletContext().getRealPath("/static/upload/review/");
+        File dir = new File(uploadDir);
+        if (!dir.exists()) dir.mkdirs();
 
-        model.addAttribute("review",     review);
-        model.addAttribute("reportList", reportList);
-        model.addAttribute("nowPage",    nowPage);
-        model.addAttribute("reviewVO",   reviewVO);
-
-        return "review/detail";
+        String fileName = UUID.randomUUID().toString() + "." + ext.toLowerCase();
+        file.transferTo(new File(dir, fileName));
+        return fileName;
     }
 
-    /**
-     * 관리자 답글 등록
-     * POST /admin/review/reply
-     */
-    @PostMapping("/reply")
-    public String reply(@RequestParam("revIdx")                                      String revIdx,
-                        @RequestParam("reply_content")                                String replyContent,
-                        @RequestParam(name = "nowPage", defaultValue = "1")          int nowPage,
-                        @RequestParam(name = "fromDetail", defaultValue = "") String fromDetail,
-                        ReviewVO reviewVO) {
-
-        int result = reviewService.insertAdminReply(revIdx, replyContent);
-        log.info("관리자 답글 등록 - revIdx: {}, 결과: {}", revIdx, result);
-
-        if ("1".equals(fromDetail)) {
-            return "redirect:/admin/review/detail?revIdx=" + revIdx + "&nowPage=" + nowPage;
+    /** 본인 리뷰 수정 (로그인 필요, AJAX POST) */
+    @PostMapping("/update")
+    @ResponseBody
+    public Map<String, Object> update(@RequestParam int revIdx,
+                                      @RequestParam String content,
+                                      @RequestParam Integer rating,
+                                      @RequestParam(required = false) MultipartFile imgFile,
+                                      @RequestParam(defaultValue = "false") boolean removeImg,
+                                      HttpSession session,
+                                      HttpServletRequest request) {
+        UserProfileVO user = (UserProfileVO) session.getAttribute("loginUser");
+        if (user == null) {
+            return Map.of("success", false, "message", "로그인이 필요합니다.");
         }
-        return buildRedirect(nowPage, reviewVO);
+        try {
+            // imgUrl 결정:
+            //   1) 새 파일이 있으면 → 저장 후 새 파일명
+            //   2) removeImg=true 이면 → "" (빈 문자열 = 이미지 삭제)
+            //   3) 둘 다 아니면 → null (기존 이미지 유지)
+            String imgUrl = null;
+            if (imgFile != null && !imgFile.isEmpty()) {
+                imgUrl = saveReviewImage(imgFile, request);
+            } else if (removeImg) {
+                imgUrl = ""; // 빈 문자열로 DB v_img 비움
+            }
+            reviewService.updateReview(revIdx, user.getUserIdx(), content, rating, imgUrl);
+            return Map.of("success", true);
+        } catch (IllegalArgumentException e) {
+            return Map.of("success", false, "message", e.getMessage());
+        } catch (IOException e) {
+            return Map.of("success", false, "message", "이미지 업로드에 실패했습니다.");
+        }
     }
 
-    /**
-     * 관리자 답글 수정
-     * POST /admin/review/replyUpdate
-     */
-    @PostMapping("/replyUpdate")
-    public String replyUpdate(@RequestParam("revIdx")                              String revIdx,
-                              @RequestParam("reply_content")                        String replyContent,
-                              @RequestParam(name = "nowPage", defaultValue = "1")  int nowPage) {
-
-        reviewService.updateAdminReply(revIdx, replyContent);
-        log.info("관리자 답글 수정 - revIdx: {}", revIdx);
-
-        return "redirect:/admin/review/detail?revIdx=" + revIdx + "&nowPage=" + nowPage;
-    }
-
-    /**
-     * 관리자 답글 삭제
-     * POST /admin/review/replyDelete
-     */
-    @PostMapping("/replyDelete")
-    public String replyDelete(@RequestParam("revIdx")                             String revIdx,
-                              @RequestParam(name = "nowPage", defaultValue = "1") int nowPage) {
-
-        reviewService.deleteAdminReply(revIdx);
-        log.info("관리자 답글 삭제 - revIdx: {}", revIdx);
-
-        return "redirect:/admin/review/detail?revIdx=" + revIdx + "&nowPage=" + nowPage;
-    }
-
-    /**
-     * 리뷰 삭제 (관련 답글 포함)
-     * POST /admin/review/delete
-     */
+    /** 본인 리뷰 삭제 (로그인 필요, AJAX POST) */
     @PostMapping("/delete")
-    public String delete(@RequestParam("revIdx")                              String revIdx,
-                         @RequestParam(name = "nowPage", defaultValue = "1")  int nowPage) {
-
-        reviewService.deleteReview(revIdx);
-        log.info("리뷰 삭제 - revIdx: {}", revIdx);
-
-        return "redirect:/admin/review/list?nowPage=" + nowPage;
+    @ResponseBody
+    public Map<String, Object> delete(@RequestParam int revIdx, HttpSession session) {
+        UserProfileVO user = (UserProfileVO) session.getAttribute("loginUser");
+        if (user == null) {
+            return Map.of("success", false, "message", "로그인이 필요합니다.");
+        }
+        try {
+            reviewService.deleteReview(revIdx, user.getUserIdx());
+            return Map.of("success", true);
+        } catch (IllegalArgumentException e) {
+            return Map.of("success", false, "message", e.getMessage());
+        }
     }
 
     /**
-     * 리뷰 블라인드 처리 (vActive = 2)
-     * POST /admin/review/blind
+     * 리뷰 신고 (로그인 필요)
+     * AJAX POST: { revIdx, reason } → { success, message }
      */
-    @PostMapping("/blind")
-    public String blind(@RequestParam("revIdx")                                      String revIdx,
-                        @RequestParam(name = "nowPage", defaultValue = "1")          int nowPage,
-                        @RequestParam(name = "fromDetail", defaultValue = "") String fromDetail,
-                        ReviewVO reviewVO) {
-
-        reviewService.blindReview(revIdx);
-        log.info("리뷰 블라인드 처리 - revIdx: {}", revIdx);
-
-        if ("1".equals(fromDetail)) {
-            return "redirect:/admin/review/detail?revIdx=" + revIdx + "&nowPage=" + nowPage;
+    @PostMapping("/report")
+    @ResponseBody
+    public Map<String, Object> report(@RequestParam int revIdx,
+                                      @RequestParam(required = false, defaultValue = "") String reason,
+                                      HttpSession session) {
+        UserProfileVO user = (UserProfileVO) session.getAttribute("loginUser");
+        if (user == null) {
+            return Map.of("success", false, "message", "로그인이 필요합니다.");
         }
-        return buildRedirect(nowPage, reviewVO);
+        try {
+            reviewService.reportReview(revIdx, user.getUserIdx(), reason);
+            return Map.of("success", true, "message", "신고가 접수되었습니다.");
+        } catch (IllegalStateException e) {
+            return Map.of("success", false, "message", e.getMessage());
+        }
     }
 
-    /**
-     * 리뷰 블라인드 해제 (vActive = 0)
-     * POST /admin/review/unblind
-     */
-    @PostMapping("/unblind")
-    public String unblind(@RequestParam("revIdx")                                      String revIdx,
-                          @RequestParam(name = "nowPage", defaultValue = "1")          int nowPage,
-                          @RequestParam(name = "fromDetail", defaultValue = "") String fromDetail,
-                          ReviewVO reviewVO) {
-
-        reviewService.unblindReview(revIdx);
-        log.info("리뷰 블라인드 해제 - revIdx: {}", revIdx);
-
-        if ("1".equals(fromDetail)) {
-            return "redirect:/admin/review/detail?revIdx=" + revIdx + "&nowPage=" + nowPage;
+    /** 답글 등록 (ADMIN만) */
+    @PostMapping("/reply")
+    @ResponseBody
+    public Map<String, Object> reply(@RequestParam int spcIdx,
+                                     @RequestParam int revParentIdx,
+                                     @RequestParam String content,
+                                     HttpSession session) {
+        UserProfileVO user = (UserProfileVO) session.getAttribute("loginUser");
+        // 비로그인 상태에서 user.getRole() 호출 시 NPE 발생 → 다른 메서드와 동일하게 null 체크 추가
+        if (user == null) {
+            return Map.of("success", false, "message", "로그인이 필요합니다.");
         }
-        return buildRedirect(nowPage, reviewVO);
-    }
-
-    /**
-     * 신고 블라인드 처리
-     * POST /admin/review/reportBlind
-     */
-    @PostMapping("/reportBlind")
-    public String reportBlind(@RequestParam("rvrIdx")                                      String rvrIdx,
-                              @RequestParam("revIdx")                                       String revIdx,
-                              @RequestParam("rvrAdminReply")                                String adminReply,
-                              @RequestParam(name = "nowPage", defaultValue = "1")           int nowPage,
-                              @RequestParam(name = "fromDetail", defaultValue = "") String fromDetail) {
-
-        reviewService.processReportBlind(rvrIdx, revIdx, adminReply);
-        log.info("신고 블라인드 처리 - rvrIdx: {}, revIdx: {}", rvrIdx, revIdx);
-
-        if ("1".equals(fromDetail)) {
-            return "redirect:/admin/review/detail?revIdx=" + revIdx + "&nowPage=" + nowPage;
+        if (!"ADMIN".equals(user.getRole())) {
+            return Map.of("success", false, "message", "파트너 담당자만 답글을 작성할 수 있습니다.");
         }
-        return "redirect:/admin/review/list?nowPage=" + nowPage;
-    }
-
-    /**
-     * 신고 반려 처리 (문제없음)
-     * POST /admin/review/reportDismiss
-     */
-    @PostMapping("/reportDismiss")
-    public String reportDismiss(@RequestParam("rvrIdx")                              String rvrIdx,
-                                @RequestParam("rvrAdminReply")                        String adminReply,
-                                @RequestParam(name = "nowPage", defaultValue = "1")  int nowPage) {
-
-        reviewService.processReportDismiss(rvrIdx, adminReply);
-        log.info("신고 반려 처리 - rvrIdx: {}", rvrIdx);
-
-        return "redirect:/admin/review/list?nowPage=" + nowPage;
-    }
-
-    /**
-     * 리뷰 목록 리다이렉트 URL 생성 (필터 파라미터 유지)
-     */
-    private String buildRedirect(int nowPage, ReviewVO reviewVO) {
-        StringBuilder sb = new StringBuilder("redirect:/admin/review/list?nowPage=").append(nowPage);
-        if (reviewVO.getRatingFilter() != null && !reviewVO.getRatingFilter().isEmpty()) {
-            sb.append("&ratingFilter=").append(reviewVO.getRatingFilter());
+        try {
+            reviewService.writeReply(spcIdx, revParentIdx, user.getUserIdx(), content);
+            return Map.of("success", true);
+        } catch (IllegalArgumentException e) {
+            return Map.of("success", false, "message", e.getMessage());
         }
-        if (reviewVO.getBlindFilter() != null && !reviewVO.getBlindFilter().isEmpty()) {
-            sb.append("&blindFilter=").append(reviewVO.getBlindFilter());
-        }
-        if (reviewVO.getSearchWord() != null && !reviewVO.getSearchWord().isEmpty()) {
-            sb.append("&searchWord=").append(reviewVO.getSearchWord());
-        }
-        return sb.toString();
     }
 }

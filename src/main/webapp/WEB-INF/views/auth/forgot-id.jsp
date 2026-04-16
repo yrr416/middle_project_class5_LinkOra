@@ -1,6 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<c:set var="ctx" value="${pageContext.request.contextPath}"/>
+<%-- 아이디 찾기 화면: 이메일 검증 후 가입된 아이디 안내 메일 발송을 요청한다. --%>
 <html lang="ko">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -107,12 +106,12 @@
         <p class="msg">메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.</p>
         <% } %>
 
-        <form method="post" action="${ctx}/forgot-id">
+        <form method="post" action="/forgot-id">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
             <label for="email">이메일</label>
             <input id="email" name="email" type="email" required placeholder="example@domain.com">
             <div class="actions">
-                <a class="btn" href="${ctx}/loginPage">로그인으로</a>
+                <a class="btn" href="/loginPage">로그인으로</a>
                 <button class="btn btn-primary" type="submit">아이디 메일 발송</button>
             </div>
         </form>

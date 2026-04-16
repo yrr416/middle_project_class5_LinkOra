@@ -13,8 +13,6 @@ import java.util.List;
 @Mapper
 public interface SpaceBranchMapper {
 
-    List<BranchVO> selectAll();
-
     BranchVO selectById(@Param("brnIdx") int brnIdx);
 
     /** 특정 공간이 속한 지점 조회 — spaIdx: 공간 번호 */

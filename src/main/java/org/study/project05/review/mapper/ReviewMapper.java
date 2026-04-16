@@ -1,67 +1,40 @@
 package org.study.project05.review.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.study.project05.review.vo.ReviewReportVO;
+import org.apache.ibatis.annotations.Param;
 import org.study.project05.review.vo.ReviewVO;
 
 import java.util.List;
-import java.util.Map;
-
-/**
- * 리뷰 관련 DB 처리 매퍼 인터페이스
- * MyBatis를 통해 ReviewMapper.xml 과 연동
- */
 @Mapper
 public interface ReviewMapper {
+    /** 지점의 최상위 후기 목록 (페이징) */
+    List<ReviewVO> selectParentsByBranch(@Param("bIdx")   int bIdx,
+                                         @Param("offset") int offset,
+                                         @Param("limit")  int limit);
 
-    // ─── 리뷰 목록 ───────────────────────────────────────────────
+    /** 지점의 최상위 후기 총 개수 */
+    int countParentsByBranch(int bIdx);
 
-    /** 전체 리뷰 수 (원본 리뷰만) */
-    int getReviewCount(Map<String, Object> map);
+    /** 특정 후기의 답글 목록 */
+    List<ReviewVO> selectRepliesByParent(int parentIdx);
 
-    /** 답변완료 리뷰 수 */
-    int getAnsweredReviewCount();
+    /** 지점 평균 별점 (최상위 후기만, 별점 0 제외) */
+    double avgRatingByBranch(int bIdx);
 
-    /** 리뷰 목록 조회 (페이징 + 필터, 신고 수 포함) */
-    List<ReviewVO> getReviewList(Map<String, Object> map);
+    /** 본인 후기 삭제 (revIdx + userIdx 일치 시만 삭제) */
+    int deleteByUser(@Param("revIdx") int revIdx, @Param("userIdx") int userIdx);
 
-    /** 리뷰 상세 단건 조회 */
-    ReviewVO getReviewDetail(String v_idx);
+    /** 본인 후기 수정 (revIdx + userIdx 일치 시만 수정) */
+    int updateByUser(ReviewVO vo);
 
-    // ─── 관리자 답글 ──────────────────────────────────────────────
+    /** 후기/답글 등록 */
+    void insert(ReviewVO vo);
 
-    /**
-     * 관리자 답글 등록 (v_parent_idx = 원본 리뷰의 v_idx)
-     * 답글이 존재하면 원본 리뷰는 관리자 페이지에서 자동으로 숨겨짐
-     * (v_active 변경 없이 v_parent_idx 존재 여부로 처리완료 판단)
-     */
-    int insertAdminReply(ReviewVO reviewVO);
+    /** 리뷰 신고 저장 */
+    void insertReport(@Param("vIdx") int vIdx,
+                      @Param("userIdx") int userIdx,
+                      @Param("reason") String reason);
 
-    // ─── 블라인드 처리 ────────────────────────────────────────────
-
-    /** 리뷰 활성 상태 변경 (0=일반, 1=처리완료, 2=블라인드) */
-    int updateReviewActive(Map<String, Object> map);
-
-    // ─── 신고 관련 ────────────────────────────────────────────────
-
-    /** 신고 전체 수 */
-    int getReportCount(Map<String, Object> map);
-
-    /** 신고 목록 조회 (신고 사유, 신고자, 대상 리뷰 정보 포함) */
-    List<ReviewReportVO> getReportList(Map<String, Object> map);
-
-    /** 신고 처리 (상태 변경 + 관리자 알림 메시지 저장) */
-    int updateReportStatus(Map<String, Object> map);
-
-    /** 특정 리뷰의 전체 신고 목록 조회 */
-    List<ReviewReportVO> getReportsByRevIdx(String revIdx);
-
-    /** 리뷰 삭제 (관련 답글 포함) */
-    int deleteReview(String revIdx);
-
-    /** 관리자 답글 수정 */
-    int updateAdminReply(Map<String, Object> map);
-
-    /** 관리자 답글 삭제 */
-    int deleteAdminReply(String revIdx);
+    /** 동일 사용자가 해당 리뷰를 이미 신고했는지 확인 (1 = 이미 신고함) */
+    int countReport(@Param("vIdx") int vIdx, @Param("userIdx") int userIdx);
 }

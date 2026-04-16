@@ -1,79 +1,74 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="org.study.project05.inquiry.mapper.InquiryMapper">
 
-    <!-- 공통 검색 조건 -->
-    <sql id="inquirySearchCondition">
-        <where>
-            <if test="inquiryVO.statusFilter != null and inquiryVO.statusFilter != ''">
-                i.i_status = #{inquiryVO.statusFilter}
-            </if>
-            <if test="inquiryVO.searchWord != null and inquiryVO.searchWord != ''">
-                AND (i.i_title LIKE CONCAT('%', #{inquiryVO.searchWord}, '%')
-                  OR u.u_name  LIKE CONCAT('%', #{inquiryVO.searchWord}, '%'))
-            </if>
-        </where>
-    </sql>
+    <!-- ResultMap for InquiryVO (All-Lowercase Standardization for JSP EL Compatibility) -->
+    <resultMap id="inquiryResultMap" type="InquiryVO">
+        <id property="inqIdx" column="i_idx" />
+        <result property="userIdx" column="u_idx" />
+        <result property="inqCategory" column="i_category" />
+        <result property="inqTitle" column="i_title" />
+        <result property="inqStatus" column="i_status" />
+        <result property="inqContent" column="i_content" />
+        <result property="inqFileUrl" column="i_file_url" />
+        <result property="inqAnswer" column="i_answer" />
+        <result property="inqCreated" column="i_created" />
+        <result property="inqAnswered" column="i_answered" />
+        <result property="inqActive" column="i_active" />
+    </resultMap>
 
-    <!-- 전체 문의 수 -->
-    <select id="getInquiryCount" parameterType="map" resultType="int">
+    <!-- 신규 문의 등록 -->
+    <insert id="insertInquiry" parameterType="InquiryVO">
+        INSERT INTO inquiries (
+            u_idx, i_category, i_title, i_content, i_status, i_created
+        ) VALUES (
+            #{userIdx}, #{inqCategory}, #{inqTitle}, #{inqContent}, '대기중', NOW()
+        )
+    </insert>
+
+    <!-- 특정 사용자의 전체 문의 개수 조회 (페이징용) -->
+    <select id="countInquiriesByUser" parameterType="long" resultType="int">
         SELECT COUNT(*)
-          FROM inquiries i
-          LEFT JOIN user u ON i.u_idx = u.u_idx
-        <include refid="inquirySearchCondition"/>
+        FROM inquiries 
+        WHERE u_idx = #{userIdx} AND i_active = 1
     </select>
 
-    <!-- 문의 목록 조회 (미답변 우선 → 최신순) -->
-    <select id="getInquiryList" parameterType="map" resultType="InquiryVO">
-        SELECT i.i_idx       AS inq_idx,
-               i.u_idx       AS user_idx,
-               u.u_name      AS user_name,
-               i.i_category  AS inq_category,
-               i.i_title     AS inq_title,
-               i.i_status    AS inq_status,
-               DATE_FORMAT(i.i_created,  '%Y-%m-%d %H:%i') AS inq_created,
-               DATE_FORMAT(i.i_answered, '%Y-%m-%d %H:%i') AS inq_answered
-          FROM inquiries i
-          LEFT JOIN user u ON i.u_idx = u.u_idx
-        <include refid="inquirySearchCondition"/>
-         ORDER BY
-            CASE WHEN i.i_status = 'PENDING' THEN 0 ELSE 1 END ASC,
-            i.i_created DESC
-         LIMIT #{numPerPage} OFFSET #{offset}
+    <!-- 특정 사용자의 문의 내역 리스트 조회 (페이징 적용) -->
+    <select id="selectInquiryListByUser" resultMap="inquiryResultMap">
+        SELECT 
+            i_idx, u_idx, i_category, i_title, i_status, 
+            DATE_FORMAT(i_created, '%Y.%m.%d') AS i_created
+        FROM inquiries 
+        WHERE u_idx = #{userIdx} AND i_active = 1
+        ORDER BY i_idx DESC
+        LIMIT #{limit} OFFSET #{offset}
     </select>
 
-    <!-- 문의 단건 상세 조회 (답변 포함) -->
-    <select id="getInquiryDetail" parameterType="String" resultType="InquiryVO">
-        SELECT i.i_idx       AS inq_idx,
-               i.u_idx       AS user_idx,
-               u.u_name      AS user_name,
-               i.i_category  AS inq_category,
-               i.i_title     AS inq_title,
-               i.i_status    AS inq_status,
-               i.i_content   AS inq_content,
-               i.i_file_url  AS inq_file_url,
-               i.i_answer    AS inq_answer,
-               DATE_FORMAT(i.i_created,  '%Y-%m-%d %H:%i') AS inq_created,
-               DATE_FORMAT(i.i_answered, '%Y-%m-%d %H:%i') AS inq_answered
-          FROM inquiries i
-          LEFT JOIN user u ON i.u_idx = u.u_idx
-         WHERE i.i_idx = #{inqIdx}
+    <!-- 특정 문의 상세 내용 및 관리자 답변 조회 -->
+    <select id="selectInquiryDetail" parameterType="int" resultMap="inquiryResultMap">
+        SELECT 
+            i_idx, u_idx, i_category, i_title, i_content, i_status, i_answer, 
+            DATE_FORMAT(i_created, '%Y.%m.%d %H:%i') AS i_created,
+            DATE_FORMAT(i_answered, '%Y.%m.%d %H:%i') AS i_answered
+        FROM inquiries 
+        WHERE i_idx = #{inqIdx} AND i_active = 1
     </select>
 
-    <!-- 답변 저장 + 상태 자동 변경 -->
-    <update id="saveAnswer" parameterType="map">
+    <!-- 문의 수정 -->
+    <update id="updateInquiry" parameterType="InquiryVO">
         UPDATE inquiries
-           SET i_answer   = #{inqAnswer},
-               i_status   = 'COMPLETE',
-               i_answered = NOW()
-         WHERE i_idx = #{inqIdx}
+        SET i_category = #{inqCategory},
+            i_title = #{inqTitle},
+            i_content = #{inqContent}
+        WHERE i_idx = #{inqIdx} AND i_status = '대기중'
     </update>
 
-    <!-- 미답변 문의 수 (대시보드 알림용) -->
-    <select id="getPendingCount" resultType="int">
-        SELECT COUNT(*) FROM inquiries WHERE i_status = 'PENDING'
-    </select>
+    <!-- 문의 삭제 (논리 삭제: i_active = 0) -->
+    <update id="deleteInquiry" parameterType="int">
+        UPDATE inquiries
+        SET i_active = 0
+        WHERE i_idx = #{inqIdx}
+    </update>
 
 </mapper>

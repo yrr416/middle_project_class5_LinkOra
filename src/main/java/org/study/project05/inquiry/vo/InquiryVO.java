@@ -1,34 +1,32 @@
 package org.study.project05.inquiry.vo;
 
-import lombok.*;
+import org.apache.ibatis.type.Alias;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * inquiries 테이블 매핑 VO
- * camelCase 필드명 사용 (MyBatis map-underscore-to-camel-case 자동 매핑)
- *
- * inqStatus 값 정의:
- *   PENDING  = 미답변 (기본값, 고객이 문의 등록 시)
- *   COMPLETE = 답변완료 (관리자가 답변 저장 시 자동 변경)
+ * InquiryVO - 자바 표준 필드명 버전
+ * JSP EL(PropertyNotFoundException) 문제를 100% 방지하기 위해 
+ * inq_title -> inqTitle, u_idx -> userIdx 등 표준 Camel Case를 사용합니다.
  */
-@Getter
-@Setter
+@Alias("InquiryVO")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class InquiryVO {
 
-    private String inqIdx;        // PK
-    private String userIdx;       // 작성 고객 FK
-    private String userName;      // 작성자명 (user 테이블 JOIN)
-    private String inqCategory;   // 문의 유형
-    private String inqTitle;      // 제목
-    private String inqStatus;     // PENDING / COMPLETE
-    private String inqContent;    // 문의 내용
-    private String inqFileUrl;    // 첨부 파일 URL
-    private String inqAnswer;     // 관리자 답변 내용
-    private String inqCreated;    // 문의 작성일
-    private String inqAnswered;   // 답변 일시
-
-    // 검색/필터용 (DB 컬럼 아님)
-    private String statusFilter;  // ""=전체, "PENDING"=미답변, "COMPLETE"=완료
-    private String searchWord;    // 제목/작성자 검색어
+    private Integer inqIdx;       // i_idx
+    private int userIdx;        // u_idx (사용자 요청에 따라 int로 유지)
+    private String inqCategory;   // i_category
+    private String inqTitle;      // i_title
+    private String inqContent;    // i_content
+    private String inqFileUrl;    // i_file_url
+    private String inqStatus;     // i_status
+    private String inqAnswer;     // i_answer
+    private String inqCreated;    // i_created
+    private String inqAnswered;   // i_answered
+    private int inqActive;       // inq_active (1:활성, 0:삭제)
 }

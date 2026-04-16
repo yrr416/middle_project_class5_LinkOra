@@ -1,8 +1,11 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c"  uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-
 <jsp:include page="/WEB-INF/views/layout/header.jsp" />
+
+<%-- CSRF 토큰: AJAX (특히 FormData) 요청에 헤더로 포함하기 위해 meta 태그에 저장 --%>
+<meta name="_csrf"        content="${_csrf.token}"/>
+<meta name="_csrf_header" content="${_csrf.headerName}"/>
 
 <%-- 페이지 전용 스타일 및 라이브러리 --%>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -279,6 +282,14 @@
                     class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm
                            resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-3"></textarea>
 
+          <%-- 이미지 첨부 (선택) --%>
+          <label class="block text-xs text-gray-400 mb-1">사진 첨부 (선택, 최대 10MB)</label>
+          <input type="file" id="reviewImgFile" accept="image/*"
+                 class="block w-full text-xs text-gray-500 mb-3
+                        file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0
+                        file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-600
+                        hover:file:bg-indigo-100">
+
           <c:choose>
             <c:when test="${hasReservation}">
               <button onclick="submitReview()"
@@ -376,7 +387,7 @@
                   </a>
                 </c:when>
                 <c:otherwise>
-                  <a href="${pageContext.request.contextPath}/loginPage?redirectUrl=/reservation/form?spcIdx=${space.spcIdx}"
+                  <a href="${pageContext.request.contextPath}/loginPage?redirectUrl=${pageContext.request.contextPath}/reservation/form?spcIdx=${space.spcIdx}"
                      class="block text-center bg-gray-200 hover:bg-gray-300
                                               text-gray-600 text-sm font-semibold py-2 rounded-xl transition">
                     로그인 후 예약
@@ -498,6 +509,63 @@
   </div>
 </div>
 
+<%-- ── 리뷰 수정 모달 ── --%>
+<div id="editModal"
+     class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+     onclick="closeEditModal()">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl" onclick="event.stopPropagation()">
+    <h3 class="font-bold text-gray-800 mb-4">리뷰 수정</h3>
+
+    <%-- 별점 선택 --%>
+    <input type="hidden" id="editRating" value="0">
+    <div class="flex gap-1 mb-3">
+      <c:forEach var="i" begin="1" end="5">
+        <button type="button"
+                class="edit-star-btn text-2xl text-gray-300 transition"
+                data-val="${i}"
+                onclick="setEditRating(${i})">★</button>
+      </c:forEach>
+    </div>
+
+    <textarea id="editContent" rows="4"
+              class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3
+                     focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none"
+              placeholder="수정할 내용을 입력해주세요."></textarea>
+
+    <%-- 기존 이미지 미리보기: 이미지가 있을 때만 표시 --%>
+    <div id="editImgPreviewWrap" class="mb-3 hidden">
+      <img id="editImgPreview" src="" alt="현재 이미지"
+           class="max-h-40 rounded-xl object-cover border border-gray-100 mb-1 block">
+      <button type="button" onclick="removeEditImg()"
+              class="text-xs text-red-400 hover:text-red-600">이미지 삭제</button>
+    </div>
+
+    <%-- 새 이미지 첨부 --%>
+    <label class="block text-xs text-gray-400 mb-1">사진 첨부 (선택, 최대 10MB)</label>
+    <input type="file" id="editImgFile" accept="image/*"
+           class="block w-full text-xs text-gray-500 mb-3
+                  file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0
+                  file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-600
+                  hover:file:bg-indigo-100"
+           onchange="previewEditImg(this)">
+    <%-- 이미지 삭제 요청 여부 전달용 hidden 필드 --%>
+    <input type="hidden" id="editRemoveImg" value="false">
+
+    <p id="editMsg" class="text-xs text-red-400 mb-3 hidden"></p>
+
+    <div class="flex gap-2">
+      <button onclick="submitEdit()"
+              class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-2 rounded-xl transition">
+        수정하기
+      </button>
+      <button onclick="closeEditModal()"
+              class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-semibold py-2 rounded-xl transition">
+        취소
+      </button>
+    </div>
+  </div>
+</div>
+
 <%-- ── 하단 고정 예약 바 ── --%>
 <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
   <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -527,12 +595,7 @@
 <script>
   const CTX         = '${pageContext.request.contextPath}';
 
-  // Spring Security CSRF 토큰 — AJAX POST 요청에 헤더로 포함해야 403 방지
-  $.ajaxSetup({
-    beforeSend: function(xhr) {
-      xhr.setRequestHeader('${_csrf.headerName}', '${_csrf.token}');
-    }
-  });
+
   const BRANCH_IDX  = ${branch.brnIdx};
   const LAT         = '${branch.brnLatitude}';
   const LNG         = '${branch.brnLongitude}';
@@ -772,11 +835,21 @@
                        title="부적절한 리뷰 신고">신고</button>`
             : '';
 
-    // 삭제 버튼: 본인이 작성한 리뷰에만 표시
+    // 삭제/수정 버튼: 본인이 작성한 리뷰에만 표시
     const deleteBtn = (LOGIN_USER_IDX > 0 && LOGIN_USER_IDX === r.userIdx)
             ? `<button onclick="deleteReview(\${r.revIdx}, this)"
                        class="text-xs text-gray-300 hover:text-red-500 transition ml-2"
                        title="리뷰 삭제">삭제</button>`
+            : '';
+    // data 속성에 값을 저장 → onclick 안에 따옴표 충돌 없이 안전하게 전달
+    const editBtn = (LOGIN_USER_IDX > 0 && LOGIN_USER_IDX === r.userIdx)
+            ? `<button onclick="openEditModal(this)"
+                       data-rev-idx="\${r.revIdx}"
+                       data-content="\${esc(r.revContent)}"
+                       data-rating="\${r.revRating}"
+                       data-img="\${r.revImg ? esc(r.revImg) : ''}"
+                       class="text-xs text-gray-300 hover:text-indigo-500 transition ml-2"
+                       title="리뷰 수정">수정</button>`
             : '';
 
     // 신고 3회 이상이면 블라인드 처리
@@ -798,6 +871,14 @@
                </div>`
             : `<p class="text-sm text-gray-600">\${censorContent(r.revContent)}</p>`;
 
+    // 리뷰 이미지: 서버에 저장된 파일명을 /static/upload/review/ 경로로 표시
+    const imgHtml = r.revImg
+            ? `<img src="\${CTX}/static/upload/review/\${esc(r.revImg)}"
+                    alt="리뷰 이미지"
+                    class="mt-3 max-h-48 rounded-xl object-cover border border-gray-100"
+                    onerror="this.style.display='none'">`
+            : '';
+
     let html = `
         <div class="bg-white rounded-2xl p-5 shadow-sm">
             <div class="flex items-center justify-between mb-2">
@@ -806,11 +887,13 @@
                     \${spaceTag}
                     <span class="text-xs text-gray-400">\${date}</span>
                     \${reportBtn}
+                    \${editBtn}
                     \${deleteBtn}
                 </div>
                 <span class="text-sm">\${stars}</span>
             </div>
-            \${contentHtml}`;
+            \${contentHtml}
+            \${imgHtml}`;
 
     // 답글
     if (r.replies && r.replies.length > 0) {
@@ -848,23 +931,49 @@
 
   /* ── 리뷰 등록 AJAX ── */
   function submitReview() {
-    const spcIdxEl  = document.getElementById('reviewSpcIdx');
-    const content   = document.getElementById('reviewContent').value.trim();
-    const rating    = parseInt(document.getElementById('reviewRating').value);
-    const msgEl     = document.getElementById('reviewMsg');
+    const spcIdxEl = document.getElementById('reviewSpcIdx');
+    const content  = document.getElementById('reviewContent').value.trim();
+    const rating   = parseInt(document.getElementById('reviewRating').value);
+    const imgFile  = document.getElementById('reviewImgFile');
 
-    if (!rating) { showReviewMsg('별점을 선택해주세요.', false); return; }
+    if (!rating)  { showReviewMsg('별점을 선택해주세요.', false);   return; }
     if (!content) { showReviewMsg('후기 내용을 입력해주세요.', false); return; }
 
+    // 파일 크기 10MB 제한
+    if (imgFile && imgFile.files.length > 0 && imgFile.files[0].size > 10 * 1024 * 1024) {
+      showReviewMsg('이미지는 10MB 이하만 첨부할 수 있습니다.', false);
+      return;
+    }
+
+    // FormData: 텍스트 + 파일을 multipart/form-data 로 함께 전송
+    const formData = new FormData();
+    formData.append('spcIdx',  spcIdxEl.value);
+    formData.append('content', content);
+    formData.append('rating',  rating);
+    if (imgFile && imgFile.files.length > 0) {
+      formData.append('imgFile', imgFile.files[0]);
+    }
+
+    // CSRF 토큰을 헤더로 전달 (Spring Security 기본 방식)
+    const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
     $.ajax({
-      url:  CTX + '/review/write',
-      type: 'POST',
-      data: { spcIdx: spcIdxEl.value, content: content, rating: rating },
-      dataType: 'json',
+      url:         CTX + '/review/write',
+      type:        'POST',
+      data:        formData,
+      dataType:    'json',
+      // FormData 사용 시 jQuery가 Content-Type을 자동 설정하도록 false 지정
+      processData: false,
+      contentType: false,
+      beforeSend: function(xhr) {
+        xhr.setRequestHeader(csrfHeader, csrfToken);
+      },
       success: function(res) {
         if (res.success) {
           showReviewMsg('후기가 등록되었습니다.', true);
           document.getElementById('reviewContent').value = '';
+          document.getElementById('reviewImgFile').value = '';
           setRating(0);
           loadReviews(1); // 목록 새로고침
         } else {
@@ -991,6 +1100,146 @@
         } else {
           // 실패 사유를 모달 내부에 표시
           msgEl.textContent = res.message;
+          msgEl.classList.remove('hidden');
+        }
+      },
+      error: function() {
+        msgEl.textContent = '서버 오류가 발생했습니다.';
+        msgEl.classList.remove('hidden');
+      }
+    });
+  }
+
+  /* ──────────────────────────────────────────
+     리뷰 수정 기능
+  ────────────────────────────────────────── */
+  let editTargetIdx = 0; // 현재 수정 대상 리뷰 번호
+
+  /**
+   * 수정 모달 열기
+   * @param revIdx  - 수정할 리뷰 번호
+   * @param content - 기존 내용 (esc() 처리된 문자열)
+   * @param rating  - 기존 별점 (1~5)
+   */
+  // btn: 클릭된 수정 버튼 요소 — data 속성에서 값을 읽어옴
+  function openEditModal(btn) {
+    editTargetIdx = parseInt(btn.dataset.revIdx);
+    const content = btn.dataset.content || '';
+    const rating  = parseInt(btn.dataset.rating) || 0;
+    const img     = btn.dataset.img || ''; // 기존 이미지 파일명
+
+    // esc()로 HTML 엔티티 처리된 값을 원래 문자로 복원
+    const textarea = document.getElementById('editContent');
+    textarea.value = content.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"');
+    setEditRating(rating);
+
+    // 이미지 관련 초기화
+    document.getElementById('editImgFile').value = '';
+    document.getElementById('editRemoveImg').value = 'false';
+
+    // 기존 이미지가 있으면 미리보기 표시
+    const previewWrap = document.getElementById('editImgPreviewWrap');
+    const preview     = document.getElementById('editImgPreview');
+    if (img) {
+      preview.src = CTX + '/static/upload/review/' + img;
+      previewWrap.classList.remove('hidden');
+    } else {
+      previewWrap.classList.add('hidden');
+      preview.src = '';
+    }
+
+    document.getElementById('editMsg').classList.add('hidden');
+    document.getElementById('editModal').classList.remove('hidden');
+  }
+
+  /** 수정 모달 닫기 */
+  function closeEditModal() {
+    document.getElementById('editModal').classList.add('hidden');
+    document.getElementById('editImgFile').value = '';
+    document.getElementById('editImgPreviewWrap').classList.add('hidden');
+    document.getElementById('editRemoveImg').value = 'false';
+    editTargetIdx = 0;
+  }
+
+  /** 수정 모달 - 새 이미지 선택 시 미리보기 갱신 */
+  function previewEditImg(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = document.getElementById('editImgPreview');
+        preview.src   = e.target.result;
+        document.getElementById('editImgPreviewWrap').classList.remove('hidden');
+        // 새 파일을 선택했으므로 삭제 플래그 해제
+        document.getElementById('editRemoveImg').value = 'false';
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  /** 수정 모달 - 이미지 삭제 버튼: 서버에 removeImg=true 전달 */
+  function removeEditImg() {
+    document.getElementById('editImgFile').value = '';
+    document.getElementById('editImgPreviewWrap').classList.add('hidden');
+    document.getElementById('editImgPreview').src = '';
+    // 서버에서 v_img를 비워달라는 신호
+    document.getElementById('editRemoveImg').value = 'true';
+  }
+
+  /** 수정 모달 별점 설정 */
+  function setEditRating(val) {
+    document.getElementById('editRating').value = val;
+    document.querySelectorAll('.edit-star-btn').forEach(btn => {
+      btn.classList.toggle('text-yellow-400', val > 0 && btn.dataset.val <= val);
+      btn.classList.toggle('text-gray-300',   val === 0 || btn.dataset.val > val);
+    });
+  }
+
+  /** 수정 제출 */
+  function submitEdit() {
+    if (editTargetIdx === 0) return;
+    const content   = document.getElementById('editContent').value.trim();
+    const rating    = parseInt(document.getElementById('editRating').value);
+    const msgEl     = document.getElementById('editMsg');
+    const imgFile   = document.getElementById('editImgFile');
+    const removeImg = document.getElementById('editRemoveImg').value;
+
+    if (!rating)  { msgEl.textContent = '별점을 선택해주세요.'; msgEl.classList.remove('hidden'); return; }
+    if (!content) { msgEl.textContent = '내용을 입력해주세요.';  msgEl.classList.remove('hidden'); return; }
+
+    // 파일 크기 10MB 제한
+    if (imgFile && imgFile.files.length > 0 && imgFile.files[0].size > 10 * 1024 * 1024) {
+      msgEl.textContent = '이미지는 10MB 이하만 첨부할 수 있습니다.';
+      msgEl.classList.remove('hidden');
+      return;
+    }
+
+    // 파일 업로드가 있으므로 FormData로 전송 (write와 동일한 방식)
+    const formData = new FormData();
+    formData.append('revIdx',     editTargetIdx);
+    formData.append('content',    content);
+    formData.append('rating',     rating);
+    formData.append('removeImg',  removeImg); // 'true' 이면 서버에서 이미지 삭제
+    if (imgFile && imgFile.files.length > 0) {
+      formData.append('imgFile', imgFile.files[0]);
+    }
+
+    const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+    $.ajax({
+      url:         CTX + '/review/update',
+      type:        'POST',
+      data:        formData,
+      processData: false,
+      contentType: false,
+      beforeSend:  function(xhr) { xhr.setRequestHeader(csrfHeader, csrfToken); },
+      dataType:    'json',
+      success: function(res) {
+        if (res.success) {
+          closeEditModal();
+          loadReviews(currentPage); // 현재 페이지 그대로 새로고침
+        } else {
+          msgEl.textContent = res.message || '수정에 실패했습니다.';
           msgEl.classList.remove('hidden');
         }
       },

@@ -1,123 +1,159 @@
 package org.study.project05.inquiry.controller;
 
-import lombok.extern.slf4j.Slf4j;
+import org.study.project05.common.util.SessionUtil;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.study.project05.inquiry.service.InquiryService;
 import org.study.project05.inquiry.vo.InquiryVO;
 
-import java.util.List;
+import java.util.Map;
 
-/**
- * 1:1 문의 관리 컨트롤러
- * /admin/inquiry/** 요청 처리
- */
-@Slf4j
 @Controller
-@RequestMapping("/admin/inquiry")
+@RequestMapping("/inquiry")
 public class InquiryController {
+    
+    private final InquiryService inquiryService;
 
     @Autowired
-    private InquiryService inquiryService;
-
-    /** 페이지당 문의 표시 수 */
-    private static final int NUM_PER_PAGE   = 10;
-    /** 페이지 블록당 표시 수 */
-    private static final int PAGE_PER_BLOCK = 5;
-
-    /**
-     * 문의 목록 페이지
-     * GET /admin/inquiry/list
-     */
-    @GetMapping({"/list", "", "/"})
-    public String list(@RequestParam(defaultValue = "1") int nowPage,
-                       InquiryVO inquiryVO,
-                       Model model) {
-
-        int totalRecord = inquiryService.getInquiryCount(inquiryVO);
-        int totalPage   = (totalRecord <= 0) ? 1
-                : (int) Math.ceil((double) totalRecord / NUM_PER_PAGE);
-
-        if (nowPage < 1) nowPage = 1;
-        if (nowPage > totalPage) nowPage = totalPage;
-
-        int offset     = (nowPage - 1) * NUM_PER_PAGE;
-        int beginBlock = (int)(Math.floor((double)(nowPage - 1) / PAGE_PER_BLOCK) * PAGE_PER_BLOCK) + 1;
-        int endBlock   = Math.min(beginBlock + PAGE_PER_BLOCK - 1, totalPage);
-
-        List<InquiryVO> inquiryList = inquiryService.getInquiryList(NUM_PER_PAGE, offset, inquiryVO);
-
-        int pendingCount = inquiryService.getPendingCount();
-
-        model.addAttribute("inquiryList",  inquiryList);
-        model.addAttribute("totalRecord",  totalRecord);
-        model.addAttribute("totalPage",    totalPage);
-        model.addAttribute("nowPage",      nowPage);
-        model.addAttribute("beginBlock",   beginBlock);
-        model.addAttribute("endBlock",     endBlock);
-        model.addAttribute("inquiryVO",    inquiryVO);
-        model.addAttribute("pendingCount", pendingCount);
-
-        return "inquiry/list";
+    public InquiryController(InquiryService inquiryService) {
+        this.inquiryService = inquiryService;
     }
 
-    /**
-     * 문의 상세 조회 페이지
-     * GET /admin/inquiry/detail?iIdx=...
-     */
-    @GetMapping("/detail")
-    public String detail(@RequestParam String inqIdx,
-                         @RequestParam(defaultValue = "1") int nowPage,
-                         @RequestParam(defaultValue = "") String statusFilter,
-                         @RequestParam(defaultValue = "") String searchWord,
-                         Model model) {
+    // 1. 문의 작성 페이지 이동
+    @GetMapping("")
+    public String inquiryForm(HttpSession session, Model model) {
+        Integer userIdx = SessionUtil.getUserIdx(session);
+        if (userIdx == null) {
+            session.setAttribute("prevUrl", "/inquiry");
+            model.addAttribute("msg", "로그인이 필요한 서비스입니다.");
+            model.addAttribute("url", "/loginPage");
+            return "common/alert";
+        }
+        return "inquiry/inquiry_form";
+    }
 
-        InquiryVO inquiry = inquiryService.getInquiryDetail(inqIdx);
-        if (inquiry == null) {
-            return "redirect:/admin/inquiry/list";
+    // 2. 문의 등록 처리
+    @PostMapping("/submit")
+    public String submitInquiry(HttpSession session, InquiryVO vo, Model model) {
+        Integer userIdx = SessionUtil.getUserIdx(session);
+        if (userIdx == null) {
+            model.addAttribute("msg", "로그인 세션이 만료되었습니다. 다시 로그인해 주세요.");
+            model.addAttribute("url", "/loginPage");
+            return "common/alert";
         }
 
-        model.addAttribute("inquiry",       inquiry);
-        model.addAttribute("nowPage",       nowPage);
-        model.addAttribute("statusFilter",  statusFilter);
-        model.addAttribute("searchWord",    searchWord);
-
-        return "inquiry/detail";
+        vo.setUserIdx(userIdx);
+        inquiryService.registerInquiry(vo);
+        return "redirect:/inquiry/mylist";
     }
 
-    /**
-     * 답변 저장
-     * POST /admin/inquiry/answer
-     */
-    @PostMapping("/answer")
-    public String answer(@RequestParam String inqIdx,
-                         @RequestParam String inqAnswer,
-                         @RequestParam(defaultValue = "false") boolean isUpdate,
-                         @RequestParam(defaultValue = "1") int nowPage,
-                         @RequestParam(defaultValue = "") String statusFilter,
-                         @RequestParam(defaultValue = "") String searchWord,
-                         RedirectAttributes rttr) {
+    @GetMapping("/mylist")
+    public String myInquiryList(@RequestParam(value = "page", defaultValue = "1") int page, 
+                                HttpSession session, Model model) {
+        Integer userIdx = SessionUtil.getUserIdx(session);
+        if (userIdx == null) {
+            session.setAttribute("prevUrl", "/inquiry/mylist");
+            model.addAttribute("msg", "로그인이 필요한 서비스입니다.");
+            model.addAttribute("url", "/loginPage");
+            return "common/alert";
+        }
 
-        int result = inquiryService.saveAnswer(inqIdx, inqAnswer);
+        Map<String, Object> result = inquiryService.getInquiryList(userIdx.longValue(), page);
+        model.addAttribute("inquiryList", result.get("inquiryList"));
+        model.addAttribute("paging", result.get("paging"));
+        return "inquiry/my_inquiries";
+    }
 
-        if (isUpdate) {
-            log.info("문의 답변 수정 - inqIdx: {}, 결과: {}", inqIdx, result);
-            rttr.addFlashAttribute("msg", "답변이 수정되었습니다.");
+    // 4. 문의 상세 정보 및 답변 확인
+    @GetMapping("/detail/{inqIdx}")
+    public String inquiryDetail(@PathVariable("inqIdx") Integer inqIdx, HttpSession session, Model model) {
+        Integer userIdx = SessionUtil.getUserIdx(session);
+        if (userIdx == null) {
+            session.setAttribute("prevUrl", "/inquiry/detail/" + inqIdx);
+            model.addAttribute("msg", "로그인이 필요한 서비스입니다.");
+            model.addAttribute("url", "/loginPage");
+            return "common/alert";
+        }
+
+        InquiryVO detail = inquiryService.getInquiryDetail(inqIdx);
+        
+        // 본인 글 확인
+        if (detail == null || detail.getUserIdx() != userIdx) {
+            return "redirect:/inquiry/mylist";
+        }
+
+        model.addAttribute("inquiry", detail);
+        return "inquiry/inquiry_detail";
+    }
+
+    // 5. 문의 수정 페이지 이동
+    @GetMapping("/edit/{inqIdx}")
+    public String editForm(@PathVariable("inqIdx") Integer inqIdx, HttpSession session, Model model) {
+        Integer userIdx = SessionUtil.getUserIdx(session);
+        if (userIdx == null) {
+            session.setAttribute("prevUrl", "/inquiry/edit/" + inqIdx);
+            model.addAttribute("msg", "로그인이 필요한 서비스입니다.");
+            model.addAttribute("url", "/loginPage");
+            return "common/alert";
+        }
+
+        InquiryVO detail = inquiryService.getInquiryDetail(inqIdx);
+        if (detail == null || detail.getUserIdx() != userIdx) {
+            return "redirect:/inquiry/mylist";
+        }
+
+        if ("답변 완료".equals(detail.getInqStatus())) {
+            model.addAttribute("msg", "답변이 완료된 문의는 수정할 수 없습니다.");
+            model.addAttribute("url", "/inquiry/detail/" + inqIdx);
+            return "common/alert";
+        }
+
+        model.addAttribute("inquiry", detail);
+        return "inquiry/inquiry_edit";
+    }
+
+    // 6. 문의 수정 처리
+    @PostMapping("/update")
+    public String updateInquiry(InquiryVO vo, HttpSession session, Model model) {
+        Integer userIdx = SessionUtil.getUserIdx(session);
+        if (userIdx == null) {
+            model.addAttribute("msg", "로그인 세션이 만료되었습니다.");
+            model.addAttribute("url", "/loginPage");
+            return "common/alert";
+        }
+
+        String result = inquiryService.updateInquiry(vo, userIdx);
+        if ("success".equals(result)) {
+            return "redirect:/inquiry/detail/" + vo.getInqIdx();
         } else {
-            log.info("문의 답변 저장 - inqIdx: {}, 결과: {}", inqIdx, result);
-            rttr.addFlashAttribute("msg", "답변이 저장되었습니다.");
+            model.addAttribute("msg", result);
+            model.addAttribute("url", "/inquiry/edit/" + vo.getInqIdx());
+            return "common/alert";
+        }
+    }
+
+    // 7. 문의 삭제 처리
+    @PostMapping("/delete/{inqIdx}")
+    public String deleteInquiry(@PathVariable("inqIdx") Integer inqIdx, HttpSession session, Model model) {
+        Integer userIdx = SessionUtil.getUserIdx(session);
+        if (userIdx == null) {
+            model.addAttribute("msg", "로그인 세션이 만료되었습니다.");
+            model.addAttribute("url", "/loginPage");
+            return "common/alert";
         }
 
-        rttr.addAttribute("nowPage", nowPage);
-        if (statusFilter != null && !statusFilter.isEmpty()) {
-            rttr.addAttribute("statusFilter", statusFilter);
+        String result = inquiryService.deleteInquiry(inqIdx, userIdx);
+        if ("success".equals(result)) {
+            model.addAttribute("msg", "문의가 삭제되었습니다.");
+            model.addAttribute("url", "/inquiry/mylist");
+            return "common/alert";
+        } else {
+            model.addAttribute("msg", result);
+            model.addAttribute("url", "/inquiry/detail/" + inqIdx);
+            return "common/alert";
         }
-        if (searchWord != null && !searchWord.isEmpty()) {
-            rttr.addAttribute("searchWord", searchWord);
-        }
-        return "redirect:/admin/inquiry/list";
     }
 }

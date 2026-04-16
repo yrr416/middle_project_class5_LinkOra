@@ -1,53 +1,74 @@
 // 전역 변수 선언
-let map, geocoder, ps, markers = [], labelOverlays = [], activeOverlay = null;
+let map = null;
+let geocoder = null;
+let ps = null;
+let markers = [];
+let labelOverlays = [];
+let activeOverlay = null;
+
 let currentLat = null;
 let currentLng = null;
+let isWishFilterActive = false;
 
-// 브랜드별 색상 사전
+// [핵심 해결] 새로고침해도 하트가 절대 풀리지 않도록 내 찜 목록을 기억하는 공간
+let myWishlist = new Set();
+
 const brandColors = {
-    "링크오라": "%23FF9500",    // 오렌지색
-    "알파오피스": "%234682B4",  // 차분한 파란색
+    "링크오라": "%23FF9500",
+    "알파오피스": "%234682B4",
     "패스트파이브": "%23FF3B30"
 };
 
-// [추가됨] 검색 목록창의 상태를 기억하는 수첩 (페이지, 접기/펴기)
-let searchGroupedData = {}; // 지역별 데이터를 담아둘 바구니
-let searchRegionPage = {};  // 지역별 현재 페이지 번호
-let searchRegionOpen = {};  // 지역별 폴더가 열렸는지 닫혔는지
-const ITEMS_PER_PAGE = 3;   // 한 페이지에 보여줄 지점 개수 (마음대로 바꿔도 돼!)
+let searchGroupedData = {};
+let searchRegionPage = {};
+let searchRegionOpen = {};
+const ITEMS_PER_PAGE = 3;
 
-document.addEventListener("DOMContentLoaded", () => {
+// [핵심 해결] 엉뚱하게 나뉘는 지역명(서울시, 서울광역시 등)을 깔끔하게 하나로 통일!
+function normalizeRegionName(address) {
+    if (!address) return "기타 지역";
+    let region = address.split(' ')[0];
+    if (region.includes("서울")) return "서울특별시";
+    if (region.includes("경기")) return "경기도";
+    if (region.includes("인천")) return "인천광역시";
+    if (region.includes("부산")) return "부산광역시";
+    if (region.includes("제주")) return "제주특별자치도";
+    return region;
+}
+
+// 초기화: 내 찜 목록을 먼저 기억하고, 그 다음 지도를 그립니다.
+function initKakaoMapApp() {
+    if (typeof kakao === 'undefined' || !kakao.maps) {
+        console.error("카카오 지도 SDK가 로드되지 않았습니다.");
+        return;
+    }
+
     const container = document.getElementById('mainMap');
     if (!container) return;
 
-    // 위치 정보 가져오기 및 지도 초기화
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-            currentLat = position.coords.latitude;
-            currentLng = position.coords.longitude;
-            const locPosition = new kakao.maps.LatLng(currentLat, currentLng);
+    geocoder = new kakao.maps.services.Geocoder();
+    ps = new kakao.maps.services.Places();
 
-            map = new kakao.maps.Map(container, {
-                center: locPosition,
-                level: 4
-            });
-            geocoder = new kakao.maps.services.Geocoder();
-            ps = new kakao.maps.services.Places();
-
-            kakao.maps.event.addListener(map, 'click', () => {
-                if (activeOverlay) activeOverlay.setMap(null);
-            });
-
-            fetchBranchData("");
-        }, (error) => {
-            console.error("GPS 정보를 불러올 수 없음");
-            createDefaultMap(container);
-        });
-    } else {
-        createDefaultMap(container);
+    // [수정] URL 파라미터 체크 로직: 메인페이지에서 'mode=wish'로 넘어왔는지 확인
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mode') === 'wish') {
+        isWishFilterActive = true;
     }
 
-    // 검색 이벤트 설정
+    // 1. 서버에서 내 찜 목록을 가져와서 기억장에 쏙쏙 넣음
+    fetch('/linkora/api/wishlist/my')
+        .then(res => res.json())
+        .then(data => {
+            if (Array.isArray(data)) {
+                data.forEach(b => myWishlist.add(b.brnIdx));
+            }
+            startMapCreation(container);
+        })
+        .catch(err => {
+            console.warn("찜 목록 동기화 실패. 지도를 먼저 엽니다.");
+            startMapCreation(container);
+        });
+
     const searchBtn = document.getElementById('mapSearchBtn');
     const searchInput = document.getElementById('mapSearchInput');
 
@@ -66,53 +87,109 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-});
+}
 
-// 기본 지도 생성
-function createDefaultMap(container) {
-    currentLat = 37.3947;
-    currentLng = 127.1111;
+function startMapCreation(container) {
+    // 찜 모드(?mode=wish)일 때는 내 위치를 찾는 GPS 로직을 건너뜁니다.
+    if (isWishFilterActive) {
+        createMapAndLoadData(container, 37.3947, 127.1111);
+        return;
+    }
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            currentLat = position.coords.latitude;
+            currentLng = position.coords.longitude;
+            createMapAndLoadData(container, currentLat, currentLng);
+        }, (error) => {
+            createMapAndLoadData(container, 37.3947, 127.1111);
+        }, { timeout: 5000 });
+    } else {
+        createMapAndLoadData(container, 37.3947, 127.1111);
+    }
+}
+
+function createMapAndLoadData(container, lat, lng) {
+    if (map) return;
+
     map = new kakao.maps.Map(container, {
-        center: new kakao.maps.LatLng(currentLat, currentLng),
+        center: new kakao.maps.LatLng(lat, lng),
         level: 4
     });
-    geocoder = new kakao.maps.services.Geocoder();
-    ps = new kakao.maps.services.Places();
+
+    // [강력 추가] 연동 로직: 하트 버튼이 로딩될 때까지 감시했다가 준비되면 즉시 활성화
+    const syncWishTab = setInterval(() => {
+        const wishFilterBtn = document.getElementById('wishFilterBtn');
+        if (wishFilterBtn) {
+            if (isWishFilterActive) {
+                wishFilterBtn.classList.add('active'); // 탭 색상 변경
+                loadMapData(); // 데이터 로드 및 범위 조절
+            }
+            clearInterval(syncWishTab); // 연동 완료 후 감시 종료
+        }
+    }, 100);
+
+    // 3초 후에는 무한 루프 방지를 위해 감시 강제 종료
+    setTimeout(() => clearInterval(syncWishTab), 3000);
 
     kakao.maps.event.addListener(map, 'click', () => {
         if (activeOverlay) activeOverlay.setMap(null);
     });
 
-    fetchBranchData("");
+    if (!isWishFilterActive) loadMapData();
 }
 
-// 검색 실행 로직
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initKakaoMapApp);
+} else {
+    initKakaoMapApp();
+}
+
+// 검색 로직 완벽 분리: 지역/이름 검색 vs 주소/지하철역 검색
 function executeSearch() {
+    if (!map) return;
+
     const keyword = document.getElementById('mapSearchInput').value.trim();
     if (!keyword) {
-        fetchBranchData("");
+        loadMapData();
         return;
     }
 
-    // 우리 DB 먼저 검색
-    fetch(`/api/branches?keyword=${encodeURIComponent(keyword)}`)
+    // 1. 오피스 이름이나 지역이 DB에 있는지 먼저 확인
+    fetch(`/linkora/api/branches?keyword=${encodeURIComponent(keyword)}`)
         .then(res => res.json())
-        .then(branches => {
-            if (branches && branches.length > 0) {
-                fetchBranchData(keyword);
+        .then(data => {
+            let branches = Array.isArray(data) ? data : [];
+
+            // [백엔드 버그 방어막] 이름이나 주소에 검색어가 진짜 들어간 것만 남김 (엉뚱한 결과 차단)
+            let matchedBranches = branches.filter(b =>
+                (b.brnName && b.brnName.includes(keyword)) ||
+                (b.brnAddress && b.brnAddress.includes(keyword))
+            );
+
+            if (matchedBranches.length > 0) {
+                // 오피스명 or 지역 검색 성공! -> 패널을 띄우는 함수로 연결
+                handleKeywordMatch(keyword, matchedBranches);
             } else {
-                // DB에 없으면 카카오 지도 검색
+                // 2. DB에 없으면 지하철역이나 주소 검색으로 간주하고 카카오 API 출동!
                 ps.keywordSearch(keyword, (data, status) => {
-                    if (status === kakao.maps.services.Status.OK) {
-                        map.panTo(new kakao.maps.LatLng(data[0].y, data[0].x));
-                        fetchBranchData(keyword, data[0].y, data[0].x);
+                    if (status === kakao.maps.services.Status.OK && map) {
+                        handleLocationSearch(data[0].y, data[0].x);
                     } else {
                         geocoder.addressSearch(keyword, (result, status) => {
-                            if (status === kakao.maps.services.Status.OK) {
-                                map.panTo(new kakao.maps.LatLng(result[0].y, result[0].x));
-                                fetchBranchData(keyword, result[0].y, result[0].x);
+                            if (status === kakao.maps.services.Status.OK && map) {
+                                handleLocationSearch(result[0].y, result[0].x);
                             } else {
-                                alert("검색 결과가 없습니다.");
+                                // 찜 모드일 때 아무것도 못 찾으면
+                                if (isWishFilterActive) {
+                                    alert("해당 검색어에 저장된 오피스가 없습니다. 전체 지도로 전환합니다.");
+                                    isWishFilterActive = false;
+                                    const wishBtn = document.querySelector('#wishFilterBtn');
+                                    if (wishBtn) wishBtn.classList.remove('active');
+                                    loadMapData();
+                                } else {
+                                    alert("검색 결과가 없습니다.");
+                                }
                             }
                         });
                     }
@@ -122,60 +199,128 @@ function executeSearch() {
         .catch(err => console.error("검색 오류"));
 }
 
-// 지점 데이터 요청 및 렌더링
-function fetchBranchData(keyword, lat = null, lng = null) {
-    let fetchUrl = "";
-    if (!keyword || keyword === "") {
-        fetchUrl = `/api/all-branches`;
-        closeResultPanel();
-    } else {
-        fetchUrl = `/api/branches?keyword=${encodeURIComponent(keyword)}`;
-        if (lat !== null && lng !== null) {
-            fetchUrl += `&lat=${lat}&lng=${lng}`;
+// 지역 또는 오피스명 검색 시 결과 처리 (패널 O)
+function handleKeywordMatch(keyword, branches) {
+    if (isWishFilterActive) {
+        // 관심 지도 모드면 찜한 오피스만 걸러냄
+        let wishedOnly = branches.filter(b => myWishlist.has(b.brnIdx) || b.isWish);
+
+        if (wishedOnly.length === 0) {
+            alert("해당 검색어에 저장된 오피스가 없습니다. 전체 지도로 전환합니다.");
+            isWishFilterActive = false;
+            const wishBtn = document.querySelector('#wishFilterBtn');
+            if (wishBtn) wishBtn.classList.remove('active');
+
+            // 찜 모드 풀고 전체 검색 결과로 보여줌
+            showPanelAndMarkers(keyword, branches);
+        } else {
+            showPanelAndMarkers(keyword, wishedOnly);
         }
+    } else {
+        showPanelAndMarkers(keyword, branches);
     }
+}
+
+// 결과 패널을 띄우고 지도 범위를 맞추는 함수
+function showPanelAndMarkers(keyword, branches) {
+    closeResultPanel();
+    removeMarkers();
+    displayMarkers(branches);
+    initResultList(branches, keyword);
+
+    const bounds = new kakao.maps.LatLngBounds();
+    let hasValidBounds = false;
+    branches.forEach(b => {
+        if (b.brnLatitude && b.brnLongitude) {
+            bounds.extend(new kakao.maps.LatLng(b.brnLatitude, b.brnLongitude));
+            hasValidBounds = true;
+        }
+    });
+    if (hasValidBounds && map) {
+        map.setBounds(bounds);
+    }
+}
+
+// 지하철, 구청, 상세주소 검색 시 결과 처리 (패널 X, 위치만 이동)
+function handleLocationSearch(lat, lng) {
+    if (isWishFilterActive) {
+        alert("해당 위치에는 저장된 오피스가 없어 전체 지도로 전환합니다.");
+        isWishFilterActive = false;
+        const wishBtn = document.querySelector('#wishFilterBtn');
+        if (wishBtn) wishBtn.classList.remove('active');
+    }
+
+    closeResultPanel(); // 목록 패널은 무조건 닫음
+    map.setCenter(new kakao.maps.LatLng(lat, lng));
+    map.setLevel(4); // 위치를 딱 보기 좋은 줌 레벨로 이동
+
+    // 이동한 상태에서 주변 핀들이 보이도록 기본 데이터만 로드 (지도 범위는 고정)
+    loadMapData();
+}
+
+// 핀과 기본 데이터를 불러오는 공통 함수
+function loadMapData() {
+    let fetchUrl = isWishFilterActive ? `/linkora/api/wishlist/my` : `/linkora/api/all-branches`;
+    closeResultPanel();
 
     fetch(fetchUrl)
         .then(res => res.json())
-        .then(branches => {
-            if (!branches || branches.length === 0) {
-                if (keyword !== "") alert("검색 결과가 없습니다. 😥");
-                removeMarkers();
-                closeResultPanel();
+        .then(data => {
+            if (data.status === 'login_required') {
+                alert("로그인이 필요한 서비스입니다.");
+                isWishFilterActive = false;
+                const wishBtn = document.querySelector('#wishFilterBtn');
+                if (wishBtn) wishBtn.classList.remove('active');
+                loadMapData();
                 return;
             }
+
+            let branches = Array.isArray(data) ? data : [];
+
+            if (branches.length === 0 && isWishFilterActive) {
+                alert("아직 찜한 오피스가 없습니다.");
+                isWishFilterActive = false;
+                const wishBtn = document.querySelector('#wishFilterBtn');
+                if (wishBtn) wishBtn.classList.remove('active');
+                loadMapData();
+                return;
+            }
+
             removeMarkers();
             displayMarkers(branches);
 
-            // 검색어가 있을 때 목록창 처리
-            if (keyword && keyword !== "") {
-                initResultList(branches, keyword); // 데이터를 세팅함
-
-                if (lat === null && lng === null) {
-                    const bounds = new kakao.maps.LatLngBounds();
-                    branches.forEach(b => {
-                        if (b.brnLatitude && b.brnLongitude) {
-                            bounds.extend(new kakao.maps.LatLng(b.brnLatitude, b.brnLongitude));
-                        }
-                    });
-                    map.setBounds(bounds);
+            // [핵심] 관심 지도 모드일 때만 지도가 찜한 지점들을 다 보이게 알아서 줄어들거나 늘어남
+            if (isWishFilterActive && branches.length > 0) {
+                const bounds = new kakao.maps.LatLngBounds();
+                let hasValidBounds = false;
+                branches.forEach(b => {
+                    if (b.brnLatitude && b.brnLongitude) {
+                        bounds.extend(new kakao.maps.LatLng(b.brnLatitude, b.brnLongitude));
+                        hasValidBounds = true;
+                    }
+                });
+                if (hasValidBounds && map) {
+                    map.setBounds(bounds); // 찜한 오피스들 위주로 화면 범위를 재설정함
                 }
             }
         })
-        .catch(err => console.error("데이터 로드 중 에러 발생"));
+        .catch(err => console.error("데이터 로드 중 에러 발생", err));
 }
 
-// 브랜드 색상 가져오기
 function getBrandColor(brnName) {
     if (!brnName) return "%232F4F4F";
     const brand = brnName.split(' ')[0].trim();
     return brandColors[brand] || "%232F4F4F";
 }
 
-// 마커 및 정보창 렌더링
 function displayMarkers(branches) {
+    if (!map) return;
+
     branches.forEach(branch => {
         if (!branch.brnLatitude || !branch.brnLongitude) return;
+
+        // [핵심] 서버 데이터와 상관없이 내 번호장(myWishlist)을 믿고 하트에 불을 켬
+        const isWished = myWishlist.has(branch.brnIdx) || branch.isWish === true;
 
         const pos = new kakao.maps.LatLng(branch.brnLatitude, branch.brnLongitude);
         const brandColor = getBrandColor(branch.brnName);
@@ -206,6 +351,7 @@ function displayMarkers(branches) {
             if (activeOverlay) activeOverlay.setMap(null);
 
             const content = document.createElement('div');
+            // isWished 값에 따라 하트 색상(빨간색/회색) 지정
             content.innerHTML = `
                 <div class="info-window" style="background:white; border-radius:15px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,0.2); width:240px; position:relative; margin-bottom:100px;">
                     <button class="close-btn" style="position:absolute; top:15px; right:15px; background:transparent; border:none; font-size:18px; color:#999; cursor:pointer;">
@@ -214,16 +360,16 @@ function displayMarkers(branches) {
                     <div style="font-weight:900; font-size:18px; color:#2F4F4F; margin-bottom:8px; padding-right:20px;">${branch.brnName}</div>
                     <div style="font-size:13px; color:#666; line-height:1.5; white-space:normal; word-break:keep-all; margin-bottom:15px;">${branch.brnAddress}</div>
                     <div style="display:flex; gap:10px;">
-                        <button onclick="location.href='/branch/detail?brnIdx=${branch.brnIdx}'"
+                        <button onclick="location.href='/linkora/branch/detail?brnIdx=${branch.brnIdx}'"
                             style="flex:1; background:#2F4F4F; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer;">
                             상세보기
                         </button>
-                        <button class="wish-btn ${branch.isWish ? 'active' : ''}"
+                        <button class="wish-btn ${isWished ? 'active' : ''}"
                             data-branch-idx="${branch.brnIdx}"
-                            style="width:45px; height:45px; border:1px solid ${branch.isWish ? '#ff4757' : '#eee'};
+                            style="width:45px; height:45px; border:1px solid ${isWished ? '#ff4757' : '#eee'};
                             background:white; border-radius:8px; cursor:pointer;
-                            color:${branch.isWish ? '#ff4757' : '#ccc'};">
-                            <i class="${branch.isWish ? 'fa-solid' : 'fa-regular'} fa-heart"
+                            color:${isWished ? '#ff4757' : '#ccc'};">
+                            <i class="${isWished ? 'fa-solid' : 'fa-regular'} fa-heart"
                                style="pointer-events: none;"></i>
                         </button>
                     </div>
@@ -250,7 +396,7 @@ function displayMarkers(branches) {
                 zIndex: 100
             });
             activeOverlay.setMap(map);
-            map.panTo(pos);
+            if (map) map.panTo(pos);
         };
 
         kakao.maps.event.addListener(marker, 'click', openInfoOverlay);
@@ -258,7 +404,6 @@ function displayMarkers(branches) {
     });
 }
 
-// 마커 지우기
 function removeMarkers() {
     markers.forEach(m => m.setMap(null));
     labelOverlays.forEach(o => o.setMap(null));
@@ -267,17 +412,11 @@ function removeMarkers() {
     labelOverlays = [];
 }
 
-// ===============================================
-// [완전 업그레이드] 지역별 접기/펴기 & 페이징(넘기기) 기능
-// ===============================================
-
-// 목록창 닫기
 window.closeResultPanel = function() {
     const panel = document.getElementById('searchResultPanel');
     if (panel) panel.style.display = 'none';
 };
 
-// 1. 처음 데이터를 받았을 때 지역별로 분류하고 수첩(상태)을 초기화함
 function initResultList(branches, keyword) {
     let panel = document.getElementById('searchResultPanel');
     if (!panel) {
@@ -287,28 +426,25 @@ function initResultList(branches, keyword) {
         document.querySelector('.map-container').appendChild(panel);
     }
 
-    // 수첩 비우기
     searchGroupedData = {};
     searchRegionPage = {};
     searchRegionOpen = {};
 
-    // 지역별로 묶어주기
     branches.forEach(b => {
-        const region = b.brnAddress.split(' ')[0] || "기타 지역";
+        const region = normalizeRegionName(b.brnAddress);
+
         if (!searchGroupedData[region]) {
             searchGroupedData[region] = [];
-            searchRegionPage[region] = 0;    // 처음엔 무조건 1페이지(0)
-            searchRegionOpen[region] = true; // 처음엔 무조건 폴더 열어두기
+            searchRegionPage[region] = 0;
+            searchRegionOpen[region] = true;
         }
         searchGroupedData[region].push(b);
     });
 
-    // 화면 그리기 함수 호출
     renderResultPanel(keyword, branches.length);
     panel.style.display = 'flex';
 }
 
-// 2. 수첩(상태)을 보고 화면을 예쁘게 그리는 함수
 function renderResultPanel(keyword, totalCount) {
     const panel = document.getElementById('searchResultPanel');
     if (!panel) return;
@@ -318,14 +454,12 @@ function renderResultPanel(keyword, totalCount) {
                     <button onclick="closeResultPanel()" style="background:none; border:none; font-size:22px; cursor:pointer; color:#999;"><i class="fa-solid fa-xmark"></i></button>
                 </div>`;
 
-    // 각 지역별로 반복해서 그림
     for (const region in searchGroupedData) {
         const branches = searchGroupedData[region];
         const isOpen = searchRegionOpen[region];
         const currentPage = searchRegionPage[region];
         const totalPages = Math.ceil(branches.length / ITEMS_PER_PAGE);
 
-        // 지역 이름 바(Bar) - 클릭하면 접고 펴짐
         html += `<div style="margin-bottom:15px; border:1px solid #eee; border-radius:10px; overflow:hidden;">
                     <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:12px 15px; cursor:pointer;"
                          onclick="toggleRegion('${region}', '${keyword}', ${totalCount})">
@@ -333,11 +467,9 @@ function renderResultPanel(keyword, totalCount) {
                         <i class="fa-solid ${isOpen ? 'fa-chevron-up' : 'fa-chevron-down'}" style="color:#666;"></i>
                     </div>`;
 
-        // 폴더가 열려있을 때만 목록을 그림
         if (isOpen) {
             html += `<div style="padding:10px;">`;
 
-            // 현재 페이지에 해당하는 3개(ITEMS_PER_PAGE)만 잘라냄
             const startIndex = currentPage * ITEMS_PER_PAGE;
             const endIndex = startIndex + ITEMS_PER_PAGE;
             const currentBranches = branches.slice(startIndex, endIndex);
@@ -356,7 +488,6 @@ function renderResultPanel(keyword, totalCount) {
                          </div>`;
             });
 
-            // 3개가 넘어가서 페이지가 여러 개일 때만 화살표 버튼을 보여줌
             if (totalPages > 1) {
                 html += `<div style="display:flex; justify-content:center; align-items:center; gap:20px; margin-top:12px; padding-bottom:5px;">
                             <button onclick="changePage('${region}', -1, '${keyword}', ${totalCount})" 
@@ -381,28 +512,77 @@ function renderResultPanel(keyword, totalCount) {
     panel.innerHTML = html;
 }
 
-// 지역 폴더 접기/펴기 스위치
 window.toggleRegion = function(region, keyword, totalCount) {
-    searchRegionOpen[region] = !searchRegionOpen[region]; // 열림 <-> 닫힘 반전
-    renderResultPanel(keyword, totalCount); // 화면 다시 그리기
+    searchRegionOpen[region] = !searchRegionOpen[region];
+    renderResultPanel(keyword, totalCount);
 };
 
-// 방향키 눌렀을 때 페이지 넘기기
 window.changePage = function(region, step, keyword, totalCount) {
     const branches = searchGroupedData[region];
     const totalPages = Math.ceil(branches.length / ITEMS_PER_PAGE);
-    let newPage = searchRegionPage[region] + step; // 이전(-1) 또는 다음(+1)
+    let newPage = searchRegionPage[region] + step;
 
-    // 페이지가 허용된 범위 안에 있을 때만 이동
     if (newPage >= 0 && newPage < totalPages) {
         searchRegionPage[region] = newPage;
-        renderResultPanel(keyword, totalCount); // 화면 다시 그리기
+        renderResultPanel(keyword, totalCount);
     }
 };
 
-// 목록 클릭 시 지점 위치로 이동
 window.moveToBranch = function(lat, lng) {
-    const pos = new kakao.maps.LatLng(lat, lng);
-    map.setCenter(pos);
-    map.setLevel(3); // 약간 확대해서 보여줌
+    if (map) {
+        const pos = new kakao.maps.LatLng(lat, lng);
+        map.setCenter(pos);
+        map.setLevel(3);
+    }
+};
+
+// 메인 하트 버튼 누를 때
+window.toggleWishFilter = function(isActive) {
+    if (!map) return;
+
+    isWishFilterActive = isActive;
+    const searchInput = document.getElementById('mapSearchInput');
+    if (searchInput) {
+        searchInput.value = "";
+    }
+    loadMapData();
+};
+
+// 하트(찜) 클릭 시 DB 연동 및 번호장(myWishlist) 업데이트
+window.toggleWish = function (target, brnIdx) {
+    const icon = target.querySelector('i');
+    const bIdx = parseInt(brnIdx, 10);
+
+    fetch('/linkora/api/wishlist/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+        body: JSON.stringify({ "brnIdx": bIdx })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                if (data.isAdded) {
+                    myWishlist.add(bIdx); // 내 번호장에도 추가!
+                    target.style.borderColor = '#ff4757';
+                    target.style.color = '#ff4757';
+                    if (icon) icon.className = 'fa-solid fa-heart';
+                    target.classList.add('active');
+                } else {
+                    myWishlist.delete(bIdx); // 찜 해제 시 번호장에서도 삭제!
+                    target.style.borderColor = '#eee';
+                    target.style.color = '#ccc';
+                    if (icon) icon.className = 'fa-regular fa-heart';
+                    target.classList.remove('active');
+
+                    // 찜 모드에서 취소했다면 바로 화면 갱신
+                    if (isWishFilterActive) {
+                        loadMapData();
+                    }
+                }
+            } else if (data.status === 'login_required') {
+                alert("로그인이 필요한 서비스입니다.");
+                location.href = "/linkora/login";
+            }
+        })
+        .catch(err => console.error("찜하기 통신 실패:", err));
 };

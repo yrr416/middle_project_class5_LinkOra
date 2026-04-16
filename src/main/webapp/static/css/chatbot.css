@@ -1,0 +1,780 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+/* 챗봇 전체 컨테이너 (아이콘 및 창 포함) */
+#chatbot-container {
+    position: fixed;
+    bottom: 35px;
+    right: 35px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* 모든 요소를 우측 정렬 */
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* 플로팅 버튼 */
+#chatbot-toggle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #2F4F4F;
+    border: none;
+    box-shadow: 0 10px 25px rgba(47, 79, 79, 0.35);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+}
+
+#chatbot-toggle:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(47, 79, 79, 0.45);
+}
+
+.toggle-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.toggle-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+/* 맥박 애니메이션 */
+.pulse-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(47, 79, 79, 0.2);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* 챗봇 윈도우 */
+#chatbot-window {
+    position: absolute;
+    bottom: 60px; /* 아이콘 바로 위에 위치하도록 고정 */
+    right: 0;
+    width: 400px !important;
+    height: 660px !important;
+    box-sizing: border-box;
+    max-height: 85vh;
+    background: #ffffff;
+    border-radius: 28px; /* 하단 블록에 있던 세련된 곡률 적용 */
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform-origin: bottom right;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    z-index: 1001;
+}
+
+#chatbot-window.hidden {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+    pointer-events: none;
+}
+
+/* 헤더 */
+.chatbot-header {
+    background: #2F4F4F;
+    padding: 18px 20px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.bot-profile {
+    display: flex;
+    align-items: center;
+}
+
+.bot-avatar {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-right: 12px;
+}
+
+.bot-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.bot-name {
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.status-online {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.status-online::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: #4cd137;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+#close-chatbot {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2;
+    padding: 0 5px;
+}
+
+#close-chatbot:hover { opacity: 1; }
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#direct-inquiry {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#direct-inquiry:hover {
+    background: white;
+    color: #2F4F4F;
+    border-color: white;
+}
+
+/* 추천 칩 영역 */
+#chatbot-chips-container {
+    padding: 12px 18px;
+    background: #f8f9fa;
+    border-top: 1px solid #eee;
+}
+
+.chips-title {
+    font-size: 11px;
+    color: #999;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#chatbot-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.chip {
+    background: white;
+    border: 1px solid #dde1e5;
+    color: #555;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.chip:hover {
+    border-color: #2F4F4F;
+    color: #2F4F4F;
+    background: rgba(47, 79, 79, 0.05);
+}
+
+/* 채팅 메시지 영역 */
+#chatbot-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: #f8f9fa;
+    scroll-behavior: smooth;
+    overflow-x: hidden; /* 가로 스크롤 방지 */
+}
+
+.message {
+    max-width: 80%;
+    padding: 12px 18px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.5;
+    position: relative;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message.bot {
+    align-self: flex-start;
+    background: white;
+    color: #2d3436;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.message.user {
+    align-self: flex-end;
+    background: #2F4F4F;
+    color: white;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 3px 12px rgba(47, 79, 79, 0.2);
+}
+
+/* 입력 영역 */
+.chatbot-input-area {
+    padding: 20px;
+    background: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-top: 1px solid #f0f0f0;
+}
+
+#chatbot-input {
+    flex: 1;
+    border: 1px solid #eee;
+    padding: 12px 15px;
+    border-radius: 12px;
+    outline: none;
+    font-size: 14px;
+    background: #f9f9f9;
+    transition: border-color 0.2s;
+}
+
+#chatbot-input:focus {
+    border-color: #2F4F4F;
+    background: white;
+}
+
+#send-btn {
+    background: #2F4F4F;
+    color: white;
+    border: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+#send-btn:hover {
+    background: #1e3333;
+    transform: translateY(-2px);
+}
+
+/* 캐러셀 및 웰컴 메뉴 - 말풍선 파괴(No-Bubble) 스타일 강화 */
+#chatbot-messages .message.bot.no-bubble {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    margin: 5px 0 25px !important;
+    color: #495057; /* 텍스트 색상 유지 */
+}
+
+/* 캐러셀 영역 래퍼 (화살표 버튼의 기준점) */
+.carousel-wrapper {
+    position: relative;
+    width: calc(100% + 40px); /* 부모 패딩 20px씩 상쇄하여 전체 너비 활용 */
+    margin-left: -20px;
+}
+
+/* 캐러셀 트랙 최적화 */
+.carousel-track {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 10px 20px 25px !important; /* 좌우 20px 패딩을 주어 첫 카드가 너무 붙지 않게 함 */
+    overflow-x: auto;
+    overflow-y: visible !important;
+    display: flex;
+    align-items: flex-start !important;
+    min-height: 360px; /* 트랙 자체의 최소 높이 확보 */
+    flex-shrink: 0; /* 부모 flex 컨테이너에 의한 압착 방지 */
+    scroll-snap-type: x mandatory;
+    gap: 16px;
+}
+
+/* 웰컴 메뉴 그리드 최적화 */
+.welcome-menu-grid.rich-content {
+    width: 100% !important;
+    margin: 15px 0;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+}
+
+/* 스크롤바 커스텀 */
+.carousel-track::-webkit-scrollbar {
+    height: 4px;
+}
+.carousel-track::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.05);
+    border-radius: 10px;
+}
+.carousel-track::-webkit-scrollbar-thumb {
+    background: rgba(47, 79, 79, 0.2);
+    border-radius: 10px;
+}
+
+/* 캐러셀 내의 카드 수직 압착 현상 방지 설정 유지 */
+
+.action-card {
+    align-self: flex-start;
+    width: 260px;
+    min-height: 340px; 
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    margin-top: 5px;
+    margin-bottom: 10px;
+    animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0; 
+    flex-grow: 0; /* 가변성 제거 */
+    scroll-snap-align: start;
+}
+
+/* 캐러셀 내비게이션 버튼 */
+.carousel-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85); /* 더 선명한 반투명 흰색 */
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.2s ease;
+    padding: 0;
+    color: #2F4F4F;
+}
+
+.carousel-nav-btn:hover {
+    background: #ffffff;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.carousel-nav-btn.prev {
+    left: 10px;
+}
+
+.carousel-nav-btn.next {
+    right: 10px;
+}
+
+.carousel-nav-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 3;
+}
+
+/* 캐러셀 내부 카드 전용 여백 */
+.carousel-item {
+    margin-bottom: 5px !important;
+}
+
+.action-thumb {
+    width: 100%;
+    height: 210px; /* 이미지 높이 상향 조정 */
+    background-size: cover;
+    background-position: center 30%; /* 상단 위주로 노출되도록 조정 */
+    background-repeat: no-repeat;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.action-body {
+    padding: 15px;
+}
+
+.action-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #2d3436;
+    margin-bottom: 4px;
+}
+
+.action-subtitle {
+    font-size: 12px;
+    color: #636e72;
+    margin-bottom: 12px;
+}
+
+.action-btns {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-action {
+    flex: 1;
+    text-align: center;
+    padding: 8px 0;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-action.detail {
+    background: #f1f2f6;
+    color: #2F4F4F;
+    border: 1px solid transparent;
+}
+
+.btn-action.detail:hover {
+    background: #dfe4ea;
+}
+
+.btn-action.reserve {
+    background: #2F4F4F;
+    color: white;
+}
+
+.btn-action.reserve:hover {
+    background: #1e3333;
+    box-shadow: 0 4px 12px rgba(47, 79, 79, 0.25);
+    transform: translateY(-1px);
+}
+
+/* 하이브리드 세션 - 이력 불러오기 스타일 */
+#load-history-container {
+    text-align: center;
+    margin-bottom: 15px;
+    margin-top: 5px;
+}
+
+#load-history-btn {
+    background: transparent;
+    border: 1px solid #dde1e5;
+    color: #636e72;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#load-history-btn:hover {
+    background: #f8f9fa;
+    color: #2F4F4F;
+    border-color: #2F4F4F;
+}
+
+#load-history-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.history-divider {
+    width: 100%;
+    text-align: center;
+    border-bottom: 1px dashed #ced4da;
+    line-height: 0.1em;
+    margin: 20px 0 25px;
+    font-size: 11px;
+    color: #adb5bd;
+}
+
+.history-divider::after {
+    content: attr(data-label);
+    background: #f4f7fa; 
+    padding: 0 10px;
+}
+
+.message.history-msg {
+    opacity: 0.85; /* 과거 이력은 약간 흐리게 처리하여 구분 */
+}
+
+/* 웰컴 퀵 메뉴 그리드 */
+.welcome-menu-grid.rich-content {
+    width: 100%;
+    margin: 10px 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.welcome-item {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 12px; /* 슬림한 느낌을 위해 곡률 조정 */
+    padding: 10px 5px; /* 3열 구성을 위해 패딩 축소 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+}
+
+.welcome-item:hover {
+    transform: translateY(-4px);
+    border-color: #2F4F4F;
+    box-shadow: 0 8px 20px rgba(47, 79, 79, 0.12);
+    background: rgba(47, 79, 79, 0.02);
+}
+
+.welcome-icon {
+    font-size: 18px; /* 크기 축소 (기존 24px) */
+    margin-bottom: 6px;
+}
+
+.welcome-label {
+    font-size: 12px; /* 폰트 소폭 축소 (기존 13px) */
+    font-weight: 600;
+    color: #495057;
+}
+
+.welcome-item:hover .welcome-label {
+    color: #2F4F4F;
+}
+
+/* 히스토리 모드일 때 투명도 조정 */
+.history-msg.welcome-menu-grid {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* 스마트 프리필 강조 스타일 */
+.is-prefilled {
+    background-color: #e6fffa !important; /* 더 선명한 민트 */
+    border: 2px solid #38a169 !important; /* 더 두꺼운 테두리 */
+    transition: all 0.4s ease;
+    animation: prefillPulse 2s infinite;
+    z-index: 10;
+}
+
+@keyframes prefillPulse {
+    0% { box-shadow: 0 0 0 0 rgba(56, 161, 105, 0.6); transform: scale(1); }
+    50% { transform: scale(1.02); }
+    70% { box-shadow: 0 0 0 10px rgba(56, 161, 105, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(56, 161, 105, 0); transform: scale(1); }
+}
+
+/* 시설 정보 배지 */
+.action-thumb {
+    position: relative;
+}
+.fac-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(47, 79, 79, 0.85);
+    color: white;
+    padding: 3px 8px;
+    font-size: 10px;
+    border-radius: 4px;
+    font-weight: 500;
+    backdrop-filter: blur(4px);
+}
+
+/* 간편 예약 폼 스타일 */
+.reserve-form-container {
+    align-self: flex-start;
+    width: 260px;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+    margin: 10px 0;
+    animation: slideIn 0.4s ease-out;
+}
+
+.reserve-form-header {
+    font-size: 14px;
+    font-weight: 700;
+    color: #2F4F4F;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+}
+
+.form-row {
+    margin-bottom: 12px;
+}
+
+.form-row label {
+    display: block;
+    font-size: 11px;
+    color: #868e96;
+    margin-bottom: 4px;
+}
+
+.form-row input[type="date"],
+.form-row select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #495057;
+    outline: none;
+}
+
+/* 인원 조절 카운터 */
+.count-box {
+    display: flex;
+    align-items: center;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    overflow: hidden;
+    width: fit-content;
+}
+
+.count-box button {
+    background: #f8f9fa;
+    border: none;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #495057;
+    transition: background 0.2s;
+}
+
+.count-box button:hover { background: #e9ecef; }
+
+.count-box input {
+    width: 40px;
+    text-align: center;
+    border: none;
+    border-left: 1px solid #dee2e6;
+    border-right: 1px solid #dee2e6;
+    font-size: 13px;
+    padding: 0;
+    outline: none;
+}
+
+.price-row {
+    margin: 15px 0;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px dashed #ced4da;
+}
+
+.price-label {
+    font-size: 11px;
+    color: #868e96;
+    font-weight: 500;
+}
+
+.price-value {
+    font-size: 15px;
+    font-weight: 800;
+    color: #2F4F4F;
+    letter-spacing: -0.5px;
+}
+
+.price-value.error {
+    color: #e74c3c;
+    font-size: 12px;
+}
+
+.btn-submit-form {
+    width: 100%;
+    background: #2F4F4F;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 5px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(47, 79, 79, 0.2);
+}
+
+.btn-submit-form:hover {
+    background: #1e3333;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(47, 79, 79, 0.3);
+}
+
+.btn-submit-form:disabled {
+    background: #adb5bd;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+/* 예약 완료 후 이동 버튼 */
+.btn-complete {
+    display: block;
+    margin: 10px 0;
+    background: white;
+    color: #2F4F4F;
+    border: 1px solid #2F4F4F;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    animation: slideIn 0.5s ease;
+}
+
+.btn-complete:hover {
+    background: #2F4F4F;
+    color: white;
+}
