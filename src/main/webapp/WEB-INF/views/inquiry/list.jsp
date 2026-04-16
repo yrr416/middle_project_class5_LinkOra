@@ -104,7 +104,7 @@
         <div class="row g-3 mb-3">
             <div class="col-md-4">
                 <div class="stats-card">
-                    <div class="number text-primary">${totalRecord}</div>
+                    <div class="number text-primary">${totalAll}</div>
                     <div class="text-muted small mt-1">전체 문의</div>
                 </div>
             </div>
@@ -116,7 +116,7 @@
             </div>
             <div class="col-md-4">
                 <div class="stats-card">
-                    <div class="number text-success">${totalRecord - pendingCount}</div>
+                    <div class="number text-success">${completeCount}</div>
                     <div class="text-muted small mt-1">답변완료</div>
                 </div>
             </div>

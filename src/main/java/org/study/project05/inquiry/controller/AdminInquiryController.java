@@ -41,8 +41,10 @@ public class AdminInquiryController {
         String sf = statusFilter.isEmpty() ? null : statusFilter;
         String sw = searchWord.isEmpty()   ? null : searchWord;
 
-        int totalRecord  = inquiryMapper.countAllForAdmin(sf, sw);
+        int totalRecord  = inquiryMapper.countAllForAdmin(sf, sw);  // 필터 적용된 수 (페이징용)
+        int totalAll     = inquiryMapper.countAllForAdmin(null, sw); // 검색어만 적용 (통계 카드용)
         int pendingCount = inquiryMapper.countPending();
+        int completeCount = totalAll - pendingCount;
 
         int totalPage = (totalRecord <= 0) ? 1
                 : (int) Math.ceil((double) totalRecord / NUM_PER_PAGE);
@@ -60,10 +62,12 @@ public class AdminInquiryController {
         inquiryVO.setStatusFilter(statusFilter);
         inquiryVO.setSearchWord(searchWord);
 
-        model.addAttribute("inquiryList",  inquiryList);
-        model.addAttribute("inquiryVO",    inquiryVO);
-        model.addAttribute("totalRecord",  totalRecord);
-        model.addAttribute("pendingCount", pendingCount);
+        model.addAttribute("inquiryList",   inquiryList);
+        model.addAttribute("inquiryVO",     inquiryVO);
+        model.addAttribute("totalRecord",   totalRecord);
+        model.addAttribute("totalAll",      totalAll);
+        model.addAttribute("pendingCount",  pendingCount);
+        model.addAttribute("completeCount", completeCount);
         model.addAttribute("nowPage",      nowPage);
         model.addAttribute("totalPage",    totalPage);
         model.addAttribute("beginBlock",   beginBlock);
