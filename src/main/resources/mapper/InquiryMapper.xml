@@ -23,7 +23,7 @@
         INSERT INTO inquiries (
             u_idx, i_category, i_title, i_content, i_status, i_created
         ) VALUES (
-            #{userIdx}, #{inqCategory}, #{inqTitle}, #{inqContent}, 'PENDING', NOW()
+            #{userIdx}, #{inqCategory}, #{inqTitle}, #{inqContent}, '대기중', NOW()
         )
     </insert>
 
@@ -80,7 +80,11 @@
         LEFT JOIN user u ON i.u_idx = u.u_idx
         WHERE i.i_active = 1
         <if test="statusFilter != null and statusFilter != ''">
-            AND i.i_status = #{statusFilter}
+            AND i.i_status = CASE #{statusFilter}
+                WHEN 'PENDING'  THEN '대기중'
+                WHEN 'COMPLETE' THEN '답변완료'
+                ELSE #{statusFilter}
+            END
         </if>
         <if test="searchWord != null and searchWord != ''">
             AND (i.i_title LIKE CONCAT('%', #{searchWord}, '%')
@@ -88,10 +92,10 @@
         </if>
     </select>
 
-    <!-- 미답변 문의 수 (PENDING + 기존 한글 '대기중' 모두 포함) -->
+    <!-- 미답변 문의 수 -->
     <select id="countPending" resultType="int">
         SELECT COUNT(*) FROM inquiries
-        WHERE i_active = 1 AND i_status IN ('PENDING', '대기중')
+        WHERE i_active = 1 AND i_status = '대기중'
     </select>
 
     <!-- 전체 문의 목록 (페이징 + 필터) -->
@@ -109,7 +113,11 @@
         LEFT JOIN user u ON i.u_idx = u.u_idx
         WHERE i.i_active = 1
         <if test="statusFilter != null and statusFilter != ''">
-            AND i.i_status = #{statusFilter}
+            AND i.i_status = CASE #{statusFilter}
+                WHEN 'PENDING'  THEN '대기중'
+                WHEN 'COMPLETE' THEN '답변완료'
+                ELSE #{statusFilter}
+            END
         </if>
         <if test="searchWord != null and searchWord != ''">
             AND (i.i_title LIKE CONCAT('%', #{searchWord}, '%')
@@ -121,11 +129,11 @@
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
-    <!-- 관리자 답변 저장 -->
+    <!-- 관리자 답변 저장 (i_status → '답변완료') -->
     <update id="answerInquiry">
         UPDATE inquiries
         SET i_answer   = #{inqAnswer},
-            i_status   = 'COMPLETE',
+            i_status   = '답변완료',
             i_answered = NOW()
         WHERE i_idx = #{inqIdx}
     </update>

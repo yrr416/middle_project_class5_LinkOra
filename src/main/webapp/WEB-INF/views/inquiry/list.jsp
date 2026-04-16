@@ -192,7 +192,7 @@
                             <c:otherwise>
                                 <c:forEach var="inq" items="${inquiryList}">
                                     <!-- 미답변 행은 배경 강조 -->
-                                    <tr class="${inq.inqStatus == 'PENDING' ? 'pending-row' : ''}"
+                                    <tr class="${inq.inqStatus == '대기중' ? 'pending-row' : ''}"
                                         onclick="location.href='${ctx}/admin/inquiry/detail?inqIdx=${inq.inqIdx}&nowPage=${nowPage}&statusFilter=${inquiryVO.statusFilter}&searchWord=${inquiryVO.searchWord}'">
                                         <td class="text-muted small">${inq.inqIdx}</td>
                                         <td>
@@ -200,7 +200,7 @@
                                         </td>
                                         <td>
                                             <!-- 미답변 강조 아이콘 -->
-                                            <c:if test="${inq.inqStatus == 'PENDING'}">
+                                            <c:if test="${inq.inqStatus == '대기중'}">
                                                 <i class="bi bi-exclamation-circle-fill text-warning me-1"></i>
                                             </c:if>
                                             ${inq.inqTitle}
@@ -208,7 +208,7 @@
                                         <td class="small">${inq.userName}</td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${inq.inqStatus == 'PENDING'}">
+                                                <c:when test="${inq.inqStatus == '대기중'}">
                                                     <span class="badge badge-pending">대기중</span>
                                                 </c:when>
                                                 <c:otherwise>

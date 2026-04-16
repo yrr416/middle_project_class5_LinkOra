@@ -142,7 +142,7 @@
             </c:if>
 
             <!-- ── 기존 답변 표시 (답변완료인 경우) ─────────────── -->
-            <c:if test="${inquiry.inqStatus == 'COMPLETE' and not empty inquiry.inqAnswer}">
+            <c:if test="${inquiry.inqStatus == '답변완료' and not empty inquiry.inqAnswer}">
                 <div class="mb-4">
                     <label class="form-label fw-semibold text-muted small">
                         <i class="bi bi-check-circle text-success me-1"></i>기존 답변
@@ -157,7 +157,7 @@
         <div class="detail-card">
             <h6 class="fw-bold mb-3">
                 <i class="bi bi-pencil-square me-2 text-primary"></i>
-                ${inquiry.inqStatus == 'COMPLETE' ? '답변 수정' : '답변 작성'}
+                ${inquiry.inqStatus == '답변완료' ? '답변 수정' : '답변 작성'}
             </h6>
 
             <!-- 답변 템플릿 선택 버튼 -->
@@ -189,7 +189,7 @@
                 <input type="hidden" name="statusFilter" value="${statusFilter}">
                 <input type="hidden" name="searchWord"   value="${searchWord}">
                 <!-- 수정 여부 구분 플래그: 이미 답변완료 상태면 수정 -->
-                <input type="hidden" name="isUpdate" value="${inquiry.inqStatus == 'COMPLETE' ? 'true' : 'false'}">
+                <input type="hidden" name="isUpdate" value="${inquiry.inqStatus == '답변완료' ? 'true' : 'false'}">
 
                 <div class="mb-3">
                     <textarea name="inqAnswer" id="answerTextarea" class="form-control"
@@ -199,7 +199,7 @@
                         <small class="text-muted">
                             <i class="bi bi-info-circle me-1"></i>
                             <c:choose>
-                                <c:when test="${inquiry.inqStatus == 'COMPLETE'}">
+                                <c:when test="${inquiry.inqStatus == '답변완료'}">
                                     수정 저장 시 <strong>i_answer</strong>(답변 내용)와 <strong>i_answered</strong>(답변 시각)가 함께 갱신됩니다.
                                 </c:when>
                                 <c:otherwise>
@@ -219,7 +219,7 @@
                        class="btn btn-outline-secondary">취소</a>
                     <!-- 답변 저장 / 수정 버튼 -->
                     <c:choose>
-                        <c:when test="${inquiry.inqStatus == 'COMPLETE'}">
+                        <c:when test="${inquiry.inqStatus == '답변완료'}">
                             <!-- 수정: 기존 답변 덮어쓰기 + i_answered 갱신 -->
                             <button type="submit" class="btn btn-warning"
                                     onclick="return confirm('답변을 수정하시겠습니까?\n답변 내용(i_answer)과 답변 시각(i_answered)이 갱신됩니다.');">
