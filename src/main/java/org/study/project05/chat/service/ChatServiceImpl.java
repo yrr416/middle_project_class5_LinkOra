@@ -20,7 +20,7 @@ public class ChatServiceImpl implements ChatService {
     // 예약 시스템 연동을 위한 서비스 주입
     private final org.study.project05.reservation.user.service.UserReservationService reservationService;
     private final org.study.project05.branch.mapper.BranchMapper branchMapper;
-    private final org.study.project05.branch.mapper.SpaceMapper spaceMapper;
+    private final org.study.project05.branch.mapper.BranchDetailSpaceMapper spaceMapper;
     private final org.study.project05.branch.mapper.FacilityMapper facilityMapper;
 
     @Override

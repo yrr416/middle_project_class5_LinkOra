@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.study.project05.reservation.user.mapper.UserReservationMapper;
 import org.study.project05.reservation.user.vo.ReservationVO;
-import org.study.project05.branch.mapper.SpaceMapper;
+import org.study.project05.branch.mapper.BranchDetailSpaceMapper;
 import org.study.project05.branch.vo.SpaceVO;
 
 import java.time.LocalDateTime;
@@ -20,7 +20,7 @@ public class UserReservationServiceImpl implements UserReservationService {
     private UserReservationMapper reservationMapper;
 
     @Autowired
-    private SpaceMapper spaceMapper;
+    private BranchDetailSpaceMapper spaceMapper;
     //DB용 타임포멧과 자바에서 시간처리를 위한 타임포멧 사전 선언
     private static final DateTimeFormatter FORM_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     private static final DateTimeFormatter DB_FMT   = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");

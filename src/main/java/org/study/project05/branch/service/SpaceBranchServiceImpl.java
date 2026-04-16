@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.study.project05.branch.mapper.*;
 import org.study.project05.branch.vo.BranchVO;
 import org.study.project05.branch.vo.SpaceVO;
+import org.study.project05.branch.mapper.BranchDetailSpaceMapper;
 
 import java.util.List;
 
@@ -13,7 +14,7 @@ public class SpaceBranchServiceImpl implements SpaceBranchService {
 
     @Autowired private SpaceBranchMapper spaceBranchMapper;
     @Autowired private BranchMapper branchMapper;
-    @Autowired private SpaceMapper       spaceMapper;
+    @Autowired private BranchDetailSpaceMapper spaceMapper;
     @Autowired private FacilityMapper    facilityMapper;
     @Autowired private BranchImgMapper   branchImgMapper;
 

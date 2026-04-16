@@ -2,8 +2,8 @@ package org.study.project05.branch.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.study.project05.branch.mapper.BranchSpaceMapper;
-import org.study.project05.branch.vo.BranchSpaceVO;
+import org.study.project05.branch.mapper.BranchDetailSpaceMapper;
+import org.study.project05.branch.vo.SpaceVO;
 
 import java.util.List;
 
@@ -11,20 +11,20 @@ import java.util.List;
 public class BranchSpaceServiceImpl implements BranchSpaceService {
 
     @Autowired
-    private BranchSpaceMapper branchSpaceMapper;
+    private BranchDetailSpaceMapper branchDetailSpaceMapper;
 
     @Override
-    public List<BranchSpaceVO> getSpaceList() {
-        return branchSpaceMapper.selectAll();
+    public List<SpaceVO> getSpaceList() {
+        return branchDetailSpaceMapper.selectAll();
     }
 
     @Override
-    public BranchSpaceVO getSpaceById(int spaceIdx) {
-        return branchSpaceMapper.selectById(spaceIdx);
+    public SpaceVO getSpaceById(int spaceIdx) {
+        return branchDetailSpaceMapper.selectById(spaceIdx);
     }
 
     @Override
-    public List<BranchSpaceVO> getSpacesByBranch(int bIdx) {
-        return branchSpaceMapper.selectByBranch(bIdx);
+    public List<SpaceVO> getSpacesByBranch(int bIdx) {
+        return branchDetailSpaceMapper.selectByBranch(bIdx);
     }
 }
