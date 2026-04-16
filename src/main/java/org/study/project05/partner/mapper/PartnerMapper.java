@@ -24,7 +24,8 @@ public interface PartnerMapper {
                 p_addr AS address,
                 p_phone AS phone,
                 p_number AS businessNo,
-                p_profile AS profileImage
+                p_profile AS profileImage,
+                p_active AS active
             FROM `partner`
             WHERE p_id = #{partnerId}
             LIMIT 1
@@ -42,7 +43,7 @@ public interface PartnerMapper {
 
     @Insert("""
             INSERT INTO `partner` (p_id, p_pwd, p_name, p_email, p_addr, p_phone, p_number, p_profile, p_active)
-            VALUES (#{partnerId}, #{password}, #{name}, #{email}, #{address}, #{phone}, #{businessNo}, #{profileImagePath}, 0)
+            VALUES (#{partnerId}, #{password}, #{name}, #{email}, #{address}, #{phone}, #{businessNo}, #{profileImagePath}, 1)
             """)
     int insertPartner(
             @Param("partnerId") String partnerId,
@@ -69,4 +70,7 @@ public interface PartnerMapper {
 
     @Delete("DELETE FROM `partner` WHERE p_id = #{partnerId}")
     int deleteByPartnerId(@Param("partnerId") String partnerId);
+
+    @Update("UPDATE `partner` SET p_active = 0 WHERE p_id = #{partnerId}")
+    int deactivateByPartnerId(@Param("partnerId") String partnerId);
 }

@@ -4,6 +4,7 @@
 package org.study.project05.login.config;
 
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -55,6 +56,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         PartnerVO partner = partnerService.getByPartnerId(key);
         if (partner != null && partner.getPassword() != null && !partner.getPassword().isBlank()) {
+            if (Integer.valueOf(0).equals(partner.getActive())) {
+                throw new DisabledException("탈퇴 처리된 사업자 계정입니다.");
+            }
             return new CustomUserDetails(
                     partner.getPartnerId(),
                     partner.getPassword(),
@@ -66,6 +70,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         UserProfileVO user = userProfileService.getByUserId(key);
         if (user != null && user.getPassword() != null) {
+            if (Integer.valueOf(0).equals(user.getActive())) {
+                throw new DisabledException("탈퇴 처리된 회원 계정입니다.");
+            }
             return new CustomUserDetails(
                     user.getUserId(),
                     user.getPassword(),
