@@ -57,4 +57,14 @@ public class PartnerSignupServiceImpl implements PartnerSignupService {
             return PartnerSignupResult.tableOrColumnMissing;
         }
     }
+
+    @Override
+    public boolean existsPartnerId(String partnerId) {
+        return partnerMapper.countByPartnerId(partnerId) > 0;
+    }
+
+    @Override
+    public boolean existsPartnerEmail(String email) {
+        return partnerMapper.countByEmail(email) > 0;
+    }
 }
