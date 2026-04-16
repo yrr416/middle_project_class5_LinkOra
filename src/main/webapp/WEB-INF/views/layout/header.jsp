@@ -87,7 +87,7 @@
                 <i class="fa-solid fa-chevron-down acc-arrow"></i>
             </a>
             <ul class="accordion-content">
-                <li><a href="#">내 문의</a></li>
+                <li><a href="${pageContext.request.contextPath}/inquiry/mylist">내 문의</a></li>
                 <li><a href="#">관심지점</a></li>
             </ul>
         </li>

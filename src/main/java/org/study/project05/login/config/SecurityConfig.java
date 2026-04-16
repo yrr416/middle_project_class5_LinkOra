@@ -34,10 +34,15 @@ public class SecurityConfig {
                             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
                             jakarta.servlet.http.HttpSession session = request.getSession();
 
+                            boolean isAdmin = authentication.getAuthorities().stream()
+                                    .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
                             boolean isPartner = authentication.getAuthorities().stream()
                                     .anyMatch(authority -> "ROLE_PARTNER".equals(authority.getAuthority()));
 
-                            if (isPartner) {
+                            if (isAdmin) {
+                                session.setAttribute("userIdx", userDetails.getIdx());
+                                session.setAttribute("isAdmin", true);
+                            } else if (isPartner) {
                                 session.setAttribute("partnerIdx", userDetails.getIdx());
                                 session.setAttribute("userIdx", userDetails.getIdx()); // 호환성 유지
                             } else {
@@ -54,7 +59,7 @@ public class SecurityConfig {
                                 return;
                             }
 
-                            String target = isPartner ? "/partner/mypage" : "/";
+                            String target = isAdmin ? "/admin/dashboard" : isPartner ? "/partner/mypage" : "/";
                             response.sendRedirect(request.getContextPath() + target);
                         })
                         .failureUrl("/loginPage?error")
