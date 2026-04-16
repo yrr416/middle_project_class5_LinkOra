@@ -183,6 +183,7 @@
 
             <!-- 답변 폼 -->
             <form method="post" action="${ctx}/admin/inquiry/answer" id="answerForm">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                 <input type="hidden" name="inqIdx"         value="${inquiry.inqIdx}">
                 <input type="hidden" name="nowPage"       value="${nowPage}">
                 <input type="hidden" name="statusFilter" value="${statusFilter}">

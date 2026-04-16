@@ -75,6 +75,7 @@
 
         <!-- 등록 폼 -->
         <form method="post" action="${ctx}/admin/customer/registerok" id="registerForm" onsubmit="return validateForm()">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
             <div class="row g-3">
 
                 <!-- 계정 정보 -->

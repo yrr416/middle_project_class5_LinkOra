@@ -82,7 +82,7 @@
             <!-- 등록 / 수정 분기: action URL 및 hidden n_idx 처리 -->
             <form id="noticeForm" method="post"
                   action="${ctx}${not empty notice ? '/admin/notice/updateok' : '/admin/notice/registerok'}">
-
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                 <!-- 수정 시 공지 번호 전달 -->
                 <c:if test="${not empty notice}">
                     <input type="hidden" name="ntcIdx" value="${notice.ntcIdx}">

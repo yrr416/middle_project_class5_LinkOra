@@ -174,6 +174,7 @@
                                         <td>
                                             <!-- 고정/해제 토글 버튼 -->
                                             <form method="post" action="${ctx}/admin/notice/toggle" class="d-inline">
+                                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                                                 <input type="hidden" name="ntcIdx"        value="${notice.ntcIdx}">
                                                 <input type="hidden" name="nowPage"      value="${nowPage}">
                                                 <input type="hidden" name="searchWord"  value="${noticeVO.searchWord}">
@@ -197,6 +198,7 @@
                                             <!-- 삭제 버튼 -->
                                             <form method="post" action="${ctx}/admin/notice/delete" class="d-inline"
                                                   onsubmit="return confirm('공지를 삭제하시겠습니까?');">
+                                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                                                 <input type="hidden" name="ntcIdx"   value="${notice.ntcIdx}">
                                                 <input type="hidden" name="nowPage" value="${nowPage}">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>

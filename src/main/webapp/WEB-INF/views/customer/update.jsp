@@ -90,6 +90,7 @@
 
         <!-- 수정 폼 -->
         <form method="post" action="${ctx}/admin/customer/update" onsubmit="return validateForm()">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
             <input type="hidden" name="userIdx"    value="${cvo.userIdx}">
             <input type="hidden" name="memberType" value="${memberType}">
             <input type="hidden" name="nowPage"    value="${nowPage}">

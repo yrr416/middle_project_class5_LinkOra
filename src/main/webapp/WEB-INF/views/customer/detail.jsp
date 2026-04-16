@@ -135,6 +135,7 @@
                 <div class="info-card">
                     <div class="card-title"><i class="bi bi-toggle-on me-2 text-warning"></i>활성 상태 변경</div>
                     <form method="post" action="${ctx}/admin/customer/statusChange" id="statusForm">
+                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                         <input type="hidden" name="userIdx"    value="${cvo.userIdx}">
                         <input type="hidden" name="memberType" value="${memberType}">
                         <input type="hidden" name="nowPage"    value="${nowPage}">
@@ -165,6 +166,7 @@
                     </p>
                     <form method="post" action="${ctx}/admin/customer/delete"
                           onsubmit="return confirm('이 계정을 숨김 처리하시겠습니까?\n(데이터는 보존됩니다)')">
+                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                         <input type="hidden" name="userIdx"    value="${cvo.userIdx}">
                         <input type="hidden" name="memberType" value="${memberType}">
                         <input type="hidden" name="nowPage"    value="${nowPage}">
