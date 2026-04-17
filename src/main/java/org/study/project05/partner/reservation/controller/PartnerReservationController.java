@@ -23,7 +23,8 @@ public class PartnerReservationController {
     /** TODO: 파트너 로그인 구현 후 인증 처리 필요 */
     private int getPartnerIdx(HttpSession session) {
         Object val = session.getAttribute("partnerIdx");
-        return (val != null) ? (int) val : 1;
+        // Integer, Long 등 어떤 숫자 타입으로 저장되어 있어도 안전하게 int로 변환
+        return (val instanceof Number) ? ((Number) val).intValue() : 1;
     }
 
     /* ──────────────────────────────────────────────────────────

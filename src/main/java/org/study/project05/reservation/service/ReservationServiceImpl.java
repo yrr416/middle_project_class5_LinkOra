@@ -35,7 +35,7 @@ public class ReservationServiceImpl implements ReservationService {
         Map<String, Object> p = new HashMap<>(); p.put("vo", vo);
         List<Map<String, Object>> rows = reservationMapper.getStatusSummary(p);
         Map<String, Integer> result = new HashMap<>();
-        for (String s : List.of("PENDING","CONFIRMED","USING","COMPLETED","CANCELLED")) result.put(s, 0);
+        for (String s : List.of("PENDING","CONFIRMED","USE","FINISH","CANCELLED")) result.put(s, 0);
         for (Map<String, Object> r : rows)
             result.put((String) r.get("resStatus"), ((Number) r.get("cnt")).intValue());
         return result;

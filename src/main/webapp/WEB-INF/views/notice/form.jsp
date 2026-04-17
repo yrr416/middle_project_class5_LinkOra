@@ -50,7 +50,7 @@
             <a class="nav-link" href="${ctx}/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
             <a class="nav-link" href="${ctx}/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
             <a class="nav-link" href="${ctx}/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
-            <a class="nav-link active" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
+            <a class="nav-link active" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지/이벤트 관리</a>
             <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
             <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
             <hr class="border-secondary mx-3">
@@ -67,10 +67,20 @@
         <div class="page-header d-flex justify-content-between align-items-center">
             <div>
                 <h5 class="mb-1 fw-bold">
-                    <i class="bi bi-bell me-2 text-warning"></i>
-                    ${not empty notice ? '공지 수정' : '공지 등록'}
+                    <c:choose>
+                        <c:when test="${not empty notice}">
+                            <i class="bi bi-pencil-square me-2 text-warning"></i>
+                            ${notice.ntcActive == '1' ? '이벤트' : '공지'} 수정
+                        </c:when>
+                        <c:when test="${type == 'event'}">
+                            <i class="bi bi-star me-2 text-warning"></i>이벤트 등록
+                        </c:when>
+                        <c:otherwise>
+                            <i class="bi bi-bell me-2 text-primary"></i>공지 등록
+                        </c:otherwise>
+                    </c:choose>
                 </h5>
-                <small class="text-muted">공지 내용을 작성하고 발행 방식을 선택합니다.</small>
+                <small class="text-muted">내용을 작성하고 발행 방식을 선택합니다.</small>
             </div>
             <!-- 목록으로 돌아가기 -->
             <a href="${ctx}/admin/notice/list?nowPage=${nowPage}" class="btn btn-outline-secondary btn-sm">
@@ -78,10 +88,24 @@
             </a>
         </div>
 
+        <%-- ── 공지/이벤트 타입 탭 (새 등록 시만 표시) ── --%>
+        <c:if test="${empty notice}">
+        <div class="d-flex gap-2 mb-3">
+            <a href="${ctx}/admin/notice/register?nowPage=${nowPage}&type=notice"
+               class="btn btn-sm ${type == 'event' ? 'btn-outline-primary' : 'btn-primary'}">
+                <i class="bi bi-bell me-1"></i>공지 등록
+            </a>
+            <a href="${ctx}/admin/notice/register?nowPage=${nowPage}&type=event"
+               class="btn btn-sm ${type == 'event' ? 'btn-warning' : 'btn-outline-warning'}">
+                <i class="bi bi-star me-1"></i>이벤트 등록
+            </a>
+        </div>
+        </c:if>
+
         <!-- ── 공지 작성 폼 ──────────────────────────────────────── -->
         <div class="form-card">
-            <!-- 등록 / 수정 분기: action URL 및 hidden n_idx 처리 -->
-            <form id="noticeForm" method="post"
+            <!-- enctype="multipart/form-data": 이미지 파일 전송을 위해 필수 -->
+            <form id="noticeForm" method="post" enctype="multipart/form-data"
                   action="${ctx}${not empty notice ? '/admin/notice/updateok' : '/admin/notice/registerok'}">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                 <!-- 수정 시 공지 번호 전달 -->
@@ -107,26 +131,48 @@
                     <div id="editor">${notice.ntcContent}</div>
                 </div>
 
-                <!-- 고정 여부 -->
+                <!-- 대표 이미지 업로드 -->
                 <div class="mb-4">
-                    <label class="form-label">고정 여부</label>
-                    <div class="d-flex gap-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="ntcActive"
-                                   id="activeNormal" value="0"
-                                   ${notice.ntcActive != '1' ? 'checked' : ''}>
-                            <label class="form-check-label" for="activeNormal">일반 공지</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="ntcActive"
-                                   id="activePinned" value="1"
-                                   ${notice.ntcActive == '1' ? 'checked' : ''}>
-                            <label class="form-check-label" for="activePinned">
-                                <i class="bi bi-pin-angle-fill text-warning"></i> 고정 공지 (상단 고정)
-                            </label>
+                    <label class="form-label">대표 이미지</label>
+                    <input type="file" name="ntcImgFile" id="ntcImgFile"
+                           class="form-control" accept="image/*"
+                           onchange="previewImage(this)">
+                    <small class="text-muted d-block mt-1">
+                        <i class="bi bi-info-circle me-1"></i>
+                        목록/상세 페이지에 표시될 대표 이미지입니다. (JPG, PNG, GIF 권장)
+                    </small>
+                    <!-- 이미지 미리보기 -->
+                    <div id="imgPreviewWrap" class="mt-2" style="${empty notice.ntcImg ? 'display:none;' : ''}">
+                        <img id="imgPreview"
+                             src="${not empty notice.ntcImg ? notice.ntcImg : ''}"
+                             alt="대표 이미지 미리보기"
+                             style="max-width:320px; max-height:200px; border-radius:8px; border:1px solid #dee2e6; object-fit:cover;">
+                        <div class="mt-1">
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearImage()">
+                                <i class="bi bi-x-circle me-1"></i>이미지 제거
+                            </button>
                         </div>
                     </div>
                 </div>
+
+                <%--
+                  ntcActive 값 사전 계산 (중첩 삼항연산자 EL 오류 방지)
+                  - 수정 시: 기존 notice.ntcActive 그대로 유지
+                  - 이벤트 등록 시: 1
+                  - 공지 등록 시: 0
+                --%>
+                <c:choose>
+                    <c:when test="${not empty notice}">
+                        <c:set var="ntcActiveValue" value="${notice.ntcActive}" />
+                    </c:when>
+                    <c:when test="${type == 'event'}">
+                        <c:set var="ntcActiveValue" value="1" />
+                    </c:when>
+                    <c:otherwise>
+                        <c:set var="ntcActiveValue" value="0" />
+                    </c:otherwise>
+                </c:choose>
+                <input type="hidden" name="ntcActive" value="${ntcActiveValue}">
 
                 <!-- 발행 방식 선택 -->
                 <div class="mb-4">
@@ -197,20 +243,71 @@
 <script>
     let editorInstance;
 
+    /*
+     * ── 커스텀 이미지 업로드 어댑터 ─────────────────────────────
+     * CKEditor 5 Classic Build CDN에는 SimpleUploadAdapter가 포함되지 않으므로
+     * fetch API를 이용해 직접 구현한다.
+     *
+     * loader.file : CKEditor가 넘겨주는 업로드 대상 파일 Promise
+     * resolve({ default: url }) : 성공 시 에디터에 삽입될 이미지 URL
+     * reject(message)           : 실패 시 에디터에 오류 표시
+     */
+    class NoticeImageUploadAdapter {
+        constructor(loader) {
+            this.loader = loader;
+            // 서버 업로드 엔드포인트
+            this.uploadUrl = '${ctx}/admin/notice/imageUpload';
+            // Spring Security CSRF 토큰 (헤더로 전송)
+            this.csrfHeaderName = '${_csrf.headerName}';
+            this.csrfToken      = '${_csrf.token}';
+        }
+
+        upload() {
+            return this.loader.file.then(file => new Promise((resolve, reject) => {
+                const data = new FormData();
+                data.append('upload', file); // 서버 @RequestParam("upload") 와 일치
+
+                fetch(this.uploadUrl, {
+                    method: 'POST',
+                    headers: {
+                        [this.csrfHeaderName]: this.csrfToken
+                    },
+                    body: data
+                })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.url) {
+                        resolve({ default: result.url }); // 에디터에 이미지 삽입
+                    } else {
+                        reject(result.error?.message || '이미지 업로드 실패');
+                    }
+                })
+                .catch(() => reject('네트워크 오류로 이미지 업로드에 실패했습니다.'));
+            }));
+        }
+
+        abort() {} // 업로드 취소 시 호출 (구현 생략 가능)
+    }
+
+    // CKEditor 플러그인 형태로 등록 (extraPlugins에 전달)
+    function NoticeImageUploadAdapterPlugin(editor) {
+        editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+            return new NoticeImageUploadAdapter(loader);
+        };
+    }
+
     // ── CKEditor 5 초기화 ───────────────────────────────────────
     ClassicEditor
         .create(document.querySelector('#editor'), {
-            // 이미지 업로드: 서버 업로드 엔드포인트 연결
-            ckfinder: {
-                uploadUrl: '/admin/notice/imageUpload'
-            },
+            // simpleUpload 대신 커스텀 어댑터 플러그인 사용
+            extraPlugins: [NoticeImageUploadAdapterPlugin],
             toolbar: {
                 items: [
                     'heading', '|',
                     'bold', 'italic', 'underline', 'strikethrough', '|',
                     'bulletedList', 'numberedList', '|',
                     'outdent', 'indent', '|',
-                    'link', 'imageUpload', 'blockQuote', 'insertTable', '|',
+                    'link', 'uploadImage', 'blockQuote', 'insertTable', '|',
                     'undo', 'redo'
                 ]
             }
@@ -256,6 +353,27 @@
         }
 
         document.getElementById('noticeForm').submit();
+    }
+
+    // ── 대표 이미지 미리보기 ─────────────────────────────────────
+    function previewImage(input) {
+        const wrap = document.getElementById('imgPreviewWrap');
+        const preview = document.getElementById('imgPreview');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                wrap.style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // ── 이미지 제거 ─────────────────────────────────────────────
+    function clearImage() {
+        document.getElementById('ntcImgFile').value = '';
+        document.getElementById('imgPreview').src = '';
+        document.getElementById('imgPreviewWrap').style.display = 'none';
     }
 </script>
 </body>

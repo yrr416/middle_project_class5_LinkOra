@@ -79,7 +79,7 @@
             <a class="nav-link" href="${ctx}/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
             <a class="nav-link active" href="${ctx}/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
             <a class="nav-link" href="${ctx}/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
-            <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
+            <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지/이벤트 관리</a>
             <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
             <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
             <hr class="border-secondary mx-3">
@@ -117,6 +117,12 @@
              날짜·공간 필터만 적용, 상태 필터 무시 → 전체 현황 표시 -->
         <div class="row g-3 mb-3">
             <div class="col">
+                <div class="stat-card" style="border-top-color:#0d6efd;">
+                    <div class="num text-dark">${totalRecord}</div>
+                    <div class="lbl">전체</div>
+                </div>
+            </div>
+            <div class="col">
                 <div class="stat-card stat-pending">
                     <div class="num text-warning">${statusSummary['PENDING']}</div>
                     <div class="lbl">대기</div>
@@ -130,14 +136,14 @@
             </div>
             <div class="col">
                 <div class="stat-card stat-using">
-                    <div class="num text-success">${statusSummary['USING']}</div>
+                    <div class="num text-success">${statusSummary['USE']}</div>
                     <div class="lbl">이용중</div>
                 </div>
             </div>
             <div class="col">
                 <div class="stat-card stat-completed">
-                    <div class="num text-secondary">${statusSummary['COMPLETED']}</div>
-                    <div class="lbl">완료</div>
+                    <div class="num text-secondary">${statusSummary['FINISH']}</div>
+                    <div class="lbl">종료</div>
                 </div>
             </div>
             <div class="col">
@@ -150,7 +156,7 @@
 
         <!-- ── 필터 영역 ──────────────────────────────────── -->
         <div class="filter-card">
-            <form method="get" action="/admin/reservation/list" class="row g-2 align-items-end">
+            <form method="get" action="${ctx}/admin/reservation/list" class="row g-2 align-items-end">
 
                 <!-- 날짜 범위 (시작) -->
                 <div class="col-md-2">
@@ -171,8 +177,8 @@
                         <option value="">전체</option>
                         <option value="PENDING"   ${searchVO.statusFilter == 'PENDING'   ? 'selected':''}>대기</option>
                         <option value="CONFIRMED" ${searchVO.statusFilter == 'CONFIRMED' ? 'selected':''}>확정</option>
-                        <option value="USING"     ${searchVO.statusFilter == 'USING'     ? 'selected':''}>이용중</option>
-                        <option value="COMPLETED" ${searchVO.statusFilter == 'COMPLETED' ? 'selected':''}>완료</option>
+                        <option value="USE"       ${searchVO.statusFilter == 'USE'       ? 'selected':''}>이용중</option>
+                        <option value="FINISH"    ${searchVO.statusFilter == 'FINISH'    ? 'selected':''}>종료</option>
                         <option value="CANCELLED" ${searchVO.statusFilter == 'CANCELLED' ? 'selected':''}>취소</option>
                     </select>
                 </div>
@@ -200,7 +206,7 @@
                     <button type="submit" class="btn btn-primary btn-sm me-1">
                         <i class="bi bi-search me-1"></i>검색
                     </button>
-                    <a href="/admin/reservation/list" class="btn btn-outline-secondary btn-sm">
+                    <a href="${ctx}/admin/reservation/list" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-arrow-counterclockwise"></i>
                     </a>
                 </div>
@@ -276,11 +282,11 @@
                                         <c:when test="${r.resStatus == 'CONFIRMED'}">
                                             <span class="badge badge-confirmed px-2 py-1 rounded-pill">확정</span>
                                         </c:when>
-                                        <c:when test="${r.resStatus == 'USING'}">
+                                        <c:when test="${r.resStatus == 'USE'}">
                                             <span class="badge badge-using px-2 py-1 rounded-pill">이용중</span>
                                         </c:when>
-                                        <c:when test="${r.resStatus == 'COMPLETED'}">
-                                            <span class="badge badge-completed px-2 py-1 rounded-pill">완료</span>
+                                        <c:when test="${r.resStatus == 'FINISH'}">
+                                            <span class="badge badge-completed px-2 py-1 rounded-pill">종료</span>
                                         </c:when>
                                         <c:when test="${r.resStatus == 'CANCELLED'}">
                                             <span class="badge badge-cancelled px-2 py-1 rounded-pill">취소</span>
@@ -306,7 +312,7 @@
                         <c:if test="${beginBlock > 1}">
                             <li class="page-item">
                                 <a class="page-link"
-                                   href="/admin/reservation/list?nowPage=${beginBlock-1}&startDate=${searchVO.startDate}&endDate=${searchVO.endDate}&statusFilter=${searchVO.statusFilter}&spaceFilter=${searchVO.spaceFilter}&searchWord=${searchVO.searchWord}">
+                                   href="${ctx}/admin/reservation/list?nowPage=${beginBlock-1}&startDate=${searchVO.startDate}&endDate=${searchVO.endDate}&statusFilter=${searchVO.statusFilter}&spaceFilter=${searchVO.spaceFilter}&searchWord=${searchVO.searchWord}">
                                     <i class="bi bi-chevron-left"></i>
                                 </a>
                             </li>
@@ -314,7 +320,7 @@
                         <c:forEach var="p" begin="${beginBlock}" end="${endBlock}">
                             <li class="page-item ${nowPage == p ? 'active':''}">
                                 <a class="page-link"
-                                   href="/admin/reservation/list?nowPage=${p}&startDate=${searchVO.startDate}&endDate=${searchVO.endDate}&statusFilter=${searchVO.statusFilter}&spaceFilter=${searchVO.spaceFilter}&searchWord=${searchVO.searchWord}">
+                                   href="${ctx}/admin/reservation/list?nowPage=${p}&startDate=${searchVO.startDate}&endDate=${searchVO.endDate}&statusFilter=${searchVO.statusFilter}&spaceFilter=${searchVO.spaceFilter}&searchWord=${searchVO.searchWord}">
                                     ${p}
                                 </a>
                             </li>
@@ -322,7 +328,7 @@
                         <c:if test="${endBlock < totalPage}">
                             <li class="page-item">
                                 <a class="page-link"
-                                   href="/admin/reservation/list?nowPage=${endBlock+1}&startDate=${searchVO.startDate}&endDate=${searchVO.endDate}&statusFilter=${searchVO.statusFilter}&spaceFilter=${searchVO.spaceFilter}&searchWord=${searchVO.searchWord}">
+                                   href="${ctx}/admin/reservation/list?nowPage=${endBlock+1}&startDate=${searchVO.startDate}&endDate=${searchVO.endDate}&statusFilter=${searchVO.statusFilter}&spaceFilter=${searchVO.spaceFilter}&searchWord=${searchVO.searchWord}">
                                     <i class="bi bi-chevron-right"></i>
                                 </a>
                             </li>
@@ -469,7 +475,8 @@
                         <div class="fw-semibold text-danger mb-2">
                             <i class="bi bi-exclamation-triangle me-1"></i>강제 취소 처리
                         </div>
-                        <form method="post" action="/admin/reservation/cancel" id="cancelFormTag">
+                        <form method="post" action="${ctx}/admin/reservation/cancel" id="cancelFormTag">
+                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                             <!-- 현재 필터 유지용 hidden 값은 JavaScript 에서 동적 추가 -->
                             <input type="hidden" name="resIdx"      id="cancel_r_idx">
                             <input type="hidden" name="nowPage"     value="${nowPage}">
@@ -482,7 +489,7 @@
                             <!-- 취소 사유 입력 (필수) -->
                             <div class="mb-3">
                                 <label class="form-label small fw-semibold">취소 사유 <span class="text-danger">*</span></label>
-                                <textarea class="form-control form-control-sm" name="cancel_reason"
+                                <textarea class="form-control form-control-sm" name="cancelReason"
                                           id="cancelReason" rows="3"
                                           placeholder="취소 사유를 입력하세요." required></textarea>
                             </div>
@@ -500,7 +507,7 @@
                             <!-- 환불 처리 완료 확인 체크박스 (관리자 수동 확인용) -->
                             <div class="form-check mb-3">
                                 <input class="form-check-input" type="checkbox"
-                                       name="refund_checked" id="refundCheck" value="true">
+                                       name="refundChecked" id="refundCheck" value="true">
                                 <label class="form-check-label small" for="refundCheck">
                                     환불 처리를 완료했습니다. (결제 시스템에서 직접 처리한 경우 체크)
                                 </label>
@@ -542,12 +549,19 @@
    ══════════════════════════════════════════════ */
 const CURRENT_PAGE = ${nowPage};
 
+/* CSRF 토큰 (POST 폼 동적 생성 시 사용) */
+const CSRF_PARAM = '${_csrf.parameterName}';
+const CSRF_TOKEN = '${_csrf.token}';
+
+/* context path */
+const CTX = '${ctx}';
+
 /* 상태 코드 → 한국어 레이블·배지 CSS 맵 */
 const STATUS_MAP = {
     PENDING:   { label: '대기',   css: 'badge-pending'   },
     CONFIRMED: { label: '확정',   css: 'badge-confirmed' },
-    USING:     { label: '이용중', css: 'badge-using'     },
-    COMPLETED: { label: '완료',   css: 'badge-completed' },
+    USE:       { label: '이용중', css: 'badge-using'     },
+    FINISH:    { label: '종료',   css: 'badge-completed' },
     CANCELLED: { label: '취소',   css: 'badge-cancelled' }
 };
 
@@ -566,7 +580,7 @@ function openDetailModal(rIdx) {
     modal.show();
 
     /* AJAX 상세 조회 */
-    fetch('/admin/reservation/detail?resIdx=' + rIdx)
+    fetch('${ctx}/admin/reservation/detail?resIdx=' + rIdx)
         .then(res => {
             if (!res.ok) throw new Error('데이터 조회 실패');
             return res.json();
@@ -649,7 +663,7 @@ function renderTimeline(d) {
         let eventText = '상태 변경 → ' + statusInfo.label;
         if (d.resStatus === 'CANCELLED') { dotClass = 'dot-cancel';   eventText = '강제 취소 처리'; }
         if (d.resStatus === 'CONFIRMED') { dotClass = 'dot-confirm';  eventText = '예약 확정'; }
-        if (d.resStatus === 'COMPLETED') { dotClass = 'dot-complete'; eventText = '이용 완료 처리'; }
+        if (d.resStatus === 'FINISH')    { dotClass = 'dot-complete'; eventText = '이용 종료 처리'; }
         events.push({ time: d.resUpdated, text: eventText, dot: dotClass });
     }
 
@@ -678,7 +692,8 @@ function renderFooterButtons(d) {
 
     /* PENDING → 예약 확정 버튼 */
     if (d.resStatus === 'PENDING') {
-        html = '<form method="post" action="/admin/reservation/confirm" class="d-inline">' +
+        html = '<form method="post" action="' + CTX + '/admin/reservation/confirm" class="d-inline">' +
+               '  <input type="hidden" name="' + CSRF_PARAM + '" value="' + CSRF_TOKEN + '">' +
                '  <input type="hidden" name="resIdx"        value="' + d.resIdx + '">' +
                '  <input type="hidden" name="nowPage"       value="' + CURRENT_PAGE + '">' +
                '  <input type="hidden" name="startDate"    value="${searchVO.startDate}">' +
@@ -694,8 +709,9 @@ function renderFooterButtons(d) {
     }
 
     /* CONFIRMED / USING → 이용 완료 처리 버튼 */
-    if (d.resStatus === 'CONFIRMED' || d.resStatus === 'USING') {
-        html = '<form method="post" action="/admin/reservation/complete" class="d-inline">' +
+    if (d.resStatus === 'CONFIRMED' || d.resStatus === 'USE') {
+        html = '<form method="post" action="' + CTX + '/admin/reservation/complete" class="d-inline">' +
+               '  <input type="hidden" name="' + CSRF_PARAM + '" value="' + CSRF_TOKEN + '">' +
                '  <input type="hidden" name="resIdx"        value="' + d.resIdx + '">' +
                '  <input type="hidden" name="nowPage"       value="' + CURRENT_PAGE + '">' +
                '  <input type="hidden" name="startDate"    value="${searchVO.startDate}">' +
@@ -711,7 +727,7 @@ function renderFooterButtons(d) {
     }
 
     /* PENDING / CONFIRMED / USING → 강제 취소 버튼 */
-    if (['PENDING', 'CONFIRMED', 'USING'].includes(d.resStatus)) {
+    if (['PENDING', 'CONFIRMED', 'USE'].includes(d.resStatus)) {
         html = '<button type="button" class="btn btn-danger btn-sm me-1"' +
                '  onclick="showCancelForm()">' +
                '  <i class="bi bi-x-circle me-1"></i>강제 취소' +
