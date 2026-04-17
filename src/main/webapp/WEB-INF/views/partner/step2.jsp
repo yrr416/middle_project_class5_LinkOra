@@ -47,6 +47,7 @@
         <p class="text-muted small mb-4">운영 요일, 시간, 예약 정책을 설정하세요.</p>
 
         <form method="post" action="${ctx}/partner/register/step2" id="step2Form">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
             <!-- 운영 요일 -->
             <div class="mb-4">
