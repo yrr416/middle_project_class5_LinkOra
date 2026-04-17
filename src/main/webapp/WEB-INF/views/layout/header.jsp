@@ -124,10 +124,9 @@
                 <i class="fa-solid fa-chevron-down acc-arrow"></i>
             </a>
             <ul class="accordion-content">
-                <li><a href="${pageContext.request.contextPath}/notice/list">공지사항</a></li>
+                <li><a href="${pageContext.request.contextPath}/notice/list">주요소식</a></li>
                 <li><a href="${pageContext.request.contextPath}/inquiry/form">자주 묻는 질문</a></li>
                 <li><a href="${pageContext.request.contextPath}/inquiry">1:1 문의</a></li>
-                <li><a href="#">이벤트</a></li>
                 <li><a href="#">사업자 관리</a></li>
             </ul>
         </li>

@@ -24,6 +24,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Value("${app.upload.profiles-dir:uploads/profiles}")
     private String profilesDir;
 
+    @Value("${app.upload.notice-dir:uploads/notice}")
+    private String noticeDir;
+
     private final SessionSyncInterceptor sessionSyncInterceptor;
 
     @Autowired
@@ -35,7 +38,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(sessionSyncInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/static/**", "/assets/**", "/error", "/favicon.ico");
+                .excludePathPatterns("/static/**", "/assets/**", "/uploads/**", "/error", "/favicon.ico");
     }
 
     @Override
@@ -47,6 +50,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
         }
         registry.addResourceHandler("/uploads/profiles/**")
                 .addResourceLocations(location);
+
+        // 공지/이벤트 대표 이미지 서빙
+        Path noticeImgDir = Paths.get(noticeDir).toAbsolutePath().normalize();
+        String noticeLocation = noticeImgDir.toUri().toString();
+        if (!noticeLocation.endsWith("/")) noticeLocation += "/";
+        registry.addResourceHandler("/uploads/notice/**")
+                .addResourceLocations(noticeLocation);
     }
 
     @Bean

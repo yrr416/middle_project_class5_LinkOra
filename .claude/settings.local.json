@@ -87,7 +87,19 @@
       "Bash(git -C \"D:/dev/springmvc/test/project05\" ls-tree origin/dev src/main/java/org/study/project05/login/config/)",
       "Bash(git:*)",
       "Bash(mvn clean:*)",
-      "Bash(xargs cat:*)"
+      "Bash(xargs cat:*)",
+      "Bash(grep -l lombok src/main/java/org/study/project05/partner/vo/*.java src/main/java/org/study/project05/reservation/vo/*.java)",
+      "Bash(find . -type f -name *.sql)",
+      "Bash(find D:/dev/springmvc/test/project05/src/main/java/org/study/project05 -name *Main* -o -name *Index* -o -name *Home*)",
+      "Bash(python -c \"import pptx; print\\(''python-pptx OK''\\)\")",
+      "Bash(/c/Users/ict/AppData/Local/Programs/Python/Python*/python.exe)",
+      "Bash(--version)",
+      "Read(//c/Users/ict/AppData/Local/Programs//**)",
+      "Bash(cmd /c \"python --version\" 2>&1)",
+      "Bash(cmd /c \"python --version && pip install python-pptx\" 2>&1)",
+      "Bash(cmd /c python --version)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(pip install:*)"
     ]
   }
 }

@@ -32,4 +32,10 @@ public interface NoticeMapper {
 
     /** 공지 삭제 */
     int deleteNotice(String n_idx);
+
+    /** 이전 공지 (현재보다 idx 작은 것 중 최대) */
+    NoticeVO getPrevNotice(String ntcIdx);
+
+    /** 다음 공지 (현재보다 idx 큰 것 중 최소) */
+    NoticeVO getNextNotice(String ntcIdx);
 }

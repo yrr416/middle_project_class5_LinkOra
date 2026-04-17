@@ -65,4 +65,16 @@ public class NoticeServiceImpl implements NoticeService {
     public int deleteNotice(String n_idx) {
         return noticeMapper.deleteNotice(n_idx);
     }
+
+    /** 이전 공지 */
+    @Override
+    public NoticeVO getPrevNotice(String ntcIdx) {
+        return noticeMapper.getPrevNotice(ntcIdx);
+    }
+
+    /** 다음 공지 */
+    @Override
+    public NoticeVO getNextNotice(String ntcIdx) {
+        return noticeMapper.getNextNotice(ntcIdx);
+    }
 }

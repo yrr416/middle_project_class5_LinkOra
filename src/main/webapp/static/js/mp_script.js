@@ -73,6 +73,27 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        // 좌우 화살표 버튼
+        const promoPrevBtn = document.getElementById('promoPrev');
+        const promoNextBtn = document.getElementById('promoNext');
+
+        if (promoPrevBtn) {
+            promoPrevBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                goToSlide((currentSlide - 1 + totalSlides) % totalSlides);
+                startSlide();
+            });
+        }
+        if (promoNextBtn) {
+            promoNextBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                goToSlide((currentSlide + 1) % totalSlides);
+                startSlide();
+            });
+        }
+
         if (closePromoBtn) {
             closePromoBtn.addEventListener('click', () => {
                 promoContainer.style.display = 'none';

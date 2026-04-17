@@ -4,6 +4,8 @@ import org.study.project05.branch.service.BranchService;
 import org.study.project05.mainpage.service.SearchService;
 import org.study.project05.branch.vo.BranchVO;
 import org.study.project05.mainpage.vo.SearchLogVO;
+import org.study.project05.notice.service.NoticeService;
+import org.study.project05.notice.vo.NoticeVO;
 import org.study.project05.review.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -20,6 +22,7 @@ public class MpController {
     private final BranchService branchService;
     private final SearchService searchService;
     private final ReviewService reviewService;
+    private final NoticeService noticeService;
 
     @GetMapping("/")
     public String index(
@@ -45,11 +48,21 @@ public class MpController {
         // 3. 인기 검색어 상위 5개 가져오기
         List<SearchLogVO> topTags = searchService.getTopKeywords();
 
+        // 4. 최신 공지/이벤트 5개 (고정 우선, 최신순) - 주요소식 섹션용
+        List<NoticeVO> noticeList = noticeService.getNoticeList(5, 0, new NoticeVO());
+
+        // 5. 이벤트만 최대 5개 - 슬라이드 배너용 (n_active % 2 == 1)
+        NoticeVO eventFilter = new NoticeVO();
+        eventFilter.setActiveFilter("1"); // 이벤트 필터 (MOD(n_active,2)=1)
+        List<NoticeVO> eventList = noticeService.getNoticeList(5, 0, eventFilter);
+
         model.addAttribute("branches", list);
         model.addAttribute("topTags", topTags);
         model.addAttribute("keyword", keyword);
         model.addAttribute("region", region);
         model.addAttribute("recentReviews", reviewService.getRecentReviews(6));
+        model.addAttribute("noticeList", noticeList);
+        model.addAttribute("eventList", eventList);
 
         return "index";
     }
