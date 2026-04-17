@@ -5,6 +5,7 @@ package org.study.project05.login.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -19,6 +20,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(csrf -> csrf
+                        // [추가] 자바스크립트로 POST 요청을 보내는 찜하기 API(/api/wishlist/**)에서 403 에러가 나지 않도록 CSRF 검사 예외 처리 추가
+                        .ignoringRequestMatchers("/chat/**", "/api/wishlist/**")
+                )
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
                 )
@@ -28,14 +33,51 @@ public class SecurityConfig {
                         .usernameParameter("username")
                         .passwordParameter("password")
                         .successHandler((request, response, authentication) -> {
+                            jakarta.servlet.http.HttpSession session = request.getSession();
+
                             boolean isAdmin = authentication.getAuthorities().stream()
                                     .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
                             boolean isPartner = authentication.getAuthorities().stream()
-                                    .anyMatch(a -> "ROLE_PARTNER".equals(a.getAuthority()));
+                                    .anyMatch(authority -> "ROLE_PARTNER".equals(authority.getAuthority()));
+
+                            // instanceof 패턴으로 안전하게 캐스팅 (DevTools 핫리로드 시 ClassCastException 방지)
+                            if (authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+                                if (isAdmin) {
+                                    session.setAttribute("userIdx", userDetails.getIdx());
+                                    session.setAttribute("isAdmin", true); // SSH 추가: 관리자 여부 세션에 저장
+                                } else if (isPartner) {
+                                    session.setAttribute("partnerIdx", userDetails.getIdx());
+                                    session.setAttribute("userIdx", userDetails.getIdx());
+                                } else {
+                                    session.setAttribute("userIdx", userDetails.getIdx());
+                                }
+                                session.setAttribute("userName", userDetails.getRealName());
+                            }
+
+                            // 관리자는 바로 대시보드로
+                            if (isAdmin) {
+                                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
+                                return;
+                            }
+
+                            // 문의 기능 한정: 로그인 전 목적지가 있었다면 해당 페이지로 리다이렉트
+                            String prevUrl = (String) session.getAttribute("prevUrl");
+                            if (prevUrl != null && prevUrl.startsWith("/inquiry")) {
+                                session.removeAttribute("prevUrl");
+                                response.sendRedirect(request.getContextPath() + prevUrl);
+                                return;
+                            }
+
                             String target = isAdmin ? "/admin/dashboard" : isPartner ? "/partner/mypage" : "/";
                             response.sendRedirect(request.getContextPath() + target);
                         })
-                        .failureUrl("/loginPage?error")
+                        .failureHandler((request, response, exception) -> {
+                            String errorCode = "auth";
+                            if (exception instanceof DisabledException) {
+                                errorCode = "inactive";
+                            }
+                            response.sendRedirect(request.getContextPath() + "/loginPage?error=" + errorCode);
+                        })
                         .permitAll()
                 )
                 .logout(logout -> logout

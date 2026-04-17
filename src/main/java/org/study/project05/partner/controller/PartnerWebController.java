@@ -41,6 +41,8 @@ public class PartnerWebController {
     @GetMapping("/partner/mypage")
     public String partnerMyPage(
             Authentication authentication,
+            HttpServletRequest request,
+            HttpServletResponse response,
             Model model,
             @RequestParam(value = "withdrawError", required = false) String withdrawError,
             @RequestParam(value = "pwdError", required = false) String pwdError,
@@ -54,6 +56,10 @@ public class PartnerWebController {
         }
         String partnerId = authentication.getName();
         PartnerVO partner = partnerService.getByPartnerId(partnerId);
+        if (partner != null && Integer.valueOf(0).equals(partner.getActive())) {
+            WebAuthUtils.performLogout(request, response, authentication);
+            return "redirect:/loginPage?error=inactive";
+        }
         model.addAttribute("partnerId", partnerId);
         model.addAttribute("name", partner != null ? partner.getName() : "");
         model.addAttribute("email", partner != null ? partner.getEmail() : "");
@@ -136,9 +142,18 @@ public class PartnerWebController {
         if (!passwordEncoder.matches(currentPassword, partner.getPassword())) {
             return "redirect:/partner/mypage?withdrawError=password";
         }
-        partnerService.deleteByPartnerId(authentication.getName());
+        boolean deleted = partnerService.deleteByPartnerId(authentication.getName());
+        if (!deleted) {
+            return "redirect:/partner/mypage?withdrawError=failed";
+        }
         WebAuthUtils.performLogout(request, response, authentication);
         return "redirect:/loginPage?withdraw=success";
+    }
+
+    @GetMapping("/partner/mypage/delete")
+    public String denyPartnerGetDelete() {
+        // 탈퇴는 POST 제출(모달 비밀번호 확인)로만 허용
+        return "redirect:/partner/mypage?withdrawError=method";
     }
 
     private static String formatBizNo(String value) {

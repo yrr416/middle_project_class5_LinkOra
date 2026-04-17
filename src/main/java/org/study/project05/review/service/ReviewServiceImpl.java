@@ -21,6 +21,11 @@ public class ReviewServiceImpl implements ReviewService {
     private BadWordFiltering badWordFiltering;
 
     @Override
+    public List<ReviewVO> getRecentReviews(int limit) {
+        return reviewMapper.selectRecent(limit);
+    }
+
+    @Override
     public Map<String, Object> getReviewPage(int bIdx, int page) {
 
         int total = reviewMapper.countParentsByBranch(bIdx);

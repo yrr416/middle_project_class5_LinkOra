@@ -81,7 +81,8 @@ public class ChatServiceImpl implements ChatService {
                 "1. **회원 전용 기능**: 예약(`COMMIT_BOOKING`) 및 취소(`CANCEL_BOOKING`)는 로그인한 회원만 가능해. 만약 사용자 ID가 0(Guest)이라면 \"회원 전용 기능입니다. 로그인 후 이용해 주세요\"라고 안내하고 로그인을 유도해.\n" +
                 "2. **실시간 정보 동기화 (Smart Prefill)**: 대화 도중 날짜, 시간, 인원수가 언급되면 즉시 `[[PREFILL:yyyy-MM-dd|시작|종료]]` 태그를 답변 끝에 포함해. 이건 비회원에게도 보여줘.\n" +
                 "3. **명령 실행 필수 (중요)**: 예약을 최종 확정할 때는 `[[COMMIT_BOOKING:공간ID|시작T시각|종료T시각|인원]]`를, 취소할 때는 `[[CANCEL_BOOKING:예약ID]]` 태그를 답변에 **반드시** 포함해야 시스템에 반영돼. 태그 없이 말로만 성공했다고 하지 마.\n" +
-                "4. **확정 유도**: 텍스트 확정보다는 카드 UI의 **'바로예약' -> '공간 예약하기'** 순서로 유도해.\n" +
+                "4. **취소 권한 관련 (필독)**: 사용자가 자신의 예약을 취소해달라고 하면, 해당 예약의 상태가 **'대기중(신청 완료)'** 또는 **'확정됨(이용 가능)'**인 경우 아무런 제약 없이 즉시 `[[CANCEL_BOOKING:예약ID]]` 태그를 생성하여 취소를 진행해줘.\n" +
+                "5. **확정 유도**: 텍스트 확정보다는 카드 UI의 **'바로예약' -> '공간 예약하기'** 순서로 유도해.\n" +
                 "\n[새로운 추천 시나리오 - 공간 추천]\n" +
                 "1. **위치 기반 추천**: 사용자가 '공간 추천'을 요청하면 [공간 정보 컨텍스트]에서 **가장 상단에 있는(가까운) 3개의 공간**을 `[[ACTIONS:공간ID|공간명|지점명|이미지|시설요약|가격|공간타입|지점ID]]` 태그로 보여줘. '지점ID'는 컨텍스트의 BrnID 값을 사용해.\n" +
                 "2. **후속 대화 유도**: 추천 카드를 보여준 직후에는 반드시 \"몇 분이서 이용하시나요?\", \"주차나 24시간 이용 등 특별히 필요한 시설이 있으신가요?\"라고 질문하여 필터링을 구체화해.\n" +
@@ -263,7 +264,7 @@ public class ChatServiceImpl implements ChatService {
 
             org.study.project05.reservation.user.vo.UserReservationVO vo = new org.study.project05.reservation.user.vo.UserReservationVO();
             vo.setSpcIdx(Integer.parseInt(parts[0].replace("#", "").trim()));
-            
+
             // 날짜 정보가 누락되고 시간(HH:mm)만 넘어온 경우 처리
             String todayPrefix = java.time.LocalDate.now().toString();
             String startTime = parts[1].length() <= 5 ? todayPrefix + "T" + parts[1] : parts[1];
@@ -325,7 +326,7 @@ public class ChatServiceImpl implements ChatService {
 
             org.study.project05.reservation.user.vo.UserReservationVO vo = new org.study.project05.reservation.user.vo.UserReservationVO();
             vo.setSpcIdx(Integer.parseInt(parts[0].replace("#", "").trim()));
-            
+
             String todayPrefix = java.time.LocalDate.now().toString();
             String startTime = parts[1].length() <= 5 ? todayPrefix + "T" + parts[1] : parts[1];
             String endTime = parts[2].length() <= 5 ? todayPrefix + "T" + parts[2] : parts[2];

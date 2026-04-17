@@ -1,10 +1,15 @@
 package org.study.project05.review.service;
 
+import org.study.project05.review.vo.ReviewVO;
+
+import java.util.List;
 import java.util.Map;
 
 public interface ReviewService {
 
     Map<String, Object> getReviewPage(int bIdx, int page);
+
+    List<ReviewVO> getRecentReviews(int limit);
 
     void writeReply(int spcIdx, int revParentIdx, int userIdx, String content);
 

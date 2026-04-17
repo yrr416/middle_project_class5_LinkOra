@@ -257,8 +257,8 @@
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 5px;">
-                    <a href="${pageContext.request.contextPath}/review/list" class="more-link" style="font-size: 14px; font-weight: 600; color: #007A8A; text-decoration: none; margin: 0;">
-                        모든 리뷰 보러가기 <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
+                    <a href="${pageContext.request.contextPath}/detail/list" class="more-link" style="font-size: 14px; font-weight: 600; color: #007A8A; text-decoration: none; margin: 0;">
+                        모든 지점 보러가기 <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
                     </a>
 
                     <div style="display: flex; gap: 8px; margin-left: 5px;">
@@ -271,26 +271,33 @@
             <div class="review-slider-wrapper">
                 <div class="review-grid" id="reviewGrid">
                     <c:forEach var="rev" items="${recentReviews}">
-                        <a href="${pageContext.request.contextPath}/review/detail?revIdx=${rev.revIdx}" class="review-card">
-                            <c:if test="${not empty rev.revImg}">
-                                <div class="rev-img-box" style="height: 180px; flex-shrink: 0; overflow: hidden;">
-                                    <img src="${rev.revImg}" style="width: 100%; height: 100%; object-fit: cover;">
-                                </div>
-                            </c:if>
+                        <a href="${pageContext.request.contextPath}/detail/detail?brnIdx=${rev.brnIdx}" class="review-card">
+                            <div class="rev-img-box" style="height: 180px; flex-shrink: 0; overflow: hidden;">
+                                <c:choose>
+                                    <c:when test="${not empty rev.revImg}">
+                                        <img src="${pageContext.request.contextPath}/static/upload/review/${rev.revImg}"
+                                             style="width: 100%; height: 100%; object-fit: cover;">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <img src="${pageContext.request.contextPath}/static/images/default_office.png"
+                                             style="width: 100%; height: 100%; object-fit: cover;">
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
                             <div class="rev-content-box">
                                 <div class="rev-stars" style="display: flex; align-items: center; margin-bottom: 12px;">
                                     <span style="background: #f0f4f4; color: #007A8A; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; margin-right: 8px;">
                                         [<c:out value="${rev.branchName}" default="지점명"/>]
                                     </span>
                                     <i class="fa-solid fa-star" style="color: #ffc107; margin-right: 4px;"></i>
-                                    <span style="font-weight: 700; font-size: 14px; color: #333;">${rev.revStar}</span>
+                                    <span style="font-weight: 700; font-size: 14px; color: #333;">${rev.revRating}</span>
                                 </div>
                                 <p style="font-size: 14px; color: #444; line-height: 1.6; height: 4.8em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; margin: 0;">
                                     "${rev.revContent}"
                                 </p>
                                 <div class="rev-info" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-weight: 700; font-size: 13px;">${rev.memNickname}</span>
-                                    <span style="color: #999; font-size: 12px;">${rev.revDate}</span>
+                                    <span style="font-weight: 700; font-size: 13px;">${rev.authorName}</span>
+                                    <span style="color: #999; font-size: 12px;">${rev.revCreatedAt}</span>
                                 </div>
                             </div>
                         </a>

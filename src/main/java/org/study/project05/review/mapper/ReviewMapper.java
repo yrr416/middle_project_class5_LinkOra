@@ -27,6 +27,9 @@ public interface ReviewMapper {
     /** 본인 후기 수정 (revIdx + userIdx 일치 시만 수정) */
     int updateByUser(ReviewVO vo);
 
+    /** 메인 페이지용 최신 리뷰 N개 (전체 지점) */
+    List<ReviewVO> selectRecent(@Param("limit") int limit);
+
     /** 후기/답글 등록 */
     void insert(ReviewVO vo);
 
