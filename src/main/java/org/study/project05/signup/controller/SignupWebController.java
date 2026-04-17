@@ -14,6 +14,7 @@ import org.study.project05.member.service.UserProfileService;
 import org.study.project05.signup.service.PartnerSignupService;
 
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Objects;
 
 @Controller
@@ -70,18 +71,15 @@ public class SignupWebController {
         if (phone == null || !phone.matches("\\d{3}-\\d{4}-\\d{4}")) {
             return "redirect:/signup?error=phoneFormat";
         }
-        String trimmedEmail = email == null ? "" : email.trim();
+        String trimmedEmail = normalizeEmail(email);
         if (trimmedEmail.isEmpty() || !trimmedEmail.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
             return "redirect:/signup?error=emailFormat";
         }
-        String trimmedUserId = userId.trim();
+        String trimmedUserId = normalizeUserId(userId);
         if (trimmedUserId.isEmpty()) {
             return "redirect:/signup?error=failed";
         }
-        if (userProfileService.existsUserId(trimmedUserId)) {
-            return "redirect:/signup?error=duplicateId";
-        }
-        if (partnerSignupService.existsPartnerId(trimmedUserId)) {
+        if (userProfileService.existsUserId(trimmedUserId) || partnerSignupService.existsPartnerId(trimmedUserId)) {
             return "redirect:/signup?error=duplicateId";
         }
         if (userProfileService.existsEmail(trimmedEmail) || partnerSignupService.existsPartnerEmail(trimmedEmail)) {
@@ -135,7 +133,17 @@ public class SignupWebController {
         if (phone == null || !phone.matches("\\d{3}-\\d{4}-\\d{4}")) {
             return "redirect:/partner-signup?error=phoneFormat";
         }
-        String trimmedPartnerEmail = email == null ? "" : email.trim();
+        String trimmedPartnerEmail = normalizeEmail(email);
+        String trimmedPartnerId = normalizeUserId(userId);
+        if (trimmedPartnerId.isEmpty()) {
+            return "redirect:/partner-signup?error=failed";
+        }
+        if (userProfileService.existsUserId(trimmedPartnerId) || partnerSignupService.existsPartnerId(trimmedPartnerId)) {
+            return "redirect:/partner-signup?error=duplicateId";
+        }
+        if (userProfileService.existsEmail(trimmedPartnerEmail) || partnerSignupService.existsPartnerEmail(trimmedPartnerEmail)) {
+            return "redirect:/partner-signup?error=duplicateEmail";
+        }
         if (trimmedPartnerEmail.isEmpty() || !trimmedPartnerEmail.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
             return "redirect:/partner-signup?error=emailFormat";
         }
@@ -155,7 +163,7 @@ public class SignupWebController {
         }
 
         PartnerSignupService.PartnerSignupResult result =
-                partnerSignupService.register(userId, password, name, trimmedPartnerEmail, address, phone, businessNo, profilePath);
+                partnerSignupService.register(trimmedPartnerId, password, name, trimmedPartnerEmail, address, phone, businessNo, profilePath);
 
         if (result == PartnerSignupService.PartnerSignupResult.duplicateId) {
             return "redirect:/partner-signup?error=duplicateId";
@@ -173,5 +181,15 @@ public class SignupWebController {
             return "redirect:/partner-signup?error=failed";
         }
         return "redirect:/loginPage?signup=partnerSuccess";
+    }
+
+    private static String normalizeUserId(String userId) {
+        return userId == null ? "" : userId.trim();
+    }
+
+    private static String normalizeEmail(String email) {
+        if (email == null) return "";
+        String trimmed = email.trim();
+        return trimmed.isEmpty() ? "" : trimmed.toLowerCase(Locale.ROOT);
     }
 }

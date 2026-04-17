@@ -13,6 +13,7 @@ public class PartnerVO {
     private String phone;
     private String businessNo;
     private String profileImage;
+    private Integer active;
 
     public int getPtnIdx() {
         return ptnIdx;
@@ -84,5 +85,13 @@ public class PartnerVO {
 
     public void setProfileImage(String profileImage) {
         this.profileImage = profileImage;
+    }
+
+    public Integer getActive() {
+        return active;
+    }
+
+    public void setActive(Integer active) {
+        this.active = active;
     }
 }

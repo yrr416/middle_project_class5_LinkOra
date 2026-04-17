@@ -237,7 +237,7 @@
         <p class="msg error">개인정보 처리방침에 동의해야 회원가입할 수 있습니다.</p>
         <% } %>
 
-        <form method="post" action="/signup" enctype="multipart/form-data">
+        <form method="post" action="${pageContext.request.contextPath}/signup" enctype="multipart/form-data">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
             <div class="form-group">
@@ -307,7 +307,7 @@
             <div class="form-group consent-block">
                 <label class="consent-label" for="agreePrivacy">
                     <input type="checkbox" name="agreePrivacy" value="true" id="agreePrivacy" required>
-                    <span><a href="/privacy" target="_blank" rel="noopener noreferrer">개인정보 처리방침</a>을 확인하였으며 이에 동의합니다. (필수)</span>
+                    <span><a href="${pageContext.request.contextPath}/privacy" target="_blank" rel="noopener noreferrer">개인정보 처리방침</a>을 확인하였으며 이에 동의합니다. (필수)</span>
                 </label>
             </div>
             <button class="submit-btn" type="submit">회원가입</button>
@@ -380,7 +380,7 @@
             dupBtn.disabled = true;
             msgEl.className = 'id-check-msg wait';
             msgEl.textContent = '확인 중…';
-            fetch('/api/signup/check-user-id?userId=' + encodeURIComponent(id), { method: 'GET', credentials: 'same-origin' })
+            fetch('${pageContext.request.contextPath}/api/signup/check-user-id?userId=' + encodeURIComponent(id), { method: 'GET', credentials: 'same-origin' })
                 .then(function (res) { return res.json(); })
                 .then(function (data) {
                     var ok = data && data.available === true;
@@ -424,7 +424,7 @@
             emailDupBtn.disabled = true;
             emailMsg.className = 'id-check-msg wait';
             emailMsg.textContent = '확인 중…';
-            fetch('/api/signup/check-email?email=' + encodeURIComponent(em), { method: 'GET', credentials: 'same-origin' })
+            fetch('${pageContext.request.contextPath}/api/signup/check-email?email=' + encodeURIComponent(em), { method: 'GET', credentials: 'same-origin' })
                 .then(function (res) { return res.json(); })
                 .then(function (data) {
                     var ok = data && data.available === true;

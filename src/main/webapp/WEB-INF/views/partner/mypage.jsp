@@ -185,6 +185,9 @@
             <% if ("failed".equals(request.getAttribute("withdrawError"))) { %>
             <p class="pwd-msg err mt-2">사업자 탈퇴 처리에 실패했습니다.</p>
             <% } %>
+            <% if ("method".equals(request.getAttribute("withdrawError"))) { %>
+            <p class="pwd-msg err mt-2">탈퇴는 마이페이지 버튼으로만 요청할 수 있습니다.</p>
+            <% } %>
         </div>
     </div>
 

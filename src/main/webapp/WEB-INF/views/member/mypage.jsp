@@ -407,7 +407,7 @@
             </div>
             <% if (!Boolean.TRUE.equals(request.getAttribute("oauthLogin"))) { %>
             <div class="avatar-edit">
-                <form method="post" action="/mypage/profile" enctype="multipart/form-data">
+                <form method="post" action="${pageContext.request.contextPath}/mypage/profile" enctype="multipart/form-data">
                     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                     <label class="profile-edit-btn" for="profileImageFile">프로필 수정</label>
                     <input id="profileImageFile" name="profileImage" type="file" accept="image/*" style="display:none" onchange="this.form.submit()">
@@ -479,7 +479,7 @@
             <% if ("failed".equals(request.getAttribute("pwdError"))) { %>
             <p class="pwd-msg err">비밀번호 변경에 실패했습니다. 다시 시도해주세요.</p>
             <% } %>
-            <form class="password-form" method="post" action="/mypage/password">
+            <form class="password-form" method="post" action="${pageContext.request.contextPath}/mypage/password">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                 <div class="row">
                     <label for="currentPassword">현재 비밀번호</label>
@@ -505,7 +505,7 @@
         <% } %>
 
         <div class="actions">
-            <form id="userWithdrawForm" class="withdraw-form" method="post" action="/mypage/delete">
+            <form id="userWithdrawForm" class="withdraw-form" method="post" action="${pageContext.request.contextPath}/mypage/delete">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                 <input type="hidden" name="currentPassword">
                 <button type="button" class="btn btn-danger" onclick="openWithdrawModal('회원')">회원 탈퇴</button>
@@ -517,6 +517,9 @@
         <% } %>
         <% if ("failed".equals(request.getAttribute("withdrawError"))) { %>
         <p class="pwd-msg err">회원 탈퇴 처리에 실패했습니다.</p>
+        <% } %>
+        <% if ("method".equals(request.getAttribute("withdrawError"))) { %>
+        <p class="pwd-msg err">탈퇴는 마이페이지 버튼으로만 요청할 수 있습니다.</p>
         <% } %>
     </section>
 </main>

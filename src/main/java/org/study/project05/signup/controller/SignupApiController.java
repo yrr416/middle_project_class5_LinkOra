@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.study.project05.member.service.UserProfileService;
 import org.study.project05.signup.service.PartnerSignupService;
 
+import java.util.Locale;
 import java.util.Map;
 
 @RestController
@@ -37,14 +38,19 @@ public class SignupApiController {
      */
     @GetMapping("/check-user-id")
     public Map<String, Object> checkUserId(@RequestParam(value = "userId", required = false) String userId) {
-        String id = userId == null ? "" : userId.trim();
+        String id = normalizeUserId(userId);
         if (id.isEmpty()) {
             return Map.of("available", false, "message", "아이디를 입력해 주세요.");
         }
         if (id.length() > MAX_USER_ID_LEN) {
             return Map.of("available", false, "message", "아이디는 " + MAX_USER_ID_LEN + "자 이하여야 합니다.");
         }
-        boolean taken = userProfileService.existsUserId(id) || partnerSignupService.existsPartnerId(id);
+        boolean taken;
+        try {
+            taken = userProfileService.existsUserId(id) || partnerSignupService.existsPartnerId(id);
+        } catch (Exception e) {
+            return Map.of("available", false, "message", "중복 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+        }
         if (taken) {
             return Map.of("available", false, "message", "이미 사용 중인 아이디입니다.");
         }
@@ -56,7 +62,7 @@ public class SignupApiController {
      */
     @GetMapping("/check-email")
     public Map<String, Object> checkEmail(@RequestParam(value = "email", required = false) String email) {
-        String em = email == null ? "" : email.trim();
+        String em = normalizeEmail(email);
         if (em.isEmpty()) {
             return Map.of("available", false, "message", "이메일을 입력해 주세요.");
         }
@@ -66,10 +72,25 @@ public class SignupApiController {
         if (em.length() > MAX_EMAIL_LEN) {
             return Map.of("available", false, "message", "이메일은 " + MAX_EMAIL_LEN + "자 이하여야 합니다.");
         }
-        boolean taken = userProfileService.existsEmail(em) || partnerSignupService.existsPartnerEmail(em);
+        boolean taken;
+        try {
+            taken = userProfileService.existsEmail(em) || partnerSignupService.existsPartnerEmail(em);
+        } catch (Exception e) {
+            return Map.of("available", false, "message", "중복 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+        }
         if (taken) {
             return Map.of("available", false, "message", "이미 사용 중인 이메일입니다.");
         }
         return Map.of("available", true, "message", "사용 가능한 이메일입니다.");
+    }
+
+    private static String normalizeUserId(String userId) {
+        return userId == null ? "" : userId.trim();
+    }
+
+    private static String normalizeEmail(String email) {
+        if (email == null) return "";
+        String trimmed = email.trim();
+        return trimmed.isEmpty() ? "" : trimmed.toLowerCase(Locale.ROOT);
     }
 }
