@@ -9,6 +9,8 @@ import org.study.project05.member.service.UserProfileService;
 import org.study.project05.partner.mapper.PartnerMapper;
 import org.study.project05.signup.service.PartnerSignupService;
 
+import java.util.Locale;
+
 @Service
 public class PartnerSignupServiceImpl implements PartnerSignupService {
     private final PartnerMapper partnerMapper;
@@ -26,22 +28,20 @@ public class PartnerSignupServiceImpl implements PartnerSignupService {
     }
 
     public boolean existsPartnerId(String partnerId) {
-        if (partnerId == null || partnerId.isBlank()) {
-            return false;
-        }
+        String normalized = normalizeUserId(partnerId);
+        if (normalized.isEmpty()) return false;
         try {
-            return partnerMapper.countByPartnerId(partnerId.trim()) > 0;
+            return partnerMapper.countByPartnerId(normalized) > 0;
         } catch (Exception e) {
             return false;
         }
     }
 
     public boolean existsPartnerEmail(String email) {
-        if (email == null || email.isBlank()) {
-            return false;
-        }
+        String normalized = normalizeEmail(email);
+        if (normalized.isEmpty()) return false;
         try {
-            return partnerMapper.countByEmail(email.trim()) > 0;
+            return partnerMapper.countByEmail(normalized) > 0;
         } catch (Exception e) {
             return false;
         }
@@ -57,12 +57,13 @@ public class PartnerSignupServiceImpl implements PartnerSignupService {
             String businessNo,
             String profileImagePath
     ) {
-        String id = userId != null ? userId.trim() : "";
+        String id = normalizeUserId(userId);
         if (id.isEmpty()) {
             return PartnerSignupResult.FAILED;
         }
         userId = id;
-        String mail = email != null ? email.trim() : "";
+        String mail = normalizeEmail(email);
+        String normalizedBusinessNo = normalizeBusinessNo(businessNo);
         try {
             if (userProfileService.existsUserId(userId)) {
                 return PartnerSignupResult.duplicateId;
@@ -78,7 +79,7 @@ public class PartnerSignupServiceImpl implements PartnerSignupService {
                     return PartnerSignupResult.duplicateEmail;
                 }
             }
-            if (businessNo != null && !businessNo.isBlank() && partnerMapper.countByBusinessNo(businessNo) > 0) {
+            if (!normalizedBusinessNo.isBlank() && partnerMapper.countByBusinessNo(normalizedBusinessNo) > 0) {
                 return PartnerSignupResult.duplicateBizNo;
             }
         } catch (Exception e) {
@@ -92,12 +93,26 @@ public class PartnerSignupServiceImpl implements PartnerSignupService {
                     mail,
                     address,
                     phone,
-                    businessNo,
+                    normalizedBusinessNo,
                     profileImagePath
             );
             return updated > 0 ? PartnerSignupResult.SUCCESS : PartnerSignupResult.FAILED;
         } catch (Exception e) {
             return PartnerSignupResult.tableOrColumnMissing;
         }
+    }
+
+    private static String normalizeUserId(String userId) {
+        return userId == null ? "" : userId.trim();
+    }
+
+    private static String normalizeEmail(String email) {
+        if (email == null) return "";
+        String trimmed = email.trim();
+        return trimmed.isEmpty() ? "" : trimmed.toLowerCase(Locale.ROOT);
+    }
+
+    private static String normalizeBusinessNo(String businessNo) {
+        return businessNo == null ? "" : businessNo.trim();
     }
 }

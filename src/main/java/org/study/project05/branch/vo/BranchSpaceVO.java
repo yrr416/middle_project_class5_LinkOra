@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SpaceVO {
+public class BranchSpaceVO {
 
     private int    spcIdx;        // s_idx        공간 번호 (PK)
     private int    brnIdx;        // b_idx        소속 지점 번호 (FK)

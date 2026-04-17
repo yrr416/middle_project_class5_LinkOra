@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -74,16 +75,17 @@
         <div class="sidebar-brand"><i class="bi bi-building me-2"></i>오피스 예약</div>
         <nav class="nav flex-column mt-2">
             <span class="nav-link text-white-50 small px-3 pt-3 pb-1">관리자 메뉴</span>
-            <a class="nav-link" href="/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
-            <a class="nav-link" href="/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
-            <!-- 현재 페이지: 예약 관리 (active) -->
-            <a class="nav-link active" href="/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
-            <a class="nav-link" href="#"><i class="bi bi-building"></i>오피스 관리</a>
-            <a class="nav-link" href="#"><i class="bi bi-star"></i>리뷰 관리</a>
-            <a class="nav-link" href="#"><i class="bi bi-bell"></i>공지 관리</a>
-            <a class="nav-link" href="#"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
+            <a class="nav-link" href="${ctx}/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
+            <a class="nav-link active" href="${ctx}/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
+            <a class="nav-link" href="${ctx}/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
+            <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
+            <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
+            <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
             <hr class="border-secondary mx-3">
-            <a class="nav-link" href="#"><i class="bi bi-gear"></i>설정</a>
+            <a class="nav-link" href="${ctx}/" target="_blank"><i class="bi bi-house"></i>홈페이지 이동</a>
+            <a class="nav-link" href="${ctx}/admin/settings"><i class="bi bi-gear"></i>설정</a>
+            <a class="nav-link text-danger" href="${ctx}/logout"><i class="bi bi-box-arrow-right"></i>로그아웃</a>
         </nav>
     </div>
 
@@ -153,35 +155,35 @@
                 <!-- 날짜 범위 (시작) -->
                 <div class="col-md-2">
                     <label class="form-label small mb-1">시작일</label>
-                    <input type="date" name="start_date" class="form-control form-control-sm"
-                           value="${searchVO.start_date}">
+                    <input type="date" name="startDate" class="form-control form-control-sm"
+                           value="${searchVO.startDate}">
                 </div>
                 <!-- 날짜 범위 (종료) -->
                 <div class="col-md-2">
                     <label class="form-label small mb-1">종료일</label>
-                    <input type="date" name="end_date" class="form-control form-control-sm"
-                           value="${searchVO.end_date}">
+                    <input type="date" name="endDate" class="form-control form-control-sm"
+                           value="${searchVO.endDate}">
                 </div>
                 <!-- 상태 필터 -->
                 <div class="col-md-2">
                     <label class="form-label small mb-1">예약 상태</label>
-                    <select name="status_filter" class="form-select form-select-sm">
+                    <select name="statusFilter" class="form-select form-select-sm">
                         <option value="">전체</option>
-                        <option value="PENDING"   ${searchVO.status_filter == 'PENDING'   ? 'selected':''}>대기</option>
-                        <option value="CONFIRMED" ${searchVO.status_filter == 'CONFIRMED' ? 'selected':''}>확정</option>
-                        <option value="USING"     ${searchVO.status_filter == 'USING'     ? 'selected':''}>이용중</option>
-                        <option value="COMPLETED" ${searchVO.status_filter == 'COMPLETED' ? 'selected':''}>완료</option>
-                        <option value="CANCELLED" ${searchVO.status_filter == 'CANCELLED' ? 'selected':''}>취소</option>
+                        <option value="PENDING"   ${searchVO.statusFilter == 'PENDING'   ? 'selected':''}>대기</option>
+                        <option value="CONFIRMED" ${searchVO.statusFilter == 'CONFIRMED' ? 'selected':''}>확정</option>
+                        <option value="USING"     ${searchVO.statusFilter == 'USING'     ? 'selected':''}>이용중</option>
+                        <option value="COMPLETED" ${searchVO.statusFilter == 'COMPLETED' ? 'selected':''}>완료</option>
+                        <option value="CANCELLED" ${searchVO.statusFilter == 'CANCELLED' ? 'selected':''}>취소</option>
                     </select>
                 </div>
                 <!-- 공간별 필터 -->
                 <div class="col-md-2">
                     <label class="form-label small mb-1">공간</label>
-                    <select name="space_filter" class="form-select form-select-sm">
+                    <select name="spaceFilter" class="form-select form-select-sm">
                         <option value="">전체 공간</option>
                         <c:forEach var="sp" items="${spaceList}">
                             <option value="${sp.spcIdx}"
-                                    ${searchVO.space_filter == sp.spcIdx.toString() ? 'selected':''}>
+                                    ${searchVO.spaceFilter == sp.spcIdx.toString() ? 'selected':''}>
                                 ${sp.spcName}
                             </option>
                         </c:forEach>
@@ -190,8 +192,8 @@
                 <!-- 고객명 검색 -->
                 <div class="col-md-2">
                     <label class="form-label small mb-1">고객명</label>
-                    <input type="text" name="search_word" class="form-control form-control-sm"
-                           placeholder="고객명 검색" value="${searchVO.search_word}">
+                    <input type="text" name="searchWord" class="form-control form-control-sm"
+                           placeholder="고객명 검색" value="${searchVO.searchWord}">
                 </div>
                 <!-- 검색 버튼 -->
                 <div class="col-md-2">
@@ -210,8 +212,8 @@
             <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
                 <span class="small text-muted">
                     총 <strong>${totalRecord}</strong>건
-                    <c:if test="${not empty searchVO.search_word}">
-                        (검색: <strong>${searchVO.search_word}</strong>)
+                    <c:if test="${not empty searchVO.searchWord}">
+                        (검색: <strong>${searchVO.searchWord}</strong>)
                     </c:if>
                 </span>
                 <span class="small text-muted">${nowPage} / ${totalPage} 페이지</span>
@@ -247,8 +249,8 @@
                             <tr onclick="openDetailModal(${r.resIdx})" style="cursor:pointer;">
                                 <td class="ps-4 text-muted">#${r.resIdx}</td>
                                 <td>
-                                    <div class="fw-semibold">${r.uName}</div>
-                                    <div class="text-muted small">${r.uPhone}</div>
+                                    <div class="fw-semibold">${r.userName}</div>
+                                    <div class="text-muted small">${r.userPhone}</div>
                                 </td>
                                 <td>
                                     <div class="fw-semibold">${r.spcName}</div>
@@ -304,7 +306,7 @@
                         <c:if test="${beginBlock > 1}">
                             <li class="page-item">
                                 <a class="page-link"
-                                   href="/admin/reservation/list?nowPage=${beginBlock-1}&start_date=${searchVO.start_date}&end_date=${searchVO.end_date}&status_filter=${searchVO.status_filter}&space_filter=${searchVO.space_filter}&search_word=${searchVO.search_word}">
+                                   href="/admin/reservation/list?nowPage=${beginBlock-1}&startDate=${searchVO.startDate}&endDate=${searchVO.endDate}&statusFilter=${searchVO.statusFilter}&spaceFilter=${searchVO.spaceFilter}&searchWord=${searchVO.searchWord}">
                                     <i class="bi bi-chevron-left"></i>
                                 </a>
                             </li>
@@ -312,7 +314,7 @@
                         <c:forEach var="p" begin="${beginBlock}" end="${endBlock}">
                             <li class="page-item ${nowPage == p ? 'active':''}">
                                 <a class="page-link"
-                                   href="/admin/reservation/list?nowPage=${p}&start_date=${searchVO.start_date}&end_date=${searchVO.end_date}&status_filter=${searchVO.status_filter}&space_filter=${searchVO.space_filter}&search_word=${searchVO.search_word}">
+                                   href="/admin/reservation/list?nowPage=${p}&startDate=${searchVO.startDate}&endDate=${searchVO.endDate}&statusFilter=${searchVO.statusFilter}&spaceFilter=${searchVO.spaceFilter}&searchWord=${searchVO.searchWord}">
                                     ${p}
                                 </a>
                             </li>
@@ -320,7 +322,7 @@
                         <c:if test="${endBlock < totalPage}">
                             <li class="page-item">
                                 <a class="page-link"
-                                   href="/admin/reservation/list?nowPage=${endBlock+1}&start_date=${searchVO.start_date}&end_date=${searchVO.end_date}&status_filter=${searchVO.status_filter}&space_filter=${searchVO.space_filter}&search_word=${searchVO.search_word}">
+                                   href="/admin/reservation/list?nowPage=${endBlock+1}&startDate=${searchVO.startDate}&endDate=${searchVO.endDate}&statusFilter=${searchVO.statusFilter}&spaceFilter=${searchVO.spaceFilter}&searchWord=${searchVO.searchWord}">
                                     <i class="bi bi-chevron-right"></i>
                                 </a>
                             </li>
@@ -471,11 +473,11 @@
                             <!-- 현재 필터 유지용 hidden 값은 JavaScript 에서 동적 추가 -->
                             <input type="hidden" name="resIdx"      id="cancel_r_idx">
                             <input type="hidden" name="nowPage"     value="${nowPage}">
-                            <input type="hidden" name="start_date"  value="${searchVO.start_date}">
-                            <input type="hidden" name="end_date"    value="${searchVO.end_date}">
-                            <input type="hidden" name="status_filter" value="${searchVO.status_filter}">
-                            <input type="hidden" name="space_filter"  value="${searchVO.space_filter}">
-                            <input type="hidden" name="search_word"   value="${searchVO.search_word}">
+                            <input type="hidden" name="startDate"  value="${searchVO.startDate}">
+                            <input type="hidden" name="endDate"    value="${searchVO.endDate}">
+                            <input type="hidden" name="statusFilter" value="${searchVO.statusFilter}">
+                            <input type="hidden" name="spaceFilter"  value="${searchVO.spaceFilter}">
+                            <input type="hidden" name="searchWord"   value="${searchVO.searchWord}">
 
                             <!-- 취소 사유 입력 (필수) -->
                             <div class="mb-3">
@@ -601,9 +603,9 @@ function renderModal(d) {
         '<span class="badge ' + statusInfo.css + ' px-3 py-1 rounded-pill">' + statusInfo.label + '</span>';
 
     /* ② 예약자 정보 */
-    document.getElementById('d_u_name').textContent  = d.uName  || '-';
-    document.getElementById('d_u_email').textContent = d.uEmail || '-';
-    document.getElementById('d_u_phone').textContent = d.uPhone || '-';
+    document.getElementById('d_u_name').textContent  = d.userName  || '-';
+    document.getElementById('d_u_email').textContent = d.userEmail || '-';
+    document.getElementById('d_u_phone').textContent = d.userPhone || '-';
 
     /* ③ 공간 정보 */
     document.getElementById('d_s_name').textContent  = d.spcName  || '-';
@@ -679,11 +681,11 @@ function renderFooterButtons(d) {
         html = '<form method="post" action="/admin/reservation/confirm" class="d-inline">' +
                '  <input type="hidden" name="resIdx"        value="' + d.resIdx + '">' +
                '  <input type="hidden" name="nowPage"       value="' + CURRENT_PAGE + '">' +
-               '  <input type="hidden" name="start_date"    value="${searchVO.start_date}">' +
-               '  <input type="hidden" name="end_date"      value="${searchVO.end_date}">' +
-               '  <input type="hidden" name="status_filter" value="${searchVO.status_filter}">' +
-               '  <input type="hidden" name="space_filter"  value="${searchVO.space_filter}">' +
-               '  <input type="hidden" name="search_word"   value="${searchVO.search_word}">' +
+               '  <input type="hidden" name="startDate"    value="${searchVO.startDate}">' +
+               '  <input type="hidden" name="endDate"      value="${searchVO.endDate}">' +
+               '  <input type="hidden" name="statusFilter" value="${searchVO.statusFilter}">' +
+               '  <input type="hidden" name="spaceFilter"  value="${searchVO.spaceFilter}">' +
+               '  <input type="hidden" name="searchWord"   value="${searchVO.searchWord}">' +
                '  <button type="submit" class="btn btn-primary btn-sm me-1"' +
                '    onclick="return confirm(\'이 예약을 확정 처리하시겠습니까?\')">' +
                '    <i class="bi bi-check-circle me-1"></i>예약 확정' +
@@ -696,11 +698,11 @@ function renderFooterButtons(d) {
         html = '<form method="post" action="/admin/reservation/complete" class="d-inline">' +
                '  <input type="hidden" name="resIdx"        value="' + d.resIdx + '">' +
                '  <input type="hidden" name="nowPage"       value="' + CURRENT_PAGE + '">' +
-               '  <input type="hidden" name="start_date"    value="${searchVO.start_date}">' +
-               '  <input type="hidden" name="end_date"      value="${searchVO.end_date}">' +
-               '  <input type="hidden" name="status_filter" value="${searchVO.status_filter}">' +
-               '  <input type="hidden" name="space_filter"  value="${searchVO.space_filter}">' +
-               '  <input type="hidden" name="search_word"   value="${searchVO.search_word}">' +
+               '  <input type="hidden" name="startDate"    value="${searchVO.startDate}">' +
+               '  <input type="hidden" name="endDate"      value="${searchVO.endDate}">' +
+               '  <input type="hidden" name="statusFilter" value="${searchVO.statusFilter}">' +
+               '  <input type="hidden" name="spaceFilter"  value="${searchVO.spaceFilter}">' +
+               '  <input type="hidden" name="searchWord"   value="${searchVO.searchWord}">' +
                '  <button type="submit" class="btn btn-success btn-sm me-1"' +
                '    onclick="return confirm(\'이용 완료 처리하시겠습니까?\')">' +
                '    <i class="bi bi-check2-all me-1"></i>이용 완료' +

@@ -73,7 +73,8 @@ public class PartnerServiceImpl implements PartnerService {
             return false;
         }
         try {
-            return partnerMapper.deleteByPartnerId(partnerId) > 0;
+            // 물리 삭제 대신 p_active를 0으로 설정하는 논리 삭제
+            return partnerMapper.deactivateByPartnerId(partnerId) > 0;
         } catch (Exception e) {
             return false;
         }

@@ -1,7 +1,7 @@
 package org.study.project05.branch.service;
 
 import org.study.project05.branch.vo.BranchVO;
-import org.study.project05.branch.vo.SpaceVO;
+import org.study.project05.branch.vo.BranchSpaceVO;
 
 import java.util.List;
 
@@ -13,5 +13,5 @@ public interface SpaceBranchService {
 
     BranchVO getBranchBySpaceIdx(int spaIdx);
 
-    SpaceVO getSpaceById(int spcIdx);
+    BranchSpaceVO getSpaceById(int spcIdx);
 }

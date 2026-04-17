@@ -10,6 +10,7 @@ import org.study.project05.member.service.UserProfileService;
 import org.study.project05.member.vo.UserProfileVO;
 
 import java.security.SecureRandom;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -30,11 +31,15 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     public boolean existsUserId(String userId) {
-        return userProfileMapper.countByUserId(userId) > 0;
+        String normalized = normalizeUserId(userId);
+        if (normalized.isEmpty()) return false;
+        return userProfileMapper.countByUserId(normalized) > 0;
     }
 
     public boolean existsEmail(String email) {
-        return userProfileMapper.countByEmail(email) > 0;
+        String normalized = normalizeEmail(email);
+        if (normalized.isEmpty()) return false;
+        return userProfileMapper.countByEmail(normalized) > 0;
     }
 
     public boolean register(
@@ -47,7 +52,8 @@ public class UserProfileServiceImpl implements UserProfileService {
             String profilePath
     ) {
         String encoded = passwordEncoder.encode(password);
-        return userProfileMapper.insertUser(userId, encoded, name, email, address, phone, profilePath) > 0;
+        return userProfileMapper.insertUser(
+                normalizeUserId(userId), encoded, name, normalizeEmail(email), address, phone, profilePath) > 0;
     }
 
     /**
@@ -130,7 +136,18 @@ public class UserProfileServiceImpl implements UserProfileService {
         if (userId == null || userId.isBlank()) {
             return false;
         }
-        return userProfileMapper.deleteByUserId(userId) > 0;
+        // 물리 삭제 대신 u_active를 0으로 설정하는 논리 삭제
+        return userProfileMapper.deactivateByUserId(userId) > 0;
+    }
+
+    private static String normalizeUserId(String userId) {
+        return userId == null ? "" : userId.trim();
+    }
+
+    private static String normalizeEmail(String email) {
+        if (email == null) return "";
+        String trimmed = email.trim();
+        return trimmed.isEmpty() ? "" : trimmed.toLowerCase(Locale.ROOT);
     }
 
     public PasswordResetIssuePasswordResult issueTemporaryPasswordByEmail(String email) {

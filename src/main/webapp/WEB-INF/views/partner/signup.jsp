@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
-<%-- 사업자 회원가입 화면: 사업자 정보(사업자번호 포함) 입력 후 가입 요청을 전송한다. --%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -12,30 +13,6 @@
             margin: 0;
             background: #f4f6f8;
             font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
-        }
-        .top-bar {
-            height: 64px;
-            background: #e8e8e3;
-            border-bottom: 1px solid #d7d7d1;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-        }
-        .logo-image { height: 48px; width: auto; display: block; }
-        .home-btn {
-            height: 38px;
-            padding: 0 14px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            background: #ffffff;
-            color: #334155;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
         }
         .content { padding: 16px; }
         .wrap {
@@ -187,12 +164,7 @@
 <%
     String errorParam = request.getParameter("error");
 %>
-<header class="top-bar">
-    <img class="logo-image"
-         src="/assets/c__Users_ict-02_AppData_Roaming_Cursor_User_workspaceStorage_14eab3a244838b5187ba2f0dbb8a04dc_images_image-5bd41dfc-4c07-450b-9c64-6e9dc2724a93.png"
-         alt="Linkora 로고">
-    <a class="home-btn" href="/loginPage">로그인으로</a>
-</header>
+<%@include file="../layout/header.jsp"%>
 
 <main class="content">
     <section class="wrap">
@@ -223,7 +195,7 @@
         <p class="msg error">개인정보 처리방침에 동의해야 회원가입할 수 있습니다.</p>
         <% } %>
 
-        <form method="post" action="/partner-signup" enctype="multipart/form-data">
+        <form method="post" action="${ctx}/partner-signup" enctype="multipart/form-data">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
             <div class="form-group">
                 <label for="partnerProfileImage">프로필 이미지 (선택)</label>
@@ -292,7 +264,7 @@
             <div class="form-group consent-block">
                 <label class="consent-label" for="agreePrivacy">
                     <input type="checkbox" name="agreePrivacy" value="true" id="agreePrivacy" required>
-                    <span><a href="/privacy" target="_blank" rel="noopener noreferrer">개인정보 처리방침</a>을 확인하였으며 이에 동의합니다. (필수)</span>
+                    <span><a href="${ctx}/privacy" target="_blank" rel="noopener noreferrer">개인정보 처리방침</a>을 확인하였으며 이에 동의합니다. (필수)</span>
                 </label>
             </div>
             <button class="submit-btn" type="submit">사업자 회원가입</button>
@@ -397,7 +369,7 @@
                 partnerDupBtn.disabled = true;
                 partnerIdMsg.className = 'id-check-msg wait';
                 partnerIdMsg.textContent = '확인 중…';
-                fetch('/api/signup/check-user-id?userId=' + encodeURIComponent(id), { method: 'GET', credentials: 'same-origin' })
+                fetch('${pageContext.request.contextPath}/api/signup/check-user-id?userId=' + encodeURIComponent(id), { method: 'GET', credentials: 'same-origin' })
                     .then(function (res) { return res.json(); })
                     .then(function (data) {
                         var ok = data && data.available === true;
@@ -438,7 +410,7 @@
                 partnerEmailDupBtn.disabled = true;
                 partnerEmailMsg.className = 'id-check-msg wait';
                 partnerEmailMsg.textContent = '확인 중…';
-                fetch('/api/signup/check-email?email=' + encodeURIComponent(em), { method: 'GET', credentials: 'same-origin' })
+                fetch('${pageContext.request.contextPath}/api/signup/check-email?email=' + encodeURIComponent(em), { method: 'GET', credentials: 'same-origin' })
                     .then(function (res) { return res.json(); })
                     .then(function (data) {
                         var ok = data && data.available === true;

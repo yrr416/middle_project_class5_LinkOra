@@ -7,7 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.study.project05.reservation.user.service.UserReservationService;
-import org.study.project05.reservation.user.vo.ReservationVO;
+import org.study.project05.reservation.user.vo.UserReservationVO;
 import org.study.project05.branch.service.SpaceBranchService;
 import org.study.project05.member.vo.UserProfileVO;
 
@@ -34,7 +34,7 @@ public class  UserReservationController {
 
     /** 예약 제출 */
     @PostMapping("/submit")
-    public String submit(ReservationVO vo,
+    public String submit(UserReservationVO vo,
                          HttpSession session,
                          Model model,
                          RedirectAttributes redirectAttributes) {

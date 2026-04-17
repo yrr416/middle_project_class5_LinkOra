@@ -14,7 +14,6 @@
         <result property="brnFile" column="b_file"/>
         <result property="brnActive" column="b_active"/>
         <result property="isWish" column="isWish"/>
-
         <result property="facParking" column="fac_parking"/>
         <result property="facHours24" column="fac_hours24"/>
         <result property="facPet" column="fac_pet"/>
@@ -53,7 +52,6 @@
             b.b_file,
             b.b_active,
             1 AS isWish,
-
             (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_parking = 1) as fac_parking,
             (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_hours24 = 1) as fac_hours24,
             (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_pet = 1) as fac_pet,
@@ -62,7 +60,6 @@
             (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_fax = 1 OR f.f_printer = 1)) as fac_printer,
             (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_storage = 1 OR f.f_locker = 1)) as fac_locker,
             (SELECT bi_url FROM branch_img WHERE branch_img.b_idx = b.b_idx AND bi_is_main = 1 LIMIT 1) as main_img_url
-
         FROM branch b
             INNER JOIN wishlist w ON b.b_idx = w.b_idx
         WHERE w.u_idx = #{userIdx}

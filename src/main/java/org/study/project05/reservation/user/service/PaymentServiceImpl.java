@@ -9,7 +9,7 @@ import org.springframework.web.client.RestTemplate;
 import org.study.project05.reservation.user.mapper.PaymentMapper;
 import org.study.project05.reservation.user.mapper.UserReservationMapper;
 import org.study.project05.reservation.user.vo.PaymentVO;
-import org.study.project05.reservation.user.vo.ReservationVO;
+import org.study.project05.reservation.user.vo.UserReservationVO;
 
 import java.util.Base64;
 import java.util.HashMap;
@@ -53,7 +53,7 @@ public class PaymentServiceImpl implements PaymentService {
                                String email, String name, String spaceName) {
 
         // 1. 행 락을 걸고 현재 예약 상태 + 시간 정보 조회
-        ReservationVO reservation = reservationMapper.selectByIdForUpdate(resIdx);
+        UserReservationVO reservation = reservationMapper.selectByIdForUpdate(resIdx);
 
         // 2. PENDING이 아니면(= 이미 만료/취소됨) 결제 진행 중단
         //    이 시점에서 토스 승인 API를 부르지 않으므로 실제 결제도 발생하지 않음

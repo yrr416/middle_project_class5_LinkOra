@@ -21,6 +21,8 @@
         <result property="revCreatedAt" column="v_created_at"/>
         <result property="reportCount"  column="report_count"/>
         <result property="revImg"       column="v_img"/>
+        <result property="branchName"   column="b_name"/>
+        <result property="brnIdx"       column="b_idx"/>
     </resultMap>
 
     <!-- 지점 최상위 후기 목록 (페이징)
@@ -33,7 +35,7 @@
                r.v_parent_idx,
                r.v_content,
                r.v_rating,
-               IFNULL(u.u_name, '알 수 없음') AS u_name,
+               IFNULL(u.u_name, '탈퇴한 유저') AS u_name,
                s.s_name,
                r.v_created_at,
                r.v_img,
@@ -64,7 +66,7 @@
                r.v_parent_idx,
                r.v_content,
                r.v_rating,
-               IFNULL(u.u_name, '알 수 없음')                 AS u_name,
+               IFNULL(u.u_name, '탈퇴한 유저')                 AS u_name,
                s.s_name,
                r.v_created_at
         FROM review r
@@ -82,6 +84,30 @@
         WHERE s.b_idx        = #{bIdx}
           AND r.v_parent_idx = 0
           AND r.v_rating     > 0
+    </select>
+
+    <!-- 메인 페이지용 최신 리뷰 N개 (전체 지점, 별점 있는 것만) -->
+    <select id="selectRecent" resultMap="reviewResultMap">
+        SELECT r.v_idx,
+               r.s_idx,
+               r.u_idx,
+               r.v_parent_idx,
+               r.v_content,
+               r.v_rating,
+               IFNULL(u.u_name, '탈퇴한 유저') AS u_name,
+               s.s_name,
+               b.b_name,
+               b.b_idx,
+               r.v_created_at,
+               r.v_img
+        FROM review r
+        LEFT JOIN user   u ON r.u_idx  = u.u_idx
+        JOIN       space s ON r.s_idx  = s.s_idx
+        JOIN       branch b ON s.b_idx = b.b_idx
+        WHERE r.v_parent_idx = 0
+          AND r.v_rating     > 0
+        ORDER BY r.v_idx DESC
+        LIMIT #{limit}
     </select>
 
     <!-- 리뷰 신고 저장 -->
@@ -121,6 +147,53 @@
         WHERE v_idx  = #{revIdx}
           AND u_idx  = #{userIdx}
     </update>
+
+    <!-- ===== 관리자 전용 ===== -->
+
+    <!-- 전체 리뷰 수 (검색어 필터) -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*)
+        FROM review r
+        LEFT JOIN user  u ON r.u_idx = u.u_idx
+        LEFT JOIN space s ON r.s_idx = s.s_idx
+        WHERE r.v_parent_idx = 0
+        <if test="searchWord != null and searchWord != ''">
+            AND (u.u_name LIKE CONCAT('%', #{searchWord}, '%')
+              OR s.s_name LIKE CONCAT('%', #{searchWord}, '%')
+              OR r.v_content LIKE CONCAT('%', #{searchWord}, '%'))
+        </if>
+    </select>
+
+    <!-- 전체 리뷰 목록 (페이징 + 검색) -->
+    <select id="selectAllForAdmin" resultMap="reviewResultMap">
+        SELECT r.v_idx,
+               r.s_idx,
+               r.u_idx,
+               r.v_parent_idx,
+               r.v_content,
+               r.v_rating,
+               IFNULL(u.u_name, '알 수 없음') AS u_name,
+               s.s_name,
+               r.v_created_at,
+               r.v_img,
+               (SELECT COUNT(*) FROM review_report rr WHERE rr.v_idx = r.v_idx) AS report_count
+        FROM review r
+        LEFT JOIN user  u ON r.u_idx = u.u_idx
+        LEFT JOIN space s ON r.s_idx = s.s_idx
+        WHERE r.v_parent_idx = 0
+        <if test="searchWord != null and searchWord != ''">
+            AND (u.u_name LIKE CONCAT('%', #{searchWord}, '%')
+              OR s.s_name LIKE CONCAT('%', #{searchWord}, '%')
+              OR r.v_content LIKE CONCAT('%', #{searchWord}, '%'))
+        </if>
+        ORDER BY r.v_idx DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 관리자 강제 삭제 (신고 누적 등) -->
+    <delete id="deleteByAdmin">
+        DELETE FROM review WHERE v_idx = #{revIdx}
+    </delete>
 
     <!-- 후기/답글 등록 -->
     <insert id="insert" parameterType="ReviewVO">

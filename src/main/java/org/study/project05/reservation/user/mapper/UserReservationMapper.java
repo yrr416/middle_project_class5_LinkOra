@@ -2,7 +2,7 @@ package org.study.project05.reservation.user.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.study.project05.reservation.user.vo.ReservationVO;
+import org.study.project05.reservation.user.vo.UserReservationVO;
 
 import java.util.List;
 
@@ -10,12 +10,12 @@ import java.util.List;
 @Mapper
 public interface UserReservationMapper {
 
-    int checkDuplicate(ReservationVO vo);
-    void insert(ReservationVO vo);
-    List<ReservationVO> getSlotsByDate(@Param("spaceIdx") int spaceIdx, @Param("date") String date);
+    int checkDuplicate(UserReservationVO vo);
+    void insert(UserReservationVO vo);
+    List<UserReservationVO> getSlotsByDate(@Param("spaceIdx") int spaceIdx, @Param("date") String date);
 
     /** 내 예약 목록 (공간명·지점명 JOIN) */
-    List<ReservationVO> selectByUser(int userIdx);
+    List<UserReservationVO> selectByUser(int userIdx);
 
     /** 예약 취소 (본인 예약만 — userIdx 검증 포함) */
     void cancel(@Param("resIdx") int resIdx, @Param("userIdx") int userIdx);
@@ -27,7 +27,7 @@ public interface UserReservationMapper {
      * 결제 승인 시 사용 — 행 락(SELECT FOR UPDATE)을 걸고 예약 조회
      * 스케줄러의 자동 취소와 동시에 실행될 때 충돌을 방지함
      */
-    ReservationVO selectByIdForUpdate(int rIdx);
+    UserReservationVO selectByIdForUpdate(int rIdx);
 
     /** 예약 상태 변경 (PENDING → CONFIRMED / CANCELLED) */
     void updateStatus(@Param("rIdx") int rIdx, @Param("status") String status);
