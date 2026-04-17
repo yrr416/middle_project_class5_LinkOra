@@ -40,7 +40,7 @@ public class ChatServiceImpl implements ChatService {
         if ("[OPEN_CHAT]".equals(userMessage)) {
             String welcomeMenu = "[[WELCOME_MENU:공간 추천 및 안내|🏢 공간 추천 및 안내|🏢, 예약 안내|📅 예약 안내|📅, 자주 묻는 질문|❓ 자주 묻는 질문|❓]]";
             String welcomeMsg = "안녕하세요! 공유 오피스의 친절한 안내원 오피(Offy)입니다. 무엇을 도와드릴까요? " + welcomeMenu;
-            
+
             if (currentPage.contains("reservation")) {
                 welcomeMsg = "예약을 고민 중이신가요? 저 오피가 날짜나 인원수에 맞는 최적의 공간을 추천해 드릴게요! 📅 " + welcomeMenu;
             } else if (currentPage.contains("list") || currentPage.contains("search")) {
@@ -77,33 +77,33 @@ public class ChatServiceImpl implements ChatService {
 
         systemMsg.put("content",
                 "너는 공유 오피스의 인공지능 예약 에이전트 '오피(Offy)'야. 아래 [기능별 준수 지침]을 최우선으로 따라줘:\n" +
-                "[강력 준수 지침 - 예약 및 취소]\n" +
-                "1. **회원 전용 기능**: 예약(`COMMIT_BOOKING`) 및 취소(`CANCEL_BOOKING`)는 로그인한 회원만 가능해. 만약 사용자 ID가 0(Guest)이라면 \"회원 전용 기능입니다. 로그인 후 이용해 주세요\"라고 안내하고 로그인을 유도해.\n" +
-                "2. **실시간 정보 동기화 (Smart Prefill)**: 대화 도중 날짜, 시간, 인원수가 언급되면 즉시 `[[PREFILL:yyyy-MM-dd|시작|종료]]` 태그를 답변 끝에 포함해. 이건 비회원에게도 보여줘.\n" +
-                "3. **명령 실행 필수 (중요)**: 예약을 최종 확정할 때는 `[[COMMIT_BOOKING:공간ID|시작T시각|종료T시각|인원]]`를, 취소할 때는 `[[CANCEL_BOOKING:예약ID]]` 태그를 답변에 **반드시** 포함해야 시스템에 반영돼. 태그 없이 말로만 성공했다고 하지 마.\n" +
-                "4. **취소 권한 관련 (필독)**: 사용자가 자신의 예약을 취소해달라고 하면, 해당 예약의 상태가 **'대기중(신청 완료)'** 또는 **'확정됨(이용 가능)'**인 경우 아무런 제약 없이 즉시 `[[CANCEL_BOOKING:예약ID]]` 태그를 생성하여 취소를 진행해줘.\n" +
-                "5. **확정 유도**: 텍스트 확정보다는 카드 UI의 **'바로예약' -> '공간 예약하기'** 순서로 유도해.\n" +
-                "\n[새로운 추천 시나리오 - 공간 추천]\n" +
-                "1. **위치 기반 추천**: 사용자가 '공간 추천'을 요청하면 [공간 정보 컨텍스트]에서 **가장 상단에 있는(가까운) 3개의 공간**을 `[[ACTIONS:공간ID|공간명|지점명|이미지|시설요약|가격|공간타입|지점ID]]` 태그로 보여줘. '지점ID'는 컨텍스트의 BrnID 값을 사용해.\n" +
-                "2. **후속 대화 유도**: 추천 카드를 보여준 직후에는 반드시 \"몇 분이서 이용하시나요?\", \"주차나 24시간 이용 등 특별히 필요한 시설이 있으신가요?\"라고 질문하여 필터링을 구체화해.\n" +
-                "3. **정밀 추천**: 사용자가 인원이나 시설 조건을 말하면 해당 조건에 맞는 공간을 다시 검색하여 보여줘.\n" +
-                "\n[일반 운영 지침]\n" +
-                "1. **환영 메뉴 및 중복 금지**: 대화 이력에 봇의 메시지가 이미 존재한다면 대화 도중 `[[WELCOME_MENU:...]]`를 다시 사용하지 마.\n" +
-                "2. **예약 안내 (통합 관리 메뉴)**: 사용자가 '예약 안내'를 요청하면 즉시 다음 서브메뉴 카드를 보여줘:\n" +
-                "   - `[[WELCOME_MENU:예약하기|신규 예약하기|📅, 예약확인|예약 현황 확인|📝, 예약취소|진행 중인 예약 취소|❌]]`\n" +
-                "3. **말투**: 전문적이고 친절한 한국어. 마크다운(`*`, `-`, `#`) 사용 금지.\n" +
-                "\n[실시간 가용성 확인 지침]\n" +
-                "1. 사용자가 특정 공간의 '예약 가능 여부', '남은 자리', '가용성' 등을 물어보면 즉시 `[[CHECK_AVAILABILITY:공간ID|yyyy-MM-dd]]` 태그를 답변에 포함해.\n" +
-                "2. 이 태그를 통해 시스템이 해당 날짜의 시간대별 잔여 좌석표를 자동으로 생성하여 사용자에게 완벽한 정보를 제공할 수 있어.\n" +
-                "\n[공간 정보 컨텍스트]\n" +
-                reservationContext + "\n" +
-                "[현재 사용자 상태]\n" +
-                (chatVO.getUserIdx() == 0L ? "현재 비로그인(Guest) 상태입니다. 예약 시 로그인이 필요함을 안내하세요." : "로그인된 회원(ID:" + chatVO.getUserIdx() + ")입니다.") + "\n" +
-                "[사용자 예약 현황]\n" +
-                getUserReservationsContext(chatVO.getUserIdx()) + "\n" +
-                "환불 규정: 3일 전 100%, 1일 전 50%.\n" +
-                "[중요 안내 지침]\n" +
-                "- 위 예약 현황이 비어 있다면 사용자에게 '현재 진행 중인 예약이 없다'고만 답변하고, 불필요하게 날짜나 시간을 다시 묻지 마세요.");
+                        "[강력 준수 지침 - 예약 및 취소]\n" +
+                        "1. **회원 전용 기능**: 예약(`COMMIT_BOOKING`) 및 취소(`CANCEL_BOOKING`)는 로그인한 회원만 가능해. 만약 사용자 ID가 0(Guest)이라면 \"회원 전용 기능입니다. 로그인 후 이용해 주세요\"라고 안내하고 로그인을 유도해.\n" +
+                        "2. **실시간 정보 동기화 (Smart Prefill)**: 대화 도중 날짜, 시간, 인원수가 언급되면 즉시 `[[PREFILL:yyyy-MM-dd|시작|종료]]` 태그를 답변 끝에 포함해. 이건 비회원에게도 보여줘.\n" +
+                        "3. **명령 실행 필수 (중요)**: 예약을 최종 확정할 때는 `[[COMMIT_BOOKING:공간ID|시작T시각|종료T시각|인원]]`를, 취소할 때는 `[[CANCEL_BOOKING:예약ID]]` 태그를 답변에 **반드시** 포함해야 시스템에 반영돼. 태그 없이 말로만 성공했다고 하지 마.\n" +
+                        "4. **취소 권한 관련 (필독)**: 사용자가 자신의 예약을 취소해달라고 하면, 해당 예약의 상태가 **'대기중(신청 완료)'** 또는 **'확정됨(이용 가능)'**인 경우 아무런 제약 없이 즉시 `[[CANCEL_BOOKING:예약ID]]` 태그를 생성하여 취소를 진행해줘.\n" +
+                        "5. **확정 유도**: 텍스트 확정보다는 카드 UI의 **'바로예약' -> '공간 예약하기'** 순서로 유도해.\n" +
+                        "\n[새로운 추천 시나리오 - 공간 추천]\n" +
+                        "1. **위치 기반 추천**: 사용자가 '공간 추천'을 요청하면 [공간 정보 컨텍스트]에서 **가장 상단에 있는(가까운) 3개의 공간**을 `[[ACTIONS:공간ID|공간명|지점명|이미지|시설요약|가격|공간타입|지점ID]]` 태그로 보여줘. '지점ID'는 컨텍스트의 BrnID 값을 사용해.\n" +
+                        "2. **후속 대화 유도**: 추천 카드를 보여준 직후에는 반드시 \"몇 분이서 이용하시나요?\", \"주차나 24시간 이용 등 특별히 필요한 시설이 있으신가요?\"라고 질문하여 필터링을 구체화해.\n" +
+                        "3. **정밀 추천**: 사용자가 인원이나 시설 조건을 말하면 해당 조건에 맞는 공간을 다시 검색하여 보여줘.\n" +
+                        "\n[일반 운영 지침]\n" +
+                        "1. **환영 메뉴 및 중복 금지**: 대화 이력에 봇의 메시지가 이미 존재한다면 대화 도중 `[[WELCOME_MENU:...]]`를 다시 사용하지 마.\n" +
+                        "2. **예약 안내 (통합 관리 메뉴)**: 사용자가 '예약 안내'를 요청하면 즉시 다음 서브메뉴 카드를 보여줘:\n" +
+                        "   - `[[WELCOME_MENU:예약하기|신규 예약하기|📅, 예약확인|예약 현황 확인|📝, 예약취소|진행 중인 예약 취소|❌]]`\n" +
+                        "3. **말투**: 전문적이고 친절한 한국어. 마크다운(`*`, `-`, `#`) 사용 금지.\n" +
+                        "\n[실시간 가용성 확인 지침]\n" +
+                        "1. 사용자가 특정 공간의 '예약 가능 여부', '남은 자리', '가용성' 등을 물어보면 즉시 `[[CHECK_AVAILABILITY:공간ID|yyyy-MM-dd]]` 태그를 답변에 포함해.\n" +
+                        "2. 이 태그를 통해 시스템이 해당 날짜의 시간대별 잔여 좌석표를 자동으로 생성하여 사용자에게 완벽한 정보를 제공할 수 있어.\n" +
+                        "\n[공간 정보 컨텍스트]\n" +
+                        reservationContext + "\n" +
+                        "[현재 사용자 상태]\n" +
+                        (chatVO.getUserIdx() == 0L ? "현재 비로그인(Guest) 상태입니다. 예약 시 로그인이 필요함을 안내하세요." : "로그인된 회원(ID:" + chatVO.getUserIdx() + ")입니다.") + "\n" +
+                        "[사용자 예약 현황]\n" +
+                        getUserReservationsContext(chatVO.getUserIdx()) + "\n" +
+                        "환불 규정: 3일 전 100%, 1일 전 50%.\n" +
+                        "[중요 안내 지침]\n" +
+                        "- 위 예약 현황이 비어 있다면 사용자에게 '현재 진행 중인 예약이 없다'고만 답변하고, 불필요하게 날짜나 시간을 다시 묻지 마세요.");
 
         messages.add(systemMsg);
 
@@ -128,11 +128,11 @@ public class ChatServiceImpl implements ChatService {
 
         // 현재 사용자 메시지 추가
         messages.add(createMsg("user", userMessage));
-        
+
         // 예약 결과가 있다면 시스템 피드백으로 추가 (AI가 답변 시 참고하도록)
         if (executionResult != null) {
-            messages.add(createMsg("developer", "[시스템 메시지] 예약 처리 결과: " + executionResult + 
-                "\n위의 정보를 바탕으로 사용자에게 예약 확정 안내를 해주세요. 예약 번호와 가격을 반드시 명시하세요."));
+            messages.add(createMsg("developer", "[시스템 메시지] 예약 처리 결과: " + executionResult +
+                    "\n위의 정보를 바탕으로 사용자에게 예약 확정 안내를 해주세요. 예약 번호와 가격을 반드시 명시하세요."));
         }
         String botResponse;
         try {
@@ -149,13 +149,13 @@ public class ChatServiceImpl implements ChatService {
                 determinedIntent = "BOOKING_COMMIT";
             } else if (rawUserMsg.contains("[[CANCEL_BOOKING:") || rawResponse.contains("[[CANCEL_BOOKING:")) {
                 determinedIntent = "BOOKING_CANCEL";
-            } 
+            }
             // 2. 예약 프로세스 진입 및 가용성 확인
             else if (rawResponse.contains("[[PREFILL:")) {
                 determinedIntent = "BOOKING_PREFILL";
             } else if (rawResponse.contains("[[CHECK_AVAILABILITY:")) {
                 determinedIntent = "AVAILABILITY_CHECK";
-            } 
+            }
             // 3. 공간 추천 및 FAQ 안내
             else if (rawResponse.contains("[[ACTIONS:")) {
                 determinedIntent = "RECOMMEND_SPACE";
@@ -253,12 +253,12 @@ public class ChatServiceImpl implements ChatService {
             int startIdx = botResponse.indexOf("[[COMMIT_BOOKING:");
             int endIdx = botResponse.indexOf("]]", startIdx);
             String tag = botResponse.substring(startIdx, endIdx + 2);
-            
+
             // [정책 추가] 예약은 회원만 가능함
             if (userIdx == null || userIdx <= 0L) {
                 return botResponse.replace(tag, "\n\n⚠️ 예약은 회원 서비스입니다. 로그인 후 이용해 주시면 즉시 예약을 도와드릴게요! 😊");
             }
-            
+
             String content = tag.replace("[[COMMIT_BOOKING:", "").replace("]]", "");
             String[] parts = content.split("\\|");
 
@@ -304,7 +304,7 @@ public class ChatServiceImpl implements ChatService {
             org.study.project05.reservation.user.vo.UserReservationVO vo = new org.study.project05.reservation.user.vo.UserReservationVO();
             vo.setResIdx(resIdx);
             vo.setUserIdx(userIdx.intValue());
-            
+
             reservationService.cancelReservation(resIdx, userIdx.intValue());
 
             String successMsg = "\n\n✔️ 예약이 취소되었습니다. (예약번호: #" + resIdx + ")\n환불 규정에 따라 처리가 진행됩니다.";
@@ -355,13 +355,12 @@ public class ChatServiceImpl implements ChatService {
     private String getReservationContext(Double lat, Double lng) {
         try {
             String today = java.time.LocalDate.now().toString();
-            
+
             // 위치 정보가 있으면 필터 검색(거리순 상위 3개), 없으면 전체 목록 사용
             List<org.study.project05.branch.vo.BranchVO> branches;
             if (lat != null && lng != null) {
-                // 키워드 없이 위치 정보만으로 검색 (총 14개 파라미터 전달)
-                // keyword, region, capacity, parking, hours24, pet, wifi, coffee, printer, locker, lat, lng, skip, size
-                branches = branchMapper.searchWithFilters(null, null, null, null, null, null, null, null, null, null, lat, lng, 0, 3);
+                // 파라미터 개수를 15개로 수정함 (type 자리에 null 추가)
+                branches = branchMapper.searchWithFilters(null, null, null, null, null, null, null, null, null, null, null, lat, lng, 0, 3);
             } else {
                 branches = branchMapper.getAllBranches();
             }
@@ -370,7 +369,7 @@ public class ChatServiceImpl implements ChatService {
             for (org.study.project05.branch.vo.BranchVO b : branches) {
                 String distInfo = (b.getDistance() > 0) ? String.format("(%.1fkm 거리) ", b.getDistance()) : "";
                 sb.append("- ").append(b.getBrnName()).append(distInfo).append(":\n");
-                
+
                 List<org.study.project05.branch.vo.BranchSpaceVO> spaces = spaceMapper.selectByBranch(b.getBrnIdx());
                 for (org.study.project05.branch.vo.BranchSpaceVO s : spaces) {
                     // 시설 정보 가져오기
@@ -408,11 +407,11 @@ public class ChatServiceImpl implements ChatService {
         if (Integer.valueOf(1).equals(f.getFacPet())) fs.append("펫동반,");
         if (Integer.valueOf(1).equals(f.getFacCafe())) fs.append("카페,");
         if (Integer.valueOf(1).equals(f.getFacLounge())) fs.append("라운지,");
-        
+
         // 추가 시설 필터
         if (Integer.valueOf(1).equals(f.getFacDisplay())) fs.append("모니터,");
         if (Integer.valueOf(1).equals(f.getFacStorage())) fs.append("사물함,");
-        
+
         if (fs.length() > 0) fs.setLength(fs.length() - 1);
         return fs.toString();
     }
@@ -420,19 +419,19 @@ public class ChatServiceImpl implements ChatService {
 
     private String getUserReservationsContext(Long userIdx) {
         if (userIdx == null || userIdx <= 0L) return "가입 후 첫 예약을 진행해 보세요!"; // 게스트인 경우 내역 조회 스킵
-        
+
         try {
             List<org.study.project05.reservation.user.vo.UserReservationVO> list = reservationService.getMyReservations(userIdx.intValue());
             StringBuilder sb = new StringBuilder();
             java.time.LocalDateTime now = java.time.LocalDateTime.now();
-            
+
             // 다양한 날짜 형식을 지원하기 위한 포매터 (공백 및 T 대응)
             java.time.format.DateTimeFormatter fmt = new java.time.format.DateTimeFormatterBuilder()
-                .append(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
-                .optionalStart().appendLiteral(' ').optionalEnd()
-                .optionalStart().appendLiteral('T').optionalEnd()
-                .append(java.time.format.DateTimeFormatter.ISO_LOCAL_TIME)
-                .toFormatter();
+                    .append(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+                    .optionalStart().appendLiteral(' ').optionalEnd()
+                    .optionalStart().appendLiteral('T').optionalEnd()
+                    .append(java.time.format.DateTimeFormatter.ISO_LOCAL_TIME)
+                    .toFormatter();
 
             boolean hasActive = false;
             for (org.study.project05.reservation.user.vo.UserReservationVO r : list) {
@@ -456,18 +455,18 @@ public class ChatServiceImpl implements ChatService {
                         hasActive = true;
                     }
 
-                    String statusKor = ("PENDING".equalsIgnoreCase(r.getResStatus())) ? "대기중(신청 완료)" : 
-                                       ("CONFIRMED".equalsIgnoreCase(r.getResStatus())) ? "확정됨(이용 가능)" : "취소됨";
-                    
+                    String statusKor = ("PENDING".equalsIgnoreCase(r.getResStatus())) ? "대기중(신청 완료)" :
+                            ("CONFIRMED".equalsIgnoreCase(r.getResStatus())) ? "확정됨(이용 가능)" : "취소됨";
+
                     sb.append("- #").append(r.getResIdx())
-                      .append(": ").append(r.getSpaceName())
-                      .append(" (").append(startTime.format(java.time.format.DateTimeFormatter.ofPattern("MM.dd HH:mm")))
-                      .append("~").append(endTime.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")))
-                      .append(")")
-                      .append(", 상태: ").append(statusKor).append("\n");
+                            .append(": ").append(r.getSpaceName())
+                            .append(" (").append(startTime.format(java.time.format.DateTimeFormatter.ofPattern("MM.dd HH:mm")))
+                            .append("~").append(endTime.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")))
+                            .append(")")
+                            .append(", 상태: ").append(statusKor).append("\n");
                 } catch (Exception e) {
                     log.warn("Reservation date parsing failed for ID #{}: {}", r.getResIdx(), e.getMessage());
-                    continue; 
+                    continue;
                 }
             }
             return hasActive ? sb.toString() : "현재 진행 중인 예약 내역이 없습니다.";

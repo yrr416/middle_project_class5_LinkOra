@@ -20,12 +20,15 @@ public class BranchServiceImpl implements BranchService {
     @Override
     public List<BranchVO> searchWithFilters(
             String keyword, String region, Integer capacity,
+            // [수정] 인터페이스 약속에 맞춰 type 파라미터 추가
+            String type,
             Integer facParking, Integer facHours24, Integer facPet,
             Integer facWifi, Integer facCoffee, Integer facPrinter, Integer facLocker,
             Double lat, Double lng, Integer skip, Integer size
     ) {
+        // [작동] 매퍼(DB)로 type 값을 포함해서 15개 파라미터를 전달함
         return branchMapper.searchWithFilters(
-                keyword, region, capacity, facParking, facHours24, facPet,
+                keyword, region, capacity, type, facParking, facHours24, facPet,
                 facWifi, facCoffee, facPrinter, facLocker, lat, lng, skip, size
         );
     }
@@ -34,13 +37,15 @@ public class BranchServiceImpl implements BranchService {
     @Override
     public int getCountWithFilters(
             String keyword, String region, Integer capacity,
+            // [수정] 개수 세는 기능에서도 type 파라미터 추가
+            String type,
             Integer facParking, Integer facHours24, Integer facPet,
             Integer facWifi, Integer facCoffee, Integer facPrinter, Integer facLocker,
             Double lat, Double lng
     ) {
-        // 이제 매퍼의 getCountWithFilters를 부르면서 lat, lng도 같이 던져줌!
+        // [작동] 매퍼의 getCountWithFilters를 부르면서 type도 같이 던져줌!
         return branchMapper.getCountWithFilters(
-                keyword, region, capacity, facParking, facHours24, facPet,
+                keyword, region, capacity, type, facParking, facHours24, facPet,
                 facWifi, facCoffee, facPrinter, facLocker, lat, lng
         );
     }

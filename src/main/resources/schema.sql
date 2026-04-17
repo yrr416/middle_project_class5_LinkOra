@@ -10,3 +10,11 @@ CREATE TABLE IF NOT EXISTS `user` (
     u_active INT DEFAULT 0,
     u_profile TEXT NULL
 );
+
+-- 특정 테이블 전체 조회
+SELECT * FROM team5_db.partner;
+
+-- 어떤 테이블들이 있는지 목록 먼저 확인
+SHOW TABLES FROM team5_db;
+-- 바이너리 로그 활성화 여부 확인
+SHOW VARIABLES LIKE 'log_bin';

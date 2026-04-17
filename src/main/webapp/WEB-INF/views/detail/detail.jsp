@@ -1386,62 +1386,67 @@
   </script>
 
   <script>
-    // 최근 본 지점 데이터를 브라우저 임시 저장소(로컬 스토리지)에 보관하는 기능
+    // 첫 번째 스크립트에서도 사진이 없을 때 첫 번째 사진을 가져오도록 동일하게 수정했어!
     (function() {
-      // 1. 기존에 저장된 목록을 가져옵니다. 저장된 내용이 없다면 빈 배열로 시작합니다.
       let recent = JSON.parse(localStorage.getItem('recentBranches')) || [];
 
-      // 2. 화면에 표시된 현재 지점의 정보를 객체 형태로 만듭니다.
       let currentBranch = {
         brnIdx: '${branch.brnIdx}',
         brnName: '${branch.brnName}',
-        mainImgUrl: '${branch.mainImgUrl}',
-        brnAddress: '${branch.brnAddress}'
+        mainImgUrl: '${branch.mainImgUrl != null ? branch.mainImgUrl : (not empty branch.images ? branch.images[0].biUrl : "")}',
+        brnAddress: '${branch.brnAddress}',
+        // [추가] 최근 본 지점에도 아이콘이 뜨도록 시설 정보도 함께 저장합니다
+        facWifi: '${branch.facWifi != null ? branch.facWifi : (not empty branch.spaces ? branch.spaces[0].facilities.facWifi : "0")}',
+        facParking: '${branch.facParking != null ? branch.facParking : (not empty branch.spaces ? branch.spaces[0].facilities.facParking : "0")}',
+        facCoffee: '${branch.facCoffee != null ? branch.facCoffee : (not empty branch.spaces ? branch.spaces[0].facilities.facCoffee : "0")}',
+        facHours24: '${branch.facHours24 != null ? branch.facHours24 : (not empty branch.spaces ? branch.spaces[0].facilities.facHours24 : "0")}',
+        facPet: '${branch.facPet != null ? branch.facPet : (not empty branch.spaces ? branch.spaces[0].facilities.facPet : "0")}'
       };
 
-      // 데이터가 비어있다면 오류를 방지하기 위해 저장을 중단합니다.
       if(!currentBranch.brnIdx) return;
 
-      // 3. 중복 저장 방지: 기존 목록에 동일한 지점이 존재한다면 먼저 지워줍니다.
       recent = recent.filter(b => b.brnIdx !== currentBranch.brnIdx);
 
-      // 4. 방금 조회한 지점을 목록의 맨 앞(첫 번째)에 추가합니다.
       recent.unshift(currentBranch);
 
-      // 5. 저장 목록은 최대 4개까지만 유지하며, 초과할 경우 맨 끝 데이터를 삭제합니다.
-      if(recent.length > 4) {
+      if(recent.length > 5) {
         recent.pop();
       }
 
-      // 6. 업데이트된 목록을 다시 브라우저 저장소에 덮어씁니다.
       localStorage.setItem('recentBranches', JSON.stringify(recent));
     })();
   </script>
 
-<script>
-  <%-- 최근 본 지점 데이터를 브라우저 로컬 스토리지에 저장 (최대 4개 유지) --%>
-  (function() {
-    let recent = JSON.parse(localStorage.getItem('recentBranches')) || [];
+  <script>
+    <%-- 두 번째 중복 스크립트에도 똑같이 사진을 가져오는 코드를 넣어줬어! --%>
+    (function() {
+      let recent = JSON.parse(localStorage.getItem('recentBranches')) || [];
 
-    let currentBranch = {
-      brnIdx: '${branch.brnIdx}',
-      brnName: '${branch.brnName}',
-      mainImgUrl: '${branch.mainImgUrl}',
-      brnAddress: '${branch.brnAddress}'
-    };
+      let currentBranch = {
+        brnIdx: '${branch.brnIdx}',
+        brnName: '${branch.brnName}',
+        mainImgUrl: '${branch.mainImgUrl != null ? branch.mainImgUrl : (not empty branch.images ? branch.images[0].biUrl : "")}',
+        brnAddress: '${branch.brnAddress}',
+        // [추가] 두 번째 스크립트에도 똑같이 시설 정보를 추가해서 저장합니다
+        facWifi: '${branch.facWifi != null ? branch.facWifi : (not empty branch.spaces ? branch.spaces[0].facilities.facWifi : "0")}',
+        facParking: '${branch.facParking != null ? branch.facParking : (not empty branch.spaces ? branch.spaces[0].facilities.facParking : "0")}',
+        facCoffee: '${branch.facCoffee != null ? branch.facCoffee : (not empty branch.spaces ? branch.spaces[0].facilities.facCoffee : "0")}',
+        facHours24: '${branch.facHours24 != null ? branch.facHours24 : (not empty branch.spaces ? branch.spaces[0].facilities.facHours24 : "0")}',
+        facPet: '${branch.facPet != null ? branch.facPet : (not empty branch.spaces ? branch.spaces[0].facilities.facPet : "0")}'
+      };
 
-    if (!currentBranch.brnIdx) return;
+      if (!currentBranch.brnIdx) return;
 
-    // 중복 제거 후 맨 앞에 추가
-    recent = recent.filter(b => b.brnIdx !== currentBranch.brnIdx);
-    recent.unshift(currentBranch);
+      // 중복 제거 후 맨 앞에 추가
+      recent = recent.filter(b => b.brnIdx !== currentBranch.brnIdx);
+      recent.unshift(currentBranch);
 
-    // 최대 4개 유지
-    if (recent.length > 4) recent.pop();
+      // 최대 4개 유지
+      if (recent.length > 5) recent.pop();
 
-    localStorage.setItem('recentBranches', JSON.stringify(recent));
-  })();
-</script>
+      localStorage.setItem('recentBranches', JSON.stringify(recent));
+    })();
+  </script>
 
 </main>
 

@@ -292,7 +292,7 @@
                             <a href="${pageContext.request.contextPath}/detail/detail?brnIdx=${branch.brnIdx}" class="btn-reservation"
                                onmouseover="this.style.background='#1e3333'"
                                onmouseout="this.style.background='#2F4F4F'">
-                                 바로 예약하기
+                                 오피스 보러가기
                             </a>
                         </div>
                     </div>
