@@ -86,7 +86,8 @@
       "Bash(git -C D:/dev/springmvc/test/project05 show origin/dev:src/main/java/org/study/project05/login/config/CustomUserDetails.java)",
       "Bash(git -C \"D:/dev/springmvc/test/project05\" ls-tree origin/dev src/main/java/org/study/project05/login/config/)",
       "Bash(git:*)",
-      "Bash(mvn clean:*)"
+      "Bash(mvn clean:*)",
+      "Bash(xargs cat:*)"
     ]
   }
 }

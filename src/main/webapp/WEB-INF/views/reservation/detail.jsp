@@ -7,10 +7,10 @@
 <c:set var="s" value="${rvo.resStatus}"/>
 <c:set var="isPending"   value="${s == 'PENDING'}"/>
 <c:set var="isConfirmed" value="${s == 'CONFIRMED'}"/>
-<c:set var="isUsing"     value="${s == 'USING'}"/>
-<c:set var="isCompleted" value="${s == 'COMPLETED'}"/>
+<c:set var="isUsing"     value="${s == 'USE'}"/>
+<c:set var="isCompleted" value="${s == 'FINISH'}"/>
 <c:set var="isCancelled" value="${s == 'CANCELLED'}"/>
-<c:set var="canAction"   value="${s == 'PENDING' or s == 'CONFIRMED' or s == 'USING'}"/>
+<c:set var="canAction"   value="${s == 'PENDING' or s == 'CONFIRMED' or s == 'USE'}"/>
 
 <%-- 고객 등급 --%>
 <c:choose>
@@ -64,11 +64,11 @@
             <span class="nav-link text-white-50 small px-3 pt-3 pb-1">관리자 메뉴</span>
             <a class="nav-link" href="${ctx}/admin/dashboard"><i class="bi bi-speedometer2"></i>대시보드</a>
             <a class="nav-link" href="${ctx}/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
+            <a class="nav-link active" href="${ctx}/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
             <a class="nav-link" href="${ctx}/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
             <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
             <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
             <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
-            <hr class="border-secondary mx-3">
             <hr class="border-secondary mx-3">
             <a class="nav-link" href="${ctx}/" target="_blank"><i class="bi bi-house"></i>홈페이지 이동</a>
             <a class="nav-link" href="${ctx}/admin/settings"><i class="bi bi-gear"></i>설정</a>
@@ -121,7 +121,7 @@
                                         <c:when test="${isPending}">  <span class="badge badge-pending   px-2 py-1 rounded-pill">대기중</span></c:when>
                                         <c:when test="${isConfirmed}"><span class="badge badge-confirmed px-2 py-1 rounded-pill">확정</span></c:when>
                                         <c:when test="${isUsing}">    <span class="badge badge-using     px-2 py-1 rounded-pill">이용중</span></c:when>
-                                        <c:when test="${isCompleted}"><span class="badge badge-completed px-2 py-1 rounded-pill">완료</span></c:when>
+                                        <c:when test="${isCompleted}"><span class="badge badge-completed px-2 py-1 rounded-pill">종료</span></c:when>
                                         <c:when test="${isCancelled}"><span class="badge badge-cancelled px-2 py-1 rounded-pill">취소</span></c:when>
                                     </c:choose>
                                 </span>
@@ -366,8 +366,8 @@
                                                     <c:choose>
                                                         <c:when test="${r.resStatus == 'PENDING'}">  <span class="badge badge-pending   rounded-pill small">대기</span></c:when>
                                                         <c:when test="${r.resStatus == 'CONFIRMED'}"><span class="badge badge-confirmed rounded-pill small">확정</span></c:when>
-                                                        <c:when test="${r.resStatus == 'USING'}">    <span class="badge badge-using     rounded-pill small">이용중</span></c:when>
-                                                        <c:when test="${r.resStatus == 'COMPLETED'}"><span class="badge badge-completed rounded-pill small">완료</span></c:when>
+                                                        <c:when test="${r.resStatus == 'USE'}">    <span class="badge badge-using     rounded-pill small">이용중</span></c:when>
+                                                        <c:when test="${r.resStatus == 'FINISH'}"><span class="badge badge-completed rounded-pill small">종료</span></c:when>
                                                         <c:when test="${r.resStatus == 'CANCELLED'}"><span class="badge badge-cancelled rounded-pill small">취소</span></c:when>
                                                     </c:choose>
                                                 </td>
@@ -394,6 +394,7 @@
                     <%-- 예약 확정 (PENDING) --%>
                     <c:if test="${isPending}">
                         <form method="post" action="${ctx}/admin/reservation/confirm" class="mb-2">
+                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                             <input type="hidden" name="resIdx"     value="${rvo.resIdx}">
                             <input type="hidden" name="nowPage"    value="${nowPage}">
                             <input type="hidden" name="fromDetail" value="true">
@@ -412,6 +413,7 @@
                     <%-- 이용 완료 (CONFIRMED / USING) --%>
                     <c:if test="${isConfirmed or isUsing}">
                         <form method="post" action="${ctx}/admin/reservation/complete" class="mb-2">
+                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                             <input type="hidden" name="resIdx"     value="${rvo.resIdx}">
                             <input type="hidden" name="nowPage"    value="${nowPage}">
                             <input type="hidden" name="fromDetail" value="true">
@@ -438,6 +440,7 @@
                     <%-- 환불 처리 (CANCELLED) --%>
                     <c:if test="${isCancelled}">
                         <form method="post" action="${ctx}/admin/reservation/cancel" class="mb-2">
+                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                             <input type="hidden" name="resIdx"       value="${rvo.resIdx}">
                             <input type="hidden" name="cancelReason" value="${rvo.resContent}">
                             <input type="hidden" name="refundChecked" value="true">
@@ -486,6 +489,7 @@
             </div>
             <form method="post" action="${ctx}/admin/reservation/cancel">
                 <div class="modal-body">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                     <input type="hidden" name="resIdx"     value="${rvo.resIdx}">
                     <input type="hidden" name="nowPage"    value="${nowPage}">
                     <input type="hidden" name="fromDetail" value="true">
