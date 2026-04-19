@@ -25,6 +25,8 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/chat/**", "/api/wishlist/**")
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // 관리자 전용 경로 - ROLE_ADMIN만 접근 허용
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form

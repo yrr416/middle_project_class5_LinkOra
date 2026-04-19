@@ -83,11 +83,12 @@ public class PartnerWebController {
         if (WebAuthUtils.isAnonymous(authentication) || !WebAuthUtils.hasRole(authentication, "ROLE_PARTNER")) {
             return "redirect:/loginPage";
         }
-        if (!Objects.equals(newPassword, newPasswordConfirm)) {
-            return "redirect:/partner/mypage?pwdError=mismatch";
-        }
+        // null·길이 체크를 일치 여부보다 먼저 수행 (NPE 방지)
         if (newPassword == null || newPassword.length() < 8) {
             return "redirect:/partner/mypage?pwdError=weak";
+        }
+        if (!Objects.equals(newPassword, newPasswordConfirm)) {
+            return "redirect:/partner/mypage?pwdError=mismatch";
         }
         if (!PasswordPolicy.meetsComplexity(newPassword)) {
             return "redirect:/partner/mypage?pwdError=complex";

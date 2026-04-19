@@ -175,6 +175,9 @@
             <% if (adminUser) { %>
             <button class="login-btn" onclick="location.href='<%= mypageUrl %>'">관리자페이지</button>
             <a href="${pageContext.request.contextPath}/logout" class="btn-book">로그아웃</a>
+            <% } else if (partnerUser) { %>
+            <button class="login-btn" onclick="location.href='<%= mypageUrl %>'">마이페이지</button>
+            <a href="${pageContext.request.contextPath}/logoutNow" class="btn-book">로그아웃</a>
             <% } else { %>
             <a href="${pageContext.request.contextPath}/detail/list" class="btn-book">예약하기</a>
             <% if (loggedIn) { %>

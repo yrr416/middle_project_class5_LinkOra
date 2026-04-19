@@ -3,12 +3,14 @@
  */
 package org.study.project05.partner.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.study.project05.partner.mapper.PartnerMapper;
 import org.study.project05.partner.service.PartnerService;
 import org.study.project05.partner.vo.PartnerVO;
 
+@Slf4j
 @Service
 public class PartnerServiceImpl implements PartnerService {
     private final PartnerMapper partnerMapper;
@@ -84,18 +86,45 @@ public class PartnerServiceImpl implements PartnerService {
         if (partnerId == null || partnerId.isBlank()) {
             return PasswordChangeResult.partnerNotFound;
         }
+        // 1. 파트너 조회
+        PartnerVO partner;
         try {
-            PartnerVO partner = partnerMapper.findByPartnerId(partnerId);
-            if (partner == null || partner.getPassword() == null || partner.getPassword().isBlank()) {
-                return PasswordChangeResult.partnerNotFound;
-            }
+            partner = partnerMapper.findByPartnerId(partnerId);
+        } catch (Exception e) {
+            log.error("[changePassword] 파트너 조회 실패 - partnerId={}", partnerId, e);
+            return PasswordChangeResult.partnerNotFound;
+        }
+
+        if (partner == null || partner.getPassword() == null || partner.getPassword().isBlank()) {
+            log.warn("[changePassword] 파트너를 찾을 수 없음 - partnerId={}", partnerId);
+            return PasswordChangeResult.partnerNotFound;
+        }
+
+        // 2. 현재 비밀번호 검증
+        try {
             if (!passwordEncoder.matches(currentPassword, partner.getPassword())) {
                 return PasswordChangeResult.currentPasswordMismatch;
             }
+        } catch (Exception e) {
+            // 저장된 비밀번호 형식이 인코더와 맞지 않는 경우 (ex. 알 수 없는 prefix)
+            log.error("[changePassword] 비밀번호 검증 중 오류 - partnerId={}, storedPwdPrefix={}",
+                    partnerId,
+                    partner.getPassword().length() > 7 ? partner.getPassword().substring(0, 7) : "?",
+                    e);
+            return PasswordChangeResult.currentPasswordMismatch;
+        }
+
+        // 3. 새 비밀번호 암호화 후 DB 저장
+        try {
             String encoded = passwordEncoder.encode(newPassword);
             int updated = partnerMapper.updatePasswordByPartnerId(partnerId, encoded);
-            return updated > 0 ? PasswordChangeResult.SUCCESS : PasswordChangeResult.partnerNotFound;
+            if (updated <= 0) {
+                log.warn("[changePassword] 업데이트 실패 (0 rows) - partnerId={}", partnerId);
+                return PasswordChangeResult.partnerNotFound;
+            }
+            return PasswordChangeResult.SUCCESS;
         } catch (Exception e) {
+            log.error("[changePassword] DB 업데이트 실패 - partnerId={}", partnerId, e);
             return PasswordChangeResult.partnerNotFound;
         }
     }

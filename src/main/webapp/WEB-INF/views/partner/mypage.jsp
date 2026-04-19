@@ -60,10 +60,11 @@
         <nav class="nav flex-column mt-1">
             <span class="nav-link text-white-50 small px-3 pt-2 pb-1">파트너 메뉴</span>
             <a class="nav-link" href="${ctx}/partner/reservation/list"><i class="bi bi-calendar-check"></i>파트너 예약관리</a>
-            <a class="nav-link" href="${ctx}/partner/register/step1"><i class="bi bi-person-badge"></i>파트너 등록</a>
+            <a class="nav-link" href="${ctx}/partner/register/step1"><i class="bi bi-person-badge"></i>매물 등록</a>
             <hr class="border-secondary mx-3">
             <a class="nav-link" href="${ctx}/partner/mypage"><i class="bi bi-person-circle"></i>마이페이지</a>
             <a class="nav-link" href="${ctx}/" target="_blank"><i class="bi bi-house"></i>홈페이지 이동</a>
+            <a class="nav-link text-danger" href="${ctx}/logoutNow"><i class="bi bi-box-arrow-right"></i>로그아웃</a>
         </nav>
     </div>
 
@@ -74,9 +75,6 @@
                 <h5 class="mb-1 fw-bold"><i class="bi bi-person-circle me-2 text-primary"></i>사업자 마이페이지</h5>
                 <small class="text-muted">사업자 계정 정보를 확인하고 관리합니다.</small>
             </div>
-            <a class="partner-page-btn" href="${ctx}/partner/reservation/list">
-                <i class="bi bi-calendar-check"></i>파트너 페이지
-            </a>
         </div>
 
         <!-- 프로필 정보 -->

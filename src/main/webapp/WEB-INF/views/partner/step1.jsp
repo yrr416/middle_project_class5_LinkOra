@@ -43,6 +43,7 @@
         <p class="text-muted small mb-4">지점(오피스)의 기본 정보를 입력하세요.</p>
 
         <form method="post" action="${ctx}/partner/register/step1" id="step1Form">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
             <!-- 지점명 -->
             <div class="mb-3">
