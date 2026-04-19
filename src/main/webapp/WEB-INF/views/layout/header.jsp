@@ -7,8 +7,10 @@
 
 <%
     boolean loggedIn = request.getUserPrincipal() != null;
+    boolean adminUser = request.isUserInRole("ROLE_ADMIN");
     boolean partnerUser = request.isUserInRole("ROLE_PARTNER");
-    String mypageUrl = partnerUser ? (request.getContextPath() + "/partner/mypage")
+    String mypageUrl = adminUser ? (request.getContextPath() + "/admin/dashboard")
+            : partnerUser ? (request.getContextPath() + "/partner/mypage")
             : (request.getContextPath() + "/mypage");
 %>
 <!DOCTYPE html>
@@ -85,7 +87,7 @@
                 <i class="fa-solid fa-chevron-down acc-arrow"></i>
             </a>
             <ul class="accordion-content">
-                <li><a href="#">내 문의</a></li>
+                <li><a href="${pageContext.request.contextPath}/inquiry/mylist">내 문의</a></li>
                 <li><a href="#">관심지점</a></li>
             </ul>
         </li>
@@ -159,11 +161,16 @@
 
         <%-- 우측 버튼 --%>
         <div class="header-right">
+            <% if (adminUser) { %>
+            <button class="login-btn" onclick="location.href='<%= mypageUrl %>'">관리자페이지</button>
+            <a href="${pageContext.request.contextPath}/logout" class="btn-book">로그아웃</a>
+            <% } else { %>
             <a href="${pageContext.request.contextPath}/detail/list" class="btn-book">예약하기</a>
             <% if (loggedIn) { %>
             <button class="login-btn" onclick="location.href='<%= mypageUrl %>'">마이페이지</button>
             <% } else { %>
             <button class="login-btn" onclick="location.href='${pageContext.request.contextPath}/login'">LOGIN</button>
+            <% } %>
             <% } %>
         </div>
     </div>

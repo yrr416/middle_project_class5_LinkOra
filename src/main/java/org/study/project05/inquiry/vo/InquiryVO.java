@@ -19,14 +19,21 @@ import lombok.NoArgsConstructor;
 public class InquiryVO {
 
     private Integer inqIdx;       // i_idx
-    private int userIdx;        // u_idx (사용자 요청에 따라 int로 유지)
+    private int userIdx;          // u_idx
     private String inqCategory;   // i_category
     private String inqTitle;      // i_title
     private String inqContent;    // i_content
     private String inqFileUrl;    // i_file_url
-    private String inqStatus;     // i_status
+    private String inqStatus;     // i_status (PENDING / COMPLETE)
     private String inqAnswer;     // i_answer
     private String inqCreated;    // i_created
     private String inqAnswered;   // i_answered
-    private int inqActive;       // inq_active (1:활성, 0:삭제)
+    private int inqActive;        // 1:활성, 0:삭제
+
+    // 관리자 목록 조회 시 JOIN으로 가져오는 작성자 이름
+    private String userName;
+
+    // 관리자 목록 검색/필터 파라미터 (DB 컬럼 아님)
+    private String statusFilter;
+    private String searchWord;
 }

@@ -45,7 +45,7 @@
   /* 예약 바(64px)에 footer가 가려지지 않도록 padding-bottom을 늘림 */
   .main-footer { padding-bottom: 80px; }
   /* 챗봇 버튼을 예약 바 위로 올려서 겹치지 않게 함 */
-  .chatbot-floating { bottom: 80px; }
+  #chatbot-container { bottom: 95px !important; }
   #mapbtn { margin: 10px; }
 </style>
 
@@ -1383,6 +1383,36 @@
     }
   })();
 
+</script>
+
+<script>
+  <%-- 최근 본 지점 데이터를 브라우저 로컬 스토리지에 저장 (최대 4개 유지) --%>
+  (function() {
+    let recent = JSON.parse(localStorage.getItem('recentBranches')) || [];
+
+    let currentBranch = {
+      brnIdx: '${branch.brnIdx}',
+      brnName: '${branch.brnName}',
+      mainImgUrl: '${branch.mainImgUrl != null ? branch.mainImgUrl : (not empty branch.images ? branch.images[0].biUrl : "")}',
+      brnAddress: '${branch.brnAddress}',
+      facWifi:     '${branch.facWifi     != null ? branch.facWifi     : (not empty branch.spaces ? branch.spaces[0].facilities.facWifi     : "0")}',
+      facParking:  '${branch.facParking  != null ? branch.facParking  : (not empty branch.spaces ? branch.spaces[0].facilities.facParking  : "0")}',
+      facCoffee:   '${branch.facCoffee   != null ? branch.facCoffee   : (not empty branch.spaces ? branch.spaces[0].facilities.facCoffee   : "0")}',
+      facHours24:  '${branch.facHours24  != null ? branch.facHours24  : (not empty branch.spaces ? branch.spaces[0].facilities.facHours24  : "0")}',
+      facPet:      '${branch.facPet      != null ? branch.facPet      : (not empty branch.spaces ? branch.spaces[0].facilities.facPet      : "0")}'
+    };
+
+    if (!currentBranch.brnIdx) return;
+
+    // 중복 제거 후 맨 앞에 추가
+    recent = recent.filter(b => b.brnIdx !== currentBranch.brnIdx);
+    recent.unshift(currentBranch);
+
+    // 최대 4개 유지
+    if (recent.length > 4) recent.pop();
+
+    localStorage.setItem('recentBranches', JSON.stringify(recent));
+  })();
 </script>
 
 </main>

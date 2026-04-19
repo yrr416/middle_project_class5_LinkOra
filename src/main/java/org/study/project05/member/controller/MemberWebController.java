@@ -43,6 +43,8 @@ public class MemberWebController {
     public String myPage(
             Authentication authentication,
             HttpSession session,
+            HttpServletRequest request,
+            HttpServletResponse response,
             Model model,
             @RequestParam(value = "pwdError", required = false) String pwdError,
             @RequestParam(value = "pwdChanged", required = false) String pwdChanged,
@@ -54,6 +56,10 @@ public class MemberWebController {
         if (!WebAuthUtils.isAnonymous(authentication)) {
             UserProfileVO profile = userProfileService.getByUserId(authentication.getName());
             if (profile != null) {
+                if (Integer.valueOf(0).equals(profile.getActive())) {
+                    WebAuthUtils.performLogout(request, response, authentication);
+                    return "redirect:/loginPage?error=inactive";
+                }
                 String profileUserId = profile.getUserId();
                 boolean oauthLinked = profileUserId != null
                         && (profileUserId.startsWith("kakao_") || profileUserId.startsWith("naver_"));
@@ -170,9 +176,18 @@ public class MemberWebController {
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             return "redirect:/mypage?withdrawError=password";
         }
-        userProfileService.deleteByUserId(authentication.getName());
+        boolean deleted = userProfileService.deleteByUserId(authentication.getName());
+        if (!deleted) {
+            return "redirect:/mypage?withdrawError=failed";
+        }
         WebAuthUtils.performLogout(request, response, authentication);
         return "redirect:/loginPage?withdraw=success";
+    }
+
+    @GetMapping("/mypage/delete")
+    public String denyGetDelete() {
+        // 탈퇴는 POST 제출(모달 비밀번호 확인)로만 허용
+        return "redirect:/mypage?withdrawError=method";
     }
 
     private static void applyKakaoSessionToModel(Model model, HttpSession session) {

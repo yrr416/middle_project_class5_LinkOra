@@ -62,7 +62,7 @@ public interface UserProfileMapper {
 
     @Insert("""
             INSERT INTO `user` (u_id, u_name, u_pwd, u_email, u_addr, u_phone, u_created, u_active, u_profile)
-            VALUES (#{userId}, #{name}, #{password}, #{email}, #{address}, #{phone}, CURDATE(), 0, #{profilePath})
+            VALUES (#{userId}, #{name}, #{password}, #{email}, #{address}, #{phone}, CURDATE(), 1, #{profilePath})
             """)
     int insertUser(
             @Param("userId") String userId,
@@ -100,4 +100,7 @@ public interface UserProfileMapper {
 
     @Delete("DELETE FROM `user` WHERE u_id = #{userId}")
     int deleteByUserId(@Param("userId") String userId);
+
+    @Update("UPDATE `user` SET u_active = 0 WHERE u_id = #{userId}")
+    int deactivateByUserId(@Param("userId") String userId);
 }

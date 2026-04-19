@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05.partner.reservation.mapper.PartnerReservationMapper">
+
+    <!-- ══════════════════════════════════════════════════════════
+         getSummary - 오늘/이번달 예약 건수, 매출, 취소 건수
+         ══════════════════════════════════════════════════════════ -->
+    <select id="getSummary" resultType="map">
+        SELECT
+            (SELECT COUNT(*)
+             FROM reservation r
+             JOIN space s ON r.s_idx = s.s_idx
+             JOIN branch b ON s.b_idx = b.b_idx
+             WHERE b.p_idx = #{partnerIdx}
+               AND DATE(r.r_created) = CURDATE()
+            ) AS today_cnt,
+
+            (SELECT COUNT(*)
+             FROM reservation r
+             JOIN space s ON r.s_idx = s.s_idx
+             JOIN branch b ON s.b_idx = b.b_idx
+             WHERE b.p_idx = #{partnerIdx}
+               AND DATE_FORMAT(r.r_created, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')
+            ) AS month_cnt,
+
+            (SELECT IFNULL(SUM(r.r_total_price), 0)
+             FROM reservation r
+             JOIN space s ON r.s_idx = s.s_idx
+             JOIN branch b ON s.b_idx = b.b_idx
+             WHERE b.p_idx = #{partnerIdx}
+               AND DATE_FORMAT(r.r_created, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')
+               AND r.r_status != 'CANCELLED'
+            ) AS month_revenue,
+
+            (SELECT COUNT(*)
+             FROM reservation r
+             JOIN space s ON r.s_idx = s.s_idx
+             JOIN branch b ON s.b_idx = b.b_idx
+             WHERE b.p_idx = #{partnerIdx}
+               AND r.r_status = 'CANCELLED'
+               AND DATE_FORMAT(r.r_created, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')
+            ) AS cancel_cnt
+    </select>
+
+    <!-- ══════════════════════════════════════════════════════════
+         getCount - 목록 전체 건수 (페이징용)
+         params: partnerIdx, vo (PartnerReservationVO)
+         ══════════════════════════════════════════════════════════ -->
+    <select id="getCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM reservation r
+        JOIN space   s ON r.s_idx = s.s_idx
+        JOIN branch  b ON s.b_idx = b.b_idx
+        JOIN user    u ON r.u_idx = u.u_idx
+        WHERE b.p_idx = #{partnerIdx}
+        <if test="vo.startDate != null and vo.startDate != ''">
+            AND DATE(r.r_start_time) &gt;= #{vo.startDate}
+        </if>
+        <if test="vo.endDate != null and vo.endDate != ''">
+            AND DATE(r.r_start_time) &lt;= #{vo.endDate}
+        </if>
+        <if test="vo.statusFilter != null and vo.statusFilter != ''">
+            AND r.r_status = #{vo.statusFilter}
+        </if>
+        <if test="vo.spaceFilter != null and vo.spaceFilter != ''">
+            AND r.s_idx = #{vo.spaceFilter}
+        </if>
+        <if test="vo.searchWord != null and vo.searchWord != ''">
+            AND u.u_name LIKE CONCAT('%', #{vo.searchWord}, '%')
+        </if>
+    </select>
+
+    <!-- ══════════════════════════════════════════════════════════
+         getList - 예약 목록 (페이징)
+         params: partnerIdx, vo, offset, numPerPage
+         ══════════════════════════════════════════════════════════ -->
+    <select id="getList" parameterType="map" resultType="org.study.project05.partner.reservation.vo.PartnerReservationVO">
+        SELECT
+            r.r_idx  AS res_idx,
+            CONCAT('RES-', LPAD(r.r_idx, 6, '0')) AS res_code,
+            DATE_FORMAT(r.r_start_time, '%Y-%m-%d %H:%i') AS res_start_time,
+            DATE_FORMAT(r.r_end_time,   '%Y-%m-%d %H:%i') AS res_end_time,
+            r.r_headcount  AS res_headcount,
+            r.r_total_price AS res_total_price,
+            r.r_status     AS res_status,
+            DATE_FORMAT(r.r_created, '%Y-%m-%d %H:%i') AS res_created,
+            u.u_name  AS user_name,
+            u.u_phone AS user_phone,
+            s.s_idx  AS spc_idx,
+            s.s_name AS spc_name,
+            s.s_type AS spc_type,
+            b.b_idx  AS brn_idx,
+            b.b_name AS brn_name
+        FROM reservation r
+        JOIN space  s ON r.s_idx = s.s_idx
+        JOIN branch b ON s.b_idx = b.b_idx
+        JOIN user   u ON r.u_idx = u.u_idx
+        WHERE b.p_idx = #{partnerIdx}
+        <if test="vo.startDate != null and vo.startDate != ''">
+            AND DATE(r.r_start_time) &gt;= #{vo.startDate}
+        </if>
+        <if test="vo.endDate != null and vo.endDate != ''">
+            AND DATE(r.r_start_time) &lt;= #{vo.endDate}
+        </if>
+        <if test="vo.statusFilter != null and vo.statusFilter != ''">
+            AND r.r_status = #{vo.statusFilter}
+        </if>
+        <if test="vo.spaceFilter != null and vo.spaceFilter != ''">
+            AND r.s_idx = #{vo.spaceFilter}
+        </if>
+        <if test="vo.searchWord != null and vo.searchWord != ''">
+            AND u.u_name LIKE CONCAT('%', #{vo.searchWord}, '%')
+        </if>
+        ORDER BY r.r_created DESC
+        LIMIT #{numPerPage} OFFSET #{offset}
+    </select>
+
+    <!-- ══════════════════════════════════════════════════════════
+         getDetail - 예약 상세 (+ 리뷰 LEFT JOIN)
+         params: resIdx, partnerIdx
+         ══════════════════════════════════════════════════════════ -->
+    <select id="getDetail" parameterType="map" resultType="org.study.project05.partner.reservation.vo.PartnerReservationVO">
+        SELECT
+            r.r_idx   AS res_idx,
+            CONCAT('RES-', LPAD(r.r_idx, 6, '0')) AS res_code,
+            DATE_FORMAT(r.r_start_time, '%Y-%m-%d %H:%i') AS res_start_time,
+            DATE_FORMAT(r.r_end_time,   '%Y-%m-%d %H:%i') AS res_end_time,
+            r.r_headcount   AS res_headcount,
+            r.r_total_price AS res_total_price,
+            r.r_content     AS res_content,
+            DATE_FORMAT(r.r_created, '%Y-%m-%d %H:%i') AS res_created,
+            DATE_FORMAT(r.r_updated, '%Y-%m-%d %H:%i') AS res_updated,
+            r.r_status      AS res_status,
+            u.u_idx  AS user_idx,
+            u.u_name  AS user_name,
+            u.u_phone AS user_phone,
+            u.u_email AS user_email,
+            s.s_idx  AS spc_idx,
+            s.s_name AS spc_name,
+            s.s_type AS spc_type,
+            s.s_price AS spc_price,
+            b.b_idx  AS brn_idx,
+            b.b_name AS brn_name,
+            v.v_idx      AS rev_idx,
+            v.v_rating   AS rev_rating,
+            v.v_content  AS rev_content,
+            DATE_FORMAT(v.v_created_at, '%Y-%m-%d') AS rev_created_at
+        FROM reservation r
+        JOIN space  s ON r.s_idx = s.s_idx
+        JOIN branch b ON s.b_idx = b.b_idx
+        JOIN user   u ON r.u_idx = u.u_idx
+        LEFT JOIN review v ON v.v_idx = (
+            SELECT v2.v_idx
+            FROM review v2
+            WHERE v2.u_idx = r.u_idx
+              AND v2.s_idx = r.s_idx
+              AND v2.v_parent_idx = 0
+            ORDER BY v2.v_created_at DESC
+            LIMIT 1
+        )
+        WHERE r.r_idx   = #{resIdx}
+          AND b.p_idx   = #{partnerIdx}
+    </select>
+
+    <!-- ══════════════════════════════════════════════════════════
+         getSpaceList - 파트너 소속 공간 목록 (필터 드롭다운용)
+         ══════════════════════════════════════════════════════════ -->
+    <select id="getSpaceList" resultType="org.study.project05.partner.reservation.vo.PartnerReservationVO">
+        SELECT
+            s.s_idx  AS spc_idx,
+            s.s_name AS spc_name
+        FROM space  s
+        JOIN branch b ON s.b_idx = b.b_idx
+        WHERE b.p_idx = #{partnerIdx}
+        ORDER BY b.b_name, s.s_name
+    </select>
+
+    <!-- ══════════════════════════════════════════════════════════
+         getCalendarEvents - 캘린더용 날짜×공간별 예약 건수
+         공간별 색상 구분을 위해 s_idx, s_name 포함
+         params: partnerIdx, year, month
+         ══════════════════════════════════════════════════════════ -->
+    <select id="getCalendarEvents" parameterType="map" resultType="map">
+        SELECT
+            DATE_FORMAT(r.r_start_time, '%Y-%m-%d') AS event_date,
+            s.s_idx  AS spc_idx,
+            s.s_name AS spc_name,
+            COUNT(*) AS event_cnt
+        FROM reservation r
+        JOIN space  s ON r.s_idx = s.s_idx
+        JOIN branch b ON s.b_idx = b.b_idx
+        WHERE b.p_idx = #{partnerIdx}
+          AND YEAR(r.r_start_time)  = #{year}
+          AND MONTH(r.r_start_time) = #{month}
+        GROUP BY DATE_FORMAT(r.r_start_time, '%Y-%m-%d'), s.s_idx, s.s_name
+        ORDER BY event_date, s.s_name
+    </select>
+
+    <!-- ══════════════════════════════════════════════════════════
+         getRevenueByDay - 일별 매출 집계
+         ══════════════════════════════════════════════════════════ -->
+    <select id="getRevenueByDay" parameterType="map" resultType="map">
+        SELECT DATE_FORMAT(r.r_created, '%Y-%m-%d') AS period_label,
+               COUNT(*)              AS cnt,
+               SUM(r.r_total_price)  AS revenue
+          FROM reservation r
+          JOIN space  s ON r.s_idx = s.s_idx
+          JOIN branch b ON s.b_idx = b.b_idx
+         WHERE b.p_idx   = #{partnerIdx}
+           AND r.r_status != 'CANCELLED'
+        <if test="startDate != null and startDate != ''">
+           AND r.r_created &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+           AND r.r_created &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+        </if>
+         GROUP BY DATE_FORMAT(r.r_created, '%Y-%m-%d')
+         ORDER BY period_label
+    </select>
+
+    <!-- ══════════════════════════════════════════════════════════
+         getRevenueByWeek - 주별 매출 집계
+         ══════════════════════════════════════════════════════════ -->
+    <select id="getRevenueByWeek" parameterType="map" resultType="map">
+        SELECT DATE_FORMAT(r.r_created, '%x-%v주') AS period_label,
+               COUNT(*)              AS cnt,
+               SUM(r.r_total_price)  AS revenue
+          FROM reservation r
+          JOIN space  s ON r.s_idx = s.s_idx
+          JOIN branch b ON s.b_idx = b.b_idx
+         WHERE b.p_idx   = #{partnerIdx}
+           AND r.r_status != 'CANCELLED'
+        <if test="startDate != null and startDate != ''">
+           AND r.r_created &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+           AND r.r_created &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+        </if>
+         GROUP BY DATE_FORMAT(r.r_created, '%x%v')
+         ORDER BY DATE_FORMAT(r.r_created, '%x%v')
+    </select>
+
+    <!-- ══════════════════════════════════════════════════════════
+         getRevenueByMonth - 월별 매출 집계
+         ══════════════════════════════════════════════════════════ -->
+    <select id="getRevenueByMonth" parameterType="map" resultType="map">
+        SELECT DATE_FORMAT(r.r_created, '%Y-%m') AS period_label,
+               COUNT(*)              AS cnt,
+               SUM(r.r_total_price)  AS revenue
+          FROM reservation r
+          JOIN space  s ON r.s_idx = s.s_idx
+          JOIN branch b ON s.b_idx = b.b_idx
+         WHERE b.p_idx   = #{partnerIdx}
+           AND r.r_status != 'CANCELLED'
+        <if test="startDate != null and startDate != ''">
+           AND r.r_created &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+           AND r.r_created &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+        </if>
+         GROUP BY DATE_FORMAT(r.r_created, '%Y-%m')
+         ORDER BY period_label
+    </select>
+
+    <!-- ══════════════════════════════════════════════════════════
+         getRevenueBySpace - 공간별 매출 집계
+         ══════════════════════════════════════════════════════════ -->
+    <select id="getRevenueBySpace" parameterType="map" resultType="map">
+        SELECT s.s_name AS spc_name,
+               COUNT(*) AS cnt,
+               SUM(r.r_total_price) AS revenue,
+               s.s_type AS spc_type
+          FROM reservation r
+          JOIN space  s ON r.s_idx = s.s_idx
+          JOIN branch b ON s.b_idx = b.b_idx
+         WHERE b.p_idx   = #{partnerIdx}
+           AND r.r_status != 'CANCELLED'
+        <if test="startDate != null and startDate != ''">
+           AND r.r_created &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+           AND r.r_created &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+        </if>
+         GROUP BY s.s_idx, s.s_name, s.s_type
+         ORDER BY revenue DESC
+    </select>
+
+
+    <!-- ══════════════════════════════════════════════════════════
+         confirmReservation - 예약 수락 (PENDING → CONFIRMED)
+         파트너 소유 검증 포함 (JOIN branch WHERE p_idx)
+         ══════════════════════════════════════════════════════════ -->
+    <update id="confirmReservation" parameterType="map">
+        UPDATE reservation r
+          JOIN space  s ON r.s_idx = s.s_idx
+          JOIN branch b ON s.b_idx = b.b_idx
+           SET r.r_status  = 'CONFIRMED',
+               r.r_updated = NOW()
+         WHERE r.r_idx    = #{resIdx}
+           AND b.p_idx    = #{partnerIdx}
+           AND r.r_status = 'PENDING'
+    </update>
+
+    <!-- ══════════════════════════════════════════════════════════
+         rejectReservation - 예약 거절 (PENDING → CANCELLED)
+         파트너 소유 검증 포함
+         ══════════════════════════════════════════════════════════ -->
+    <update id="rejectReservation" parameterType="map">
+        UPDATE reservation r
+          JOIN space  s ON r.s_idx = s.s_idx
+          JOIN branch b ON s.b_idx = b.b_idx
+           SET r.r_status  = 'CANCELLED',
+               r.r_content = #{reason},
+               r.r_updated = NOW()
+         WHERE r.r_idx    = #{resIdx}
+           AND b.p_idx    = #{partnerIdx}
+           AND r.r_status = 'PENDING'
+    </update>
+
+</mapper>

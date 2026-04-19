@@ -298,6 +298,8 @@
                         out.print("카카오 토큰 발급에 실패했습니다.");
                     } else if ("kakao_fail".equals(errorParam)) {
                         out.print("카카오 로그인 처리 중 오류가 발생했습니다.");
+                    } else if ("inactive".equals(errorParam)) {
+                        out.print("탈퇴 처리된 계정입니다. 관리자에게 문의해주세요.");
                     } else {
                         out.print("아이디 또는 비밀번호를 확인해주세요.");
                     }

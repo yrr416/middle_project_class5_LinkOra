@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.study.project05.dashboard.mapper.DashboardMapper">
+
+    <!-- 오늘 예약 건수 -->
+    <select id="getTodayReserveCnt" resultType="int">
+        SELECT COUNT(*) FROM reservation WHERE DATE(r_start_time)=CURDATE() AND r_status!='CANCELLED'
+    </select>
+
+    <!-- 전일 예약 건수 -->
+    <select id="getYesterdayReserveCnt" resultType="int">
+        SELECT COUNT(*) FROM reservation WHERE DATE(r_start_time)=DATE_SUB(CURDATE(),INTERVAL 1 DAY) AND r_status!='CANCELLED'
+    </select>
+
+    <!-- 전체 정상 회원 수 -->
+    <select id="getTotalUserCnt" resultType="int">
+        SELECT COUNT(*) FROM user WHERE u_active=0
+    </select>
+
+    <!-- 이번달 신규 회원 수 -->
+    <select id="getNewUserCnt" resultType="int">
+        SELECT COUNT(*) FROM user WHERE YEAR(u_created)=YEAR(CURDATE()) AND MONTH(u_created)=MONTH(CURDATE()) AND u_active=0
+    </select>
+
+    <!-- 이번달 누적 매출 -->
+    <select id="getMonthlyRevenue" resultType="long">
+        SELECT IFNULL(SUM(r_total_price),0) FROM reservation
+        WHERE YEAR(r_start_time)=YEAR(CURDATE()) AND MONTH(r_start_time)=MONTH(CURDATE()) AND r_status!='CANCELLED'
+    </select>
+
+    <!-- 현재 이용 중인 공간 수 -->
+    <select id="getActiveSpaceCnt" resultType="int">
+        SELECT COUNT(DISTINCT s_idx) FROM reservation
+        WHERE r_start_time &lt;= NOW() AND r_end_time &gt;= NOW() AND r_status NOT IN ('CANCELLED','PENDING')
+    </select>
+
+    <!-- 미처리 문의 건수 (inquiries 테이블) -->
+    <select id="getPendingInquiryCnt" resultType="int">
+        SELECT COUNT(*) FROM inquiries WHERE i_status='PENDING'
+    </select>
+
+    <!-- 월별 매출 추이 (최근 6개월) -->
+    <select id="getMonthlySales" resultType="map">
+        SELECT DATE_FORMAT(r_start_time,'%Y-%m') AS month, IFNULL(SUM(r_total_price),0) AS revenue
+          FROM reservation
+         WHERE r_start_time >= DATE_FORMAT(DATE_SUB(CURDATE(),INTERVAL 5 MONTH),'%Y-%m-01') AND r_status!='CANCELLED'
+         GROUP BY DATE_FORMAT(r_start_time,'%Y-%m') ORDER BY month ASC
+    </select>
+
+    <!-- 공간별 이용률 -->
+    <select id="getSpaceUsage" resultType="map">
+        SELECT s.s_name AS spacename, COUNT(r.r_idx) AS usagecount
+          FROM reservation r JOIN space s ON r.s_idx=s.s_idx
+         WHERE r.r_start_time >= DATE_SUB(NOW(),INTERVAL 3 MONTH) AND r.r_status!='CANCELLED'
+         GROUP BY s.s_idx, s.s_name ORDER BY usagecount DESC LIMIT 8
+    </select>
+
+    <!-- 요일별 예약 히트맵 (이번달) -->
+    <select id="getWeekdayHeatmap" resultType="map">
+        SELECT WEEK(r_start_time)-WEEK(DATE_FORMAT(CURDATE(),'%Y-%m-01'))+1 AS weeknum,
+               DAYOFWEEK(r_start_time) AS dayofweek, COUNT(*) AS reservecnt
+          FROM reservation
+         WHERE YEAR(r_start_time)=YEAR(CURDATE()) AND MONTH(r_start_time)=MONTH(CURDATE()) AND r_status!='CANCELLED'
+         GROUP BY weeknum, DAYOFWEEK(r_start_time) ORDER BY weeknum, DAYOFWEEK(r_start_time)
+    </select>
+
+    <!-- 최근 예약 5건 -->
+    <select id="getRecentReserves" resultType="org.study.project05.dashboard.vo.RecentReserveVO">
+        SELECT r.r_idx       AS res_idx,
+               u.u_name      AS user_name,
+               s.s_name      AS spc_name,
+               DATE_FORMAT(r.r_start_time,'%Y-%m-%d') AS res_date,
+               r.r_status    AS res_status,
+               r.r_total_price AS res_price
+          FROM reservation r JOIN user u ON r.u_idx=u.u_idx JOIN space s ON r.s_idx=s.s_idx
+         ORDER BY r.r_created DESC LIMIT 5
+    </select>
+
+    <!-- 신규 가입 회원 5명 -->
+    <select id="getNewUsers" resultType="CustomerVO">
+        SELECT u_idx     AS user_idx,
+               u_name    AS user_name,
+               u_email   AS user_email,
+               u_created AS user_created
+          FROM user WHERE u_active=0 ORDER BY u_created DESC LIMIT 5
+    </select>
+
+</mapper>

@@ -1,361 +1,138 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
-<%-- 사업자 마이페이지 화면: 사업자 정보 조회, 비밀번호/프로필 변경, 계정 탈퇴 기능을 제공한다. --%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>사업자 마이페이지 | LinkOra</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background: #f4f6f8;
-            font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
-            color: #243140;
-        }
-        .header-right .btn-book {
-            display: none !important;
-        }
-        .content { padding: 24px; }
-        .content-box {
-            max-width: 760px;
-            margin: 0 auto;
-            background: #fff;
-            border: 1px solid #e6e8ec;
-            border-radius: 12px;
-            padding: 26px;
-        }
-        h1 { margin: 0 0 8px; font-size: 24px; }
-        .sub { margin: 0 0 18px; color: #64748b; font-size: 14px; }
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 700;
-            background: #eef2ff;
-            color: #3730a3;
-            border: 1px solid #c7d2fe;
-            margin-bottom: 16px;
-        }
-        .profile-head {
-            text-align: center;
-            margin-bottom: 16px;
-        }
-        .avatar {
-            width: 72px;
-            height: 72px;
-            margin: 0 auto 10px;
-            border-radius: 50%;
-            background: #3730a3;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            overflow: hidden;
-            border: 3px solid #e6e8ec;
-        }
-        .avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .avatar-edit {
-            margin-top: -2px;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-        .profile-edit-btn {
-            height: 28px;
-            padding: 0 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 999px;
-            background: #ffffff;
-            color: #334155;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .profile-edit-btn:hover {
-            background: #f8fafc;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 12px;
-        }
-        .item {
-            border: 1px solid #e6e8ec;
-            border-radius: 8px;
-            background: #fafafa;
-            padding: 12px 14px;
-        }
-        .label { font-size: 12px; color: #64748b; font-weight: 700; margin-bottom: 4px; }
-        .value { font-size: 14px; color: #243140; font-weight: 600; word-break: break-word; }
-        .item.full { grid-column: 1 / -1; }
-        .manage-actions {
-            margin-top: 14px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .manage-btn {
-            height: 36px;
-            padding: 0 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            background: #ffffff;
-            color: #334155;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            white-space: nowrap;
-        }
-        .manage-btn:hover {
-            background: #f8fafc;
-        }
-        .password-card {
-            margin-top: 18px;
-            border: 1px solid #e6e8ec;
-            border-radius: 10px;
-            background: #fafafa;
-            padding: 12px;
-            max-width: 520px;
-        }
-        .password-card h2 {
-            margin: 0 0 10px;
-            font-size: 14px;
-            color: #243140;
-        }
-        .password-form .row {
-            margin-bottom: 8px;
-        }
-        .password-form label {
-            display: block;
-            margin-bottom: 4px;
-            font-size: 11px;
-            font-weight: 700;
-            color: #64748b;
-        }
-        .password-form input {
-            width: 100%;
-            height: 36px;
-            border: 1px solid #d9d9d9;
-            border-radius: 8px;
-            padding: 0 9px;
-            font-size: 13px;
-            background: #fff;
-        }
-        .password-form input:focus {
-            outline: none;
-            border-color: #3730a3;
-        }
-        .pwd-msg {
-            margin: 0 0 10px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-        .pwd-msg.ok {
-            color: #16a34a;
-        }
-        .pwd-msg.err {
-            color: #dc2626;
-        }
-        .password-form .btn-primary {
-            height: 38px;
-            padding: 0 16px;
-            border-radius: 8px;
-            border: none;
-            background: #3730a3;
-            color: #fff;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-        .password-form .btn-primary:hover {
-            filter: brightness(1.06);
-        }
-        .pwd-hint {
-            margin-top: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            color: #64748b;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .pwd-hint .icon {
-            width: 16px;
-            text-align: center;
-        }
-        .pwd-hint.ok {
-            color: #16a34a;
-        }
-        .pwd-hint.err {
-            color: #dc2626;
-        }
-        .actions {
-            margin-top: 18px;
-            padding-top: 16px;
-            border-top: 1px solid #e6e8ec;
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .btn-danger {
-            height: 40px;
-            padding: 0 16px;
-            border-radius: 8px;
-            border: 1px solid #fecaca;
-            background: #fff;
-            color: #dc2626;
-            text-decoration: none;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .withdraw-msg {
-            margin-top: 8px;
-            color: #dc2626;
-            font-size: 12px;
-            font-weight: 700;
-        }
-        .withdraw-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.45);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .withdraw-modal.open {
-            display: flex;
-        }
-        .withdraw-modal-card {
-            width: 100%;
-            max-width: 360px;
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 18px;
-            box-shadow: 0 14px 24px rgba(15, 23, 42, 0.2);
-        }
-        .withdraw-modal-title {
-            margin: 0 0 8px;
-            font-size: 16px;
-            color: #1e293b;
-            font-weight: 800;
-        }
-        .withdraw-modal-desc {
-            margin: 0 0 12px;
-            font-size: 13px;
-            color: #64748b;
-        }
-        .withdraw-modal-input {
-            width: 100%;
-            height: 40px;
-            border: 1px solid #d9d9d9;
-            border-radius: 8px;
-            padding: 0 10px;
-            font-size: 14px;
-            background: #fff;
-        }
-        .withdraw-modal-actions {
-            margin-top: 12px;
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-        }
-        .withdraw-modal-btn {
-            height: 36px;
-            padding: 0 12px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            background: #fff;
-            color: #334155;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-        .withdraw-modal-btn.danger {
-            border-color: #fecaca;
-            color: #dc2626;
-        }
+        body { background-color: #f4f6f9; }
+        .sidebar { min-height: 100vh; background: linear-gradient(180deg, #1a3a5c 0%, #0d2137 100%); position: sticky; top: 0; }
+        .sidebar .nav-link { color: rgba(255,255,255,.75); padding: 10px 20px; border-radius: 6px; margin: 2px 8px; transition: .2s; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { color: #fff; background: rgba(255,255,255,.15); }
+        .sidebar .nav-link i { margin-right: 8px; }
+        .sidebar-brand { color: #fff; font-size: 1.2rem; font-weight: 700; padding: 20px; border-bottom: 1px solid rgba(255,255,255,.1); }
+        .sidebar-avatar { width: 56px; height: 56px; border-radius: 50%; background: #3730a3; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; border: 2px solid rgba(255,255,255,.3); margin: 16px auto 4px; }
+        .sidebar-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .main-content { padding: 24px; }
+        .page-header { background: #fff; border-radius: 10px; padding: 20px 24px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+        .profile-card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.06); margin-bottom: 20px; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+        .info-item { border: 1px solid #e6e8ec; border-radius: 8px; background: #fafafa; padding: 12px 14px; }
+        .info-item.full { grid-column: 1 / -1; }
+        .info-label { font-size: 12px; color: #64748b; font-weight: 700; margin-bottom: 4px; }
+        .info-value { font-size: 14px; color: #243140; font-weight: 600; word-break: break-word; }
+        .password-card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+        .pwd-msg { font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+        .pwd-msg.ok { color: #16a34a; }
+        .pwd-msg.err { color: #dc2626; }
+        .pwd-hint { margin-top: 4px; font-size: 11px; font-weight: 700; color: #64748b; display: flex; align-items: center; gap: 6px; }
+        .pwd-hint.ok { color: #16a34a; }
+        .pwd-hint.err { color: #dc2626; }
+        .partner-page-btn { background: #3730a3; color: #fff; border: none; padding: 10px 22px; border-radius: 8px; font-size: 14px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: .2s; }
+        .partner-page-btn:hover { background: #2e28a3; color: #fff; filter: brightness(1.1); }
     </style>
 </head>
 <body>
-<%@include file="../layout/header.jsp"%>
+<div class="container-fluid p-0">
+<div class="row g-0">
 
-<main class="content">
-    <section class="content-box">
-        <div class="profile-head">
-            <div class="avatar" aria-hidden="true">
+    <!-- 사이드바 -->
+    <div class="col-auto sidebar" style="width: 220px;">
+        <div class="sidebar-brand"><i class="bi bi-building me-2"></i>파트너</div>
+
+        <!-- 프로필 아바타 -->
+        <div class="text-center px-3 pb-2">
+            <div class="sidebar-avatar mx-auto">
                 <% if (request.getAttribute("profileImage") != null && !((String) request.getAttribute("profileImage")).isBlank()) { %>
-                <img src="${profileImage}" alt="사업자 프로필">
+                <img src="${profileImage}" alt="프로필">
                 <% } else { %>
                 🏪
                 <% } %>
             </div>
-            <div class="avatar-edit">
-                <form method="post" action="/partner/mypage/profile" enctype="multipart/form-data">
-                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-                    <label class="profile-edit-btn" for="partnerProfileImageFile">프로필 수정</label>
-                    <input id="partnerProfileImageFile" name="profileImage" type="file" accept="image/*" style="display:none" onchange="this.form.submit()">
-                </form>
-            </div>
-            <h1>사업자 마이페이지</h1>
-            <p class="sub">사업자 계정 정보를 확인하세요.</p>
-            <span class="badge">사업자 계정 | LinkOra</span>
+            <div class="text-white-50 small mt-1" style="font-size: .8rem;">${empty name ? '파트너' : name}</div>
         </div>
 
-        <div class="grid">
-            <div class="item">
-                <div class="label">사업자 아이디</div>
-                <div class="value">${empty partnerId ? '-' : partnerId}</div>
+        <nav class="nav flex-column mt-1">
+            <span class="nav-link text-white-50 small px-3 pt-2 pb-1">파트너 메뉴</span>
+            <a class="nav-link" href="${ctx}/partner/reservation/list"><i class="bi bi-calendar-check"></i>파트너 예약관리</a>
+            <a class="nav-link" href="${ctx}/partner/register/step1"><i class="bi bi-person-badge"></i>파트너 등록</a>
+            <hr class="border-secondary mx-3">
+            <a class="nav-link" href="${ctx}/partner/mypage"><i class="bi bi-person-circle"></i>마이페이지</a>
+            <a class="nav-link" href="${ctx}/" target="_blank"><i class="bi bi-house"></i>홈페이지 이동</a>
+        </nav>
+    </div>
+
+    <!-- 메인 콘텐츠 -->
+    <div class="col main-content">
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-1 fw-bold"><i class="bi bi-person-circle me-2 text-primary"></i>사업자 마이페이지</h5>
+                <small class="text-muted">사업자 계정 정보를 확인하고 관리합니다.</small>
             </div>
-            <div class="item">
-                <div class="label">상호/담당자명</div>
-                <div class="value">${empty name ? '-' : name}</div>
-            </div>
-            <div class="item">
-                <div class="label">사업자번호</div>
-                <div class="value">${empty bizNo ? '-' : bizNo}</div>
-            </div>
-            <div class="item">
-                <div class="label">이메일</div>
-                <div class="value">${empty email ? '-' : email}</div>
-            </div>
-            <div class="item">
-                <div class="label">전화번호</div>
-                <div class="value">${empty phone ? '-' : phone}</div>
-            </div>
-            <div class="item full">
-                <div class="label">주소</div>
-                <div class="value">${empty address ? '-' : address}</div>
-            </div>
-        </div>
-        <div class="manage-actions">
-            <a class="manage-btn" href="/reservation-management">예약관리</a>
-            <a class="manage-btn" href="/branch-space-management">지점/공간 관리</a>
-            <a class="manage-btn" href="/inquiry-management">문의 관리</a>
-            <a class="manage-btn" href="/notice-management">공지사항 관리</a>
-            <a class="manage-btn" href="/review-management">후기 관리</a>
+            <a class="partner-page-btn" href="${ctx}/partner/reservation/list">
+                <i class="bi bi-calendar-check"></i>파트너 페이지
+            </a>
         </div>
 
-        <section class="password-card">
-            <h2>비밀번호 변경</h2>
+        <!-- 프로필 정보 -->
+        <div class="profile-card">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div style="width:56px;height:56px;border-radius:50%;background:#3730a3;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;border:2px solid #e6e8ec;">
+                    <% if (request.getAttribute("profileImage") != null && !((String) request.getAttribute("profileImage")).isBlank()) { %>
+                    <img src="${profileImage}" alt="프로필" style="width:100%;height:100%;object-fit:cover;">
+                    <% } else { %>
+                    🏪
+                    <% } %>
+                </div>
+                <div>
+                    <div class="fw-bold fs-6">${empty name ? '-' : name}</div>
+                    <span class="badge" style="background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;font-size:11px;">사업자 계정 | LinkOra</span>
+                </div>
+                <div class="ms-auto">
+                    <form method="post" action="${ctx}/partner/mypage/profile" enctype="multipart/form-data">
+                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                        <label class="btn btn-sm btn-outline-secondary" for="partnerProfileImageFile" style="cursor:pointer;">프로필 수정</label>
+                        <input id="partnerProfileImageFile" name="profileImage" type="file" accept="image/*" style="display:none" onchange="this.form.submit()">
+                    </form>
+                </div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">사업자 아이디</div>
+                    <div class="info-value">${empty partnerId ? '-' : partnerId}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">상호/담당자명</div>
+                    <div class="info-value">${empty name ? '-' : name}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">사업자번호</div>
+                    <div class="info-value">${empty bizNo ? '-' : bizNo}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">이메일</div>
+                    <div class="info-value">${empty email ? '-' : email}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">전화번호</div>
+                    <div class="info-value">${empty phone ? '-' : phone}</div>
+                </div>
+                <div class="info-item full">
+                    <div class="info-label">주소</div>
+                    <div class="info-value">${empty address ? '-' : address}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 비밀번호 변경 -->
+        <div class="password-card">
+            <h6 class="fw-bold mb-3"><i class="bi bi-lock me-2 text-secondary"></i>비밀번호 변경</h6>
             <% if ("success".equals(request.getAttribute("pwdChanged"))) { %>
             <p class="pwd-msg ok">비밀번호가 변경되었습니다.</p>
             <% } %>
@@ -374,178 +151,130 @@
             <% if ("failed".equals(request.getAttribute("pwdError"))) { %>
             <p class="pwd-msg err">비밀번호 변경에 실패했습니다. 다시 시도해주세요.</p>
             <% } %>
-            <form class="password-form" method="post" action="/partner/mypage/password">
-                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-                <div class="row">
-                    <label for="partnerCurrentPassword">현재 비밀번호</label>
-                    <input id="partnerCurrentPassword" name="currentPassword" type="password" required autocomplete="current-password">
-                </div>
-                <div class="row">
-                    <label for="partnerNewPassword">새 비밀번호</label>
-                    <input id="partnerNewPassword" name="newPassword" type="password" minlength="8" required autocomplete="new-password">
-                    <p id="partnerPwdLengthHint" class="pwd-hint">
-                        <span class="icon">•</span><span>8자 이상, 영문 대·소문자·숫자·특수문자 포함</span>
-                    </p>
-                </div>
-                <div class="row">
-                    <label for="partnerNewPasswordConfirm">새 비밀번호 확인</label>
-                    <input id="partnerNewPasswordConfirm" name="newPasswordConfirm" type="password" minlength="8" required autocomplete="new-password">
-                    <p id="partnerPwdMatchHint" class="pwd-hint">
-                        <span class="icon">•</span><span>비밀번호 확인 입력 필요</span>
-                    </p>
-                </div>
-                <button type="submit" class="btn-primary">비밀번호 변경</button>
-            </form>
-        </section>
 
-        <div class="actions">
-            <form id="partnerWithdrawForm" method="post" action="/partner/mypage/delete">
+            <form method="post" action="${ctx}/partner/mypage/password" style="max-width: 460px;">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-                <input type="hidden" name="currentPassword">
-                <button type="button" class="btn-danger" onclick="openWithdrawModal('사업자')">사업자 탈퇴</button>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary" for="partnerCurrentPassword">현재 비밀번호</label>
+                    <input id="partnerCurrentPassword" name="currentPassword" type="password" class="form-control form-control-sm" required autocomplete="current-password">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary" for="partnerNewPassword">새 비밀번호</label>
+                    <input id="partnerNewPassword" name="newPassword" type="password" class="form-control form-control-sm" minlength="8" required autocomplete="new-password">
+                    <p id="partnerPwdLengthHint" class="pwd-hint"><span class="icon">•</span><span>8자 이상, 영문 대·소문자·숫자·특수문자 포함</span></p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary" for="partnerNewPasswordConfirm">새 비밀번호 확인</label>
+                    <input id="partnerNewPasswordConfirm" name="newPasswordConfirm" type="password" class="form-control form-control-sm" minlength="8" required autocomplete="new-password">
+                    <p id="partnerPwdMatchHint" class="pwd-hint"><span class="icon">•</span><span>비밀번호 확인 입력 필요</span></p>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm px-4">비밀번호 변경</button>
             </form>
-            <a class="btn-danger" href="${pageContext.request.contextPath}/logoutNow">로그아웃</a>
+
+            <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+                <form id="partnerWithdrawForm" method="post" action="${ctx}/partner/mypage/delete">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                    <input type="hidden" name="currentPassword">
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="openWithdrawModal('사업자')">사업자 탈퇴</button>
+                </form>
+                <a class="btn btn-sm btn-outline-secondary" href="${ctx}/logoutNow">로그아웃</a>
+            </div>
+            <% if ("password".equals(request.getAttribute("withdrawError"))) { %>
+            <p class="pwd-msg err mt-2">탈퇴 비밀번호가 올바르지 않습니다.</p>
+            <% } %>
+            <% if ("failed".equals(request.getAttribute("withdrawError"))) { %>
+            <p class="pwd-msg err mt-2">사업자 탈퇴 처리에 실패했습니다.</p>
+            <% } %>
+            <% if ("method".equals(request.getAttribute("withdrawError"))) { %>
+            <p class="pwd-msg err mt-2">탈퇴는 마이페이지 버튼으로만 요청할 수 있습니다.</p>
+            <% } %>
         </div>
-        <% if ("password".equals(request.getAttribute("withdrawError"))) { %>
-        <p class="withdraw-msg">탈퇴 비밀번호가 올바르지 않습니다.</p>
-        <% } %>
-        <% if ("failed".equals(request.getAttribute("withdrawError"))) { %>
-        <p class="withdraw-msg">사업자 탈퇴 처리에 실패했습니다.</p>
-        <% } %>
-    </section>
-</main>
-<div id="withdrawModal" class="withdraw-modal" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="withdraw-modal-card">
-        <h2 class="withdraw-modal-title">사업자 탈퇴 확인</h2>
-        <p class="withdraw-modal-desc">탈퇴를 위해 비밀번호를 입력하세요.</p>
-        <input id="withdrawModalPassword" class="withdraw-modal-input" type="password" autocomplete="current-password" placeholder="비밀번호">
-        <div class="withdraw-modal-actions">
-            <button type="button" class="withdraw-modal-btn" onclick="closeWithdrawModal()">취소</button>
-            <button type="button" class="withdraw-modal-btn danger" onclick="submitWithdrawModal()">탈퇴</button>
+    </div>
+
+</div>
+</div>
+
+<!-- 탈퇴 모달 -->
+<div id="withdrawModal" style="position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:1000;" role="dialog" aria-modal="true" aria-hidden="true">
+    <div style="width:100%;max-width:360px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;box-shadow:0 14px 24px rgba(15,23,42,.2);">
+        <h2 id="withdrawModalTitle" style="margin:0 0 8px;font-size:16px;font-weight:800;">사업자 탈퇴 확인</h2>
+        <p style="margin:0 0 12px;font-size:13px;color:#64748b;">탈퇴를 위해 비밀번호를 입력하세요.</p>
+        <input id="withdrawModalPassword" type="password" autocomplete="current-password" placeholder="비밀번호" class="form-control form-control-sm mb-3">
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="closeWithdrawModal()">취소</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="submitWithdrawModal()">탈퇴</button>
         </div>
     </div>
 </div>
-<%@include file="../layout/footer.jsp"%>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var root = '${pageContext.request.contextPath}';
-        var btn = document.querySelector('.header-right .login-btn');
-        if (!btn || btn.tagName !== 'BUTTON') return;
-        if ((btn.textContent || '').trim() !== '마이페이지') return;
-        btn.textContent = '홈페이지';
-        btn.onclick = function () { location.href = root + '/'; };
-    });
+var withdrawTargetForm = null;
+var withdrawModal = document.getElementById('withdrawModal');
+var withdrawModalInput = document.getElementById('withdrawModalPassword');
 
-    var withdrawTargetForm = null;
-    var withdrawModal = document.getElementById('withdrawModal');
-    var withdrawModalInput = document.getElementById('withdrawModalPassword');
+function openWithdrawModal(label) {
+    withdrawTargetForm = document.getElementById('partnerWithdrawForm');
+    document.getElementById('withdrawModalTitle').textContent = label + ' 탈퇴 확인';
+    withdrawModalInput.value = '';
+    withdrawModal.style.display = 'flex';
+    withdrawModal.setAttribute('aria-hidden', 'false');
+    setTimeout(function() { withdrawModalInput.focus(); }, 0);
+}
 
-    function openWithdrawModal(label) {
-        withdrawTargetForm = document.getElementById('partnerWithdrawForm');
-        document.querySelector('#withdrawModal .withdraw-modal-title').textContent = label + ' 탈퇴 확인';
-        document.querySelector('#withdrawModal .withdraw-modal-desc').textContent = '탈퇴를 위해 비밀번호를 입력하세요.';
-        withdrawModalInput.value = '';
-        withdrawModal.classList.add('open');
-        withdrawModal.setAttribute('aria-hidden', 'false');
-        setTimeout(function () { withdrawModalInput.focus(); }, 0);
+function closeWithdrawModal() {
+    withdrawModal.style.display = 'none';
+    withdrawModal.setAttribute('aria-hidden', 'true');
+    withdrawTargetForm = null;
+}
+
+function submitWithdrawModal() {
+    if (!withdrawTargetForm) return;
+    var password = withdrawModalInput.value || '';
+    if (!password.trim()) { alert('비밀번호를 입력해주세요.'); return; }
+    if (!window.confirm('정말 탈퇴하시겠습니까? 계정 정보는 복구할 수 없습니다.')) return;
+    withdrawTargetForm.currentPassword.value = password;
+    withdrawTargetForm.submit();
+}
+
+withdrawModal.addEventListener('click', function(e) { if (e.target === withdrawModal) closeWithdrawModal(); });
+document.addEventListener('keydown', function(e) {
+    if (!withdrawModal.style.display || withdrawModal.style.display === 'none') return;
+    if (e.key === 'Escape') closeWithdrawModal();
+    if (e.key === 'Enter') submitWithdrawModal();
+});
+
+(function initPartnerPasswordHints() {
+    var newInput = document.getElementById('partnerNewPassword');
+    var confirmInput = document.getElementById('partnerNewPasswordConfirm');
+    var lengthHint = document.getElementById('partnerPwdLengthHint');
+    var matchHint = document.getElementById('partnerPwdMatchHint');
+    if (!newInput || !confirmInput) return;
+
+    function complex(pw) {
+        return pw && pw.length >= 8 && /[A-Z]/.test(pw) && /[a-z]/.test(pw) && /[0-9]/.test(pw) && /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(pw);
     }
-
-    function closeWithdrawModal() {
-        withdrawModal.classList.remove('open');
-        withdrawModal.setAttribute('aria-hidden', 'true');
-        withdrawTargetForm = null;
+    function setHint(el, icon, text, cls) {
+        el.className = 'pwd-hint' + (cls ? ' ' + cls : '');
+        el.querySelector('.icon').textContent = icon;
+        el.querySelector('span:last-child').textContent = text;
     }
+    function update() {
+        var nv = newInput.value || '', cv = confirmInput.value || '';
+        if (!nv) setHint(lengthHint, '•', '8자 이상, 영문 대·소문자·숫자·특수문자 포함', '');
+        else if (nv.length < 8) setHint(lengthHint, '✕', '최소 8자 이상 입력해주세요.', 'err');
+        else if (!complex(nv)) setHint(lengthHint, '✕', '영문 대문자·소문자·숫자·특수문자를 모두 포함해주세요.', 'err');
+        else setHint(lengthHint, '✓', '비밀번호 규칙을 만족합니다.', 'ok');
 
-    function submitWithdrawModal() {
-        if (!withdrawTargetForm) {
-            return;
-        }
-        var password = withdrawModalInput.value || '';
-        if (!password.trim()) {
-            alert('비밀번호를 입력해주세요.');
-            return;
-        }
-        if (!window.confirm('정말 탈퇴하시겠습니까? 계정 정보는 복구할 수 없습니다.')) {
-            return;
-        }
-        withdrawTargetForm.currentPassword.value = password;
-        withdrawTargetForm.submit();
+        if (!cv) setHint(matchHint, '•', '비밀번호 확인 입력 필요', '');
+        else if (nv === cv && complex(nv)) setHint(matchHint, '✓', '비밀번호가 일치합니다.', 'ok');
+        else if (nv === cv) setHint(matchHint, '✕', '위 규칙을 만족한 뒤 일치해야 합니다.', 'err');
+        else setHint(matchHint, '✕', '비밀번호가 일치하지 않습니다.', 'err');
     }
-
-    withdrawModal.addEventListener('click', function (event) {
-        if (event.target === withdrawModal) {
-            closeWithdrawModal();
-        }
-    });
-
-    document.addEventListener('keydown', function (event) {
-        if (!withdrawModal.classList.contains('open')) {
-            return;
-        }
-        if (event.key === 'Escape') {
-            closeWithdrawModal();
-            return;
-        }
-        if (event.key === 'Enter') {
-            submitWithdrawModal();
-        }
-    });
-
-    (function initPartnerPasswordHints() {
-        var newPasswordInput = document.getElementById('partnerNewPassword');
-        var newPasswordConfirmInput = document.getElementById('partnerNewPasswordConfirm');
-        var pwdLengthHint = document.getElementById('partnerPwdLengthHint');
-        var pwdMatchHint = document.getElementById('partnerPwdMatchHint');
-        if (!newPasswordInput || !newPasswordConfirmInput || !pwdLengthHint || !pwdMatchHint) {
-            return;
-        }
-
-        function passwordMeetsComplexity(pw) {
-            if (!pw || pw.length < 8) {
-                return false;
-            }
-            return /[A-Z]/.test(pw) && /[a-z]/.test(pw) && /[0-9]/.test(pw)
-                && /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(pw);
-        }
-
-        function setHint(element, icon, text, stateClass) {
-            element.classList.remove('ok', 'err');
-            if (stateClass) {
-                element.classList.add(stateClass);
-            }
-            element.querySelector('.icon').textContent = icon;
-            element.querySelector('span:last-child').textContent = text;
-        }
-
-        function updateHints() {
-            var newValue = newPasswordInput.value || '';
-            var confirmValue = newPasswordConfirmInput.value || '';
-
-            if (newValue.length === 0) {
-                setHint(pwdLengthHint, '•', '8자 이상, 영문 대·소문자·숫자·특수문자 포함', '');
-            } else if (newValue.length < 8) {
-                setHint(pwdLengthHint, '✕', '최소 8자 이상 입력해주세요.', 'err');
-            } else if (!passwordMeetsComplexity(newValue)) {
-                setHint(pwdLengthHint, '✕', '영문 대문자·소문자·숫자·특수문자를 모두 포함해주세요.', 'err');
-            } else {
-                setHint(pwdLengthHint, '✓', '비밀번호 규칙을 만족합니다.', 'ok');
-            }
-
-            if (confirmValue.length === 0) {
-                setHint(pwdMatchHint, '•', '비밀번호 확인 입력 필요', '');
-            } else if (newValue === confirmValue && passwordMeetsComplexity(newValue)) {
-                setHint(pwdMatchHint, '✓', '비밀번호가 일치합니다.', 'ok');
-            } else if (newValue === confirmValue) {
-                setHint(pwdMatchHint, '✕', '위 규칙을 만족한 뒤 일치해야 합니다.', 'err');
-            } else {
-                setHint(pwdMatchHint, '✕', '비밀번호가 일치하지 않습니다.', 'err');
-            }
-        }
-
-        newPasswordInput.addEventListener('input', updateHints);
-        newPasswordConfirmInput.addEventListener('input', updateHints);
-        updateHints();
-    })();
+    newInput.addEventListener('input', update);
+    confirmInput.addEventListener('input', update);
+    update();
+})();
 </script>
 </body>
 </html>
