@@ -57,7 +57,16 @@ public class UserReservationServiceImpl implements UserReservationService {
         vo.setResStartTime(start.format(DB_FMT));
         vo.setResEndTime(end.format(DB_FMT));
 
-        // ② 시간 중복 체크
+        // ② space 행 락 — 같은 공간에 동시 요청이 들어오면 여기서 대기시킴
+        //    락을 잡은 뒤 중복 체크 → INSERT 까지 원자적으로 처리
+        //    락 대기 중 타임아웃 발생 시(다른 트랜잭션이 너무 오래 점유) Exception으로 잡아 안내 메시지 표시
+        try {
+            reservationMapper.lockSpace(vo.getSpcIdx());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("현재 다른 사용자가 예약 중입니다. 잠시 후 다시 시도해주세요.");
+        }
+
+        // ③ 시간 중복 체크 (락 획득 후 실행되므로 동시성 안전)
         if (reservationMapper.checkDuplicate(vo) > 0) {
             throw new IllegalArgumentException("선택한 시간대에 이미 예약이 존재합니다.");
         }

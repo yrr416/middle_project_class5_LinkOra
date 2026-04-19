@@ -141,15 +141,15 @@
         UPDATE reservation SET r_status='CONFIRMED', r_updated=NOW() WHERE r_idx=#{resIdx} AND r_status='PENDING'
     </update>
 
-    <!-- 이용 완료 처리 (CONFIRMED/USING → COMPLETED) -->
+    <!-- 이용 완료 처리 (CONFIRMED/USE → FINISH) -->
     <update id="completeReservation" parameterType="int">
-        UPDATE reservation SET r_status='COMPLETED', r_updated=NOW() WHERE r_idx=#{resIdx} AND r_status IN ('CONFIRMED','USING')
+        UPDATE reservation SET r_status='FINISH', r_updated=NOW() WHERE r_idx=#{resIdx} AND r_status IN ('CONFIRMED','USE')
     </update>
 
     <!-- 강제 취소 (취소 사유 저장) -->
     <update id="cancelReservation" parameterType="map">
         UPDATE reservation SET r_status='CANCELLED', r_content=#{cancelReason}, r_updated=NOW()
-         WHERE r_idx=#{resIdx} AND r_status NOT IN ('CANCELLED','COMPLETED')
+         WHERE r_idx=#{resIdx} AND r_status NOT IN ('CANCELLED','FINISH')
     </update>
 
 </mapper>

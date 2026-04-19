@@ -24,6 +24,13 @@ public interface UserReservationMapper {
     int countByUserAndBranch(@Param("userIdx") int userIdx, @Param("brnIdx") int brnIdx);
 
     /**
+     * 예약 등록 시 동시성 제어 — space 행에 락을 걸어 중복 예약 방지
+     * checkDuplicate() 호출 전에 반드시 먼저 호출해야 함
+     * @Transactional 안에서만 락이 유지되므로 Service 트랜잭션 필수
+     */
+    void lockSpace(int spcIdx);
+
+    /**
      * 결제 승인 시 사용 — 행 락(SELECT FOR UPDATE)을 걸고 예약 조회
      * 스케줄러의 자동 취소와 동시에 실행될 때 충돌을 방지함
      */

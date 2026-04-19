@@ -150,7 +150,7 @@
 
         <!-- ── 필터 영역 ──────────────────────────────────── -->
         <div class="filter-card">
-            <form method="get" action="/admin/reservation/list" class="row g-2 align-items-end">
+            <form method="get" action="${ctx}/admin/reservation/list" class="row g-2 align-items-end">
 
                 <!-- 날짜 범위 (시작) -->
                 <div class="col-md-2">
@@ -469,7 +469,7 @@
                         <div class="fw-semibold text-danger mb-2">
                             <i class="bi bi-exclamation-triangle me-1"></i>강제 취소 처리
                         </div>
-                        <form method="post" action="/admin/reservation/cancel" id="cancelFormTag">
+                        <form method="post" action="${ctx}/admin/reservation/cancel" id="cancelFormTag">
                             <!-- 현재 필터 유지용 hidden 값은 JavaScript 에서 동적 추가 -->
                             <input type="hidden" name="resIdx"      id="cancel_r_idx">
                             <input type="hidden" name="nowPage"     value="${nowPage}">
@@ -566,7 +566,7 @@ function openDetailModal(rIdx) {
     modal.show();
 
     /* AJAX 상세 조회 */
-    fetch('/admin/reservation/detail?resIdx=' + rIdx)
+    fetch('${ctx}/admin/reservation/detail?resIdx=' + rIdx)
         .then(res => {
             if (!res.ok) throw new Error('데이터 조회 실패');
             return res.json();
@@ -678,7 +678,7 @@ function renderFooterButtons(d) {
 
     /* PENDING → 예약 확정 버튼 */
     if (d.resStatus === 'PENDING') {
-        html = '<form method="post" action="/admin/reservation/confirm" class="d-inline">' +
+        html = '<form method="post" action="${ctx}/admin/reservation/confirm" class="d-inline">' +
                '  <input type="hidden" name="resIdx"        value="' + d.resIdx + '">' +
                '  <input type="hidden" name="nowPage"       value="' + CURRENT_PAGE + '">' +
                '  <input type="hidden" name="startDate"    value="${searchVO.startDate}">' +
@@ -695,7 +695,7 @@ function renderFooterButtons(d) {
 
     /* CONFIRMED / USING → 이용 완료 처리 버튼 */
     if (d.resStatus === 'CONFIRMED' || d.resStatus === 'USING') {
-        html = '<form method="post" action="/admin/reservation/complete" class="d-inline">' +
+        html = '<form method="post" action="${ctx}/admin/reservation/complete" class="d-inline">' +
                '  <input type="hidden" name="resIdx"        value="' + d.resIdx + '">' +
                '  <input type="hidden" name="nowPage"       value="' + CURRENT_PAGE + '">' +
                '  <input type="hidden" name="startDate"    value="${searchVO.startDate}">' +

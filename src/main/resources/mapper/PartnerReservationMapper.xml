@@ -194,7 +194,7 @@
         WHERE b.p_idx = #{partnerIdx}
           AND YEAR(r.r_start_time)  = #{year}
           AND MONTH(r.r_start_time) = #{month}
-        GROUP BY DATE(r.r_start_time), s.s_idx, s.s_name
+        GROUP BY DATE_FORMAT(r.r_start_time, '%Y-%m-%d'), s.s_idx, s.s_name
         ORDER BY event_date, s.s_name
     </select>
 
