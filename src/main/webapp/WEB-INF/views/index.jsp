@@ -2,9 +2,7 @@
 <%@ taglib prefix="c"  uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
-<%@ include file="layout/header.jsp" %>
-
-<main>
+<%@ include file="layout/header.jsp" %> <main>
     <section class="hero-section">
         <div class="hero-overlay"></div>
         <div class="container hero-inner">
@@ -24,60 +22,134 @@
                     cursor: pointer !important;
                     width: 100%;
                 }
-                /* 비활성화(disabled) 상태일 때의 스타일 */
+                /* 비활성화 상태일 때의 스타일 */
                 .search-item select:disabled { background-color: #f5f5f5 !important; cursor: not-allowed !important; color: #ccc !important; }
                 .search-bar-round { max-width: 1000px !important; }
 
-                /* 이벤트 슬라이더 - 고정 높이 제거, 이미지 크기에 맞게 자동 늘어남 */
-                /* [수정] 스크롤 강제 생성 버그를 막기 위해 overflow: hidden 으로 통합 */
-                .promo-slider-container { position: relative; overflow: hidden; border-radius: 12px; margin-top: 30px; cursor: pointer; }
+                /* 이벤트 슬라이더 배경색 제거 및 테두리 추가 */
+                .promo-slider-container {
+                    position: relative;
+                    overflow: hidden;
+                    border-radius: 12px;
+                    margin-top: 30px;
+                    cursor: pointer;
+                    background: #ffffff; /* 깔끔한 화이트 배경 */
+                    border: 1px solid #e5e7eb; /* 연한 회색 테두리 */
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                }
                 .promo-track { display: flex; transition: transform 0.5s ease-in-out; }
-                /* 슬라이드 내부 여백 조정: 왼쪽 여백을 60px로 늘려 버튼과 겹침 방지 */
-                .promo-slide { display: flex; align-items: center; gap: 20px; text-decoration: none; color: #fff; padding: 24px 36px 24px 60px; box-sizing: border-box; position: relative; border-radius: 12px; }
-                /* 슬라이드 그라데이션 배경 (순서대로 반복) */
-                .promo-slide:nth-child(5n+1) { background: linear-gradient(135deg, #2F4F4F 0%, #007A8A 100%); }
-                .promo-slide:nth-child(5n+2) { background: linear-gradient(135deg, #1a3a5c 0%, #2563eb 100%); }
-                .promo-slide:nth-child(5n+3) { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); }
-                .promo-slide:nth-child(5n+4) { background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%); }
-                .promo-slide:nth-child(5n+5) { background: linear-gradient(135deg, #065f46 0%, #10b981 100%); }
-                .promo-slide::before { content: ''; position: absolute; right: -30px; top: -30px; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,0.07); }
-                .promo-slide-badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 1px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); border-radius: 20px; padding: 3px 10px; margin-bottom: 10px; }
-                .promo-slide-title { font-size: 20px; font-weight: 800; margin: 0 0 8px 0; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 600px; }
-                .promo-slide-date { font-size: 13px; opacity: 0.75; }
-                .promo-slide-arrow { position: absolute; right: 30px; top: 50%; transform: translateY(-50%); font-size: 28px; opacity: 0.5; }
 
-                /* 슬라이드 이미지 열: 높이 제한 없음 - 이미지 원본 크기대로 표시 */
-                .promo-slide-text { flex: 1; min-width: 0; }
-                .promo-slide-img-col { flex-shrink: 0; max-width: 300px; display: flex; align-items: center; justify-content: center; }
-                .promo-slide-img { max-width: 300px; width: auto; height: auto; border-radius: 6px; display: block; }
+                /* 슬라이드 내부 여백 및 텍스트 색상(검정색) 설정 */
+                .promo-slide {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    gap: 35px;
+                    text-decoration: none;
+                    color: #1f2937; /* 진한 회색 글자 */
+                    padding: 24px 40px 24px 85px;
+                    box-sizing: border-box;
+                    position: relative;
+                    border-radius: 12px;
+                    background: #ffffff;
+                }
 
-                /* 슬라이더 좌우 화살표 */
-                .promo-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 20; background: rgba(255,255,255,0.2); border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; backdrop-filter: blur(4px); }
-                .promo-nav:hover { background: rgba(255,255,255,0.4); }
+                /* 배너 닫기 버튼(X) 스타일 */
+                .promo-close {
+                    position: absolute;
+                    top: 15px;
+                    right: 15px;
+                    z-index: 30;
+                    background: rgba(0,0,0,0.05);
+                    border: none;
+                    color: #9ca3af;
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 16px;
+                    transition: 0.2s;
+                }
+                .promo-close:hover { background: #ef4444; color: white; }
+
+                /* 배지 및 제목 스타일 */
+                .promo-slide-badge {
+                    display: inline-block;
+                    font-size: 11px;
+                    font-weight: 700;
+                    letter-spacing: 1px;
+                    background: #f3f4f6;
+                    color: #374151;
+                    border: 1px solid #d1d5db;
+                    border-radius: 20px;
+                    padding: 3px 12px;
+                    margin-bottom: 10px;
+                }
+                .promo-slide-title {
+                    font-size: 21px;
+                    font-weight: 800;
+                    margin: 0 0 8px 0;
+                    line-height: 1.3;
+                    color: #111827;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    max-width: 500px;
+                }
+                .promo-slide-date { font-size: 13px; color: #6b7280; }
+                .promo-slide-arrow { position: absolute; right: 35px; top: 50%; transform: translateY(-50%); font-size: 24px; color: #d1d5db; }
+
+                /* 이미지 영역 크기 및 비율 유지 */
+                .promo-slide-text { flex: 1; min-width: 0; order: 2; }
+                .promo-slide-img-col {
+                    flex-shrink: 0;
+                    width: 200px;
+                    height: 140px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    order: 1;
+                    overflow: hidden;
+                    border-radius: 8px;
+                    background: #f9fafb;
+                }
+                .promo-slide-img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain; /* 글자 안 잘리게 비율 맞춰 전체 노출 */
+                    display: block;
+                }
+
+                /* 슬라이더 이동 버튼 */
+                .promo-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 20; background: rgba(0,0,0,0.05); border: none; color: #4b5563; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+                .promo-nav:hover { background: rgba(0,0,0,0.1); }
                 .promo-nav.prev { left: 14px; }
                 .promo-nav.next { right: 14px; }
 
-                /* 슬라이더 점 디자인 - 슬라이더 아래 별도 행으로 배치 */
+                /* 도트 인디케이터 */
                 .promo-dots-bar { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
-                .promo-dot { width: 10px; height: 10px; border-radius: 50%; background-color: rgba(47,79,79,0.35); cursor: pointer; transition: 0.3s; }
-                .promo-dot.active { background-color: #2F4F4F; width: 25px; border-radius: 5px; }
+                .promo-dot { width: 8px; height: 8px; border-radius: 50%; background-color: #d1d5db; cursor: pointer; transition: 0.3s; }
+                .promo-dot.active { background-color: #4b5563; width: 20px; border-radius: 5px; }
 
-                /* 후기 슬라이더 스타일 수정 */
+                /* 후기 그리드 레이아웃 */
                 .review-slider-wrapper { position: relative; padding: 10px 0; }
                 .review-grid { display: flex; overflow-x: auto; gap: 20px; padding-bottom: 10px; scroll-behavior: smooth; scroll-snap-type: x mandatory; }
                 .review-grid::-webkit-scrollbar { display: none; }
 
-                /* 모든 카드의 높이를 360px로 고정 */
+                /* 리뷰 카드 설정 */
                 .review-card { flex: 0 0 calc(33.333% - 13.4px); height: 360px; scroll-snap-align: start; transition: transform 0.3s ease; display: flex; flex-direction: column; text-decoration: none; color: inherit; background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; overflow: hidden; }
                 .review-card:hover { transform: translateY(-5px); }
 
-                /* 텍스트 컨텐츠 박스 가운데 정렬 */
                 .rev-content-box { padding: 25px 20px; display: flex; flex-direction: column; flex-grow: 1; justify-content: center; }
 
                 .review-arrow { background: #fff; color: #333; border: 1px solid #ddd; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.2s; }
                 .review-arrow:hover { background: #f8f9fa; border-color: #bbb; color: #007A8A; }
 
-                /* 랜선 투어 인라인 비디오 스타일 */
+                /* 비디오 영역 스타일 */
                 .inline-video-container { position: relative; border-radius: 12px; overflow: hidden; margin-top: 25px; height: 350px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); background: #000; cursor: pointer; }
                 .inline-video-container video { width: 100%; height: 100%; object-fit: cover; }
                 .inline-video-container.playing video { object-fit: contain; }
@@ -87,7 +159,6 @@
                 .play-icon-circle { width: 55px; height: 55px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 12px; backdrop-filter: blur(4px); transition: 0.3s; }
                 .inline-video-container:hover .play-icon-circle { background: #007A8A; border-color: #007A8A; transform: scale(1.1); }
 
-                /* 카테고리 카드 링크 스타일: 텍스트 꾸밈 제거 및 블록화 */
                 .category-link { text-decoration: none; color: inherit; display: block; }
                 .category-link:hover .category-card { border-color: #007A8A; transform: translateY(-3px); transition: 0.3s; }
             </style>
@@ -155,8 +226,12 @@
         </div>
     </section>
 
-    <div class="container">
+    <div class="container" id="promoWrapper">
         <div class="promo-slider-container" id="promoContainer">
+
+            <button type="button" class="promo-close" onclick="closePromoBanner()" title="닫기">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
 
             <div class="promo-track" id="promoTrack">
                 <c:choose>
@@ -170,11 +245,10 @@
                                             <c:when test="${fn:startsWith(ev.ntcImg, 'http')}">
                                                 <img src="${ev.ntcImg}" alt="${ev.ntcTitle}" class="promo-slide-img">
                                             </c:when>
-                                            <c:when test="${fn:startsWith(ev.ntcImg, '/')}">
-                                                <img src="${pageContext.request.contextPath}${ev.ntcImg}" alt="${ev.ntcTitle}" class="promo-slide-img">
-                                            </c:when>
                                             <c:otherwise>
-                                                <img src="${pageContext.request.contextPath}/static/upload/notice/${ev.ntcImg}" alt="${ev.ntcTitle}" class="promo-slide-img">
+                                                <c:set var="fullName" value="${ev.ntcImg}" />
+                                                <c:set var="fileName" value="${fn:contains(fullName, '/') ? fn:split(fullName, '/')[fn:length(fn:split(fullName, '/'))-1] : fullName}" />
+                                                <img src="${pageContext.request.contextPath}/static/upload/notice/${fileName}" alt="${ev.ntcTitle}" class="promo-slide-img">
                                             </c:otherwise>
                                         </c:choose>
                                     </div>
@@ -189,22 +263,16 @@
                                         </c:if>
                                     </p>
                                 </div>
-
-                                <c:if test="${empty ev.ntcImg}">
-                                    <span class="promo-slide-arrow">›</span>
-                                </c:if>
                             </a>
                         </c:forEach>
                     </c:when>
                     <c:otherwise>
-                        <a href="${pageContext.request.contextPath}/notice/list?activeFilter=1"
-                           class="promo-slide">
+                        <a href="${pageContext.request.contextPath}/notice/list?activeFilter=1" class="promo-slide">
                             <div>
                                 <span class="promo-slide-badge">EVENT</span>
                                 <h3 class="promo-slide-title">진행 중인 이벤트를 확인하세요</h3>
                                 <p class="promo-slide-date">Link Ora 공지/이벤트 페이지</p>
                             </div>
-                            <span class="promo-slide-arrow">›</span>
                         </a>
                     </c:otherwise>
                 </c:choose>
@@ -229,6 +297,11 @@
         </div>
 
         <script>
+        /* 이벤트 배너 영역 숨김 처리 기능 */
+        function closePromoBanner() {
+            document.getElementById('promoWrapper').style.display = 'none';
+        }
+
         (function() {
             var track = document.getElementById('promoTrack');
             if (!track) return;
@@ -341,136 +414,48 @@
 
             <div class="review-slider-wrapper">
                 <div class="review-grid" id="reviewGrid">
-                    <c:forEach var="rev" items="${recentReviews}">
-                        <a href="${pageContext.request.contextPath}/detail/detail?brnIdx=${rev.brnIdx}" class="review-card">
-                            <div class="rev-img-box" style="height: 180px; flex-shrink: 0; overflow: hidden;">
-                                <c:choose>
-                                    <c:when test="${not empty rev.revImg}">
+                    <c:choose>
+                        <c:when test="${not empty recentReviews}">
+                            <c:forEach var="rev" items="${recentReviews}">
+                                <a href="${pageContext.request.contextPath}/detail/detail?brnIdx=${rev.brnIdx}" class="review-card">
+                                    <div class="rev-img-box" style="height: 180px; flex-shrink: 0; overflow: hidden;">
+                                        <c:set var="revImgName" value="${rev.revImg}" />
+                                        <c:set var="revImgOnly" value="${fn:contains(revImgName, '/') ? fn:split(revImgName, '/')[fn:length(fn:split(revImgName, '/'))-1] : revImgName}" />
+
                                         <c:choose>
-                                            <c:when test="${fn:startsWith(rev.revImg, 'http')}">
-                                                <img src="${rev.revImg}" style="width: 100%; height: 100%; object-fit: cover;">
-                                            </c:when>
-                                            <c:when test="${fn:startsWith(rev.revImg, '/')}">
-                                                <img src="${pageContext.request.contextPath}${rev.revImg}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            <c:when test="${not empty rev.revImg}">
+                                                <img src="${pageContext.request.contextPath}/static/upload/review/${revImgOnly}" style="width: 100%; height: 100%; object-fit: cover;">
                                             </c:when>
                                             <c:otherwise>
-                                                <img src="${pageContext.request.contextPath}/static/upload/review/${rev.revImg}" style="width: 100%; height: 100%; object-fit: cover;">
+                                                <img src="${pageContext.request.contextPath}/static/images/default_office.png" style="width: 100%; height: 100%; object-fit: cover;">
                                             </c:otherwise>
                                         </c:choose>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <img src="${pageContext.request.contextPath}/static/images/default_office.png"
-                                             style="width: 100%; height: 100%; object-fit: cover;">
-                                    </c:otherwise>
-                                </c:choose>
+                                    </div>
+                                    <div class="rev-content-box">
+                                        <div class="rev-stars" style="display: flex; align-items: center; margin-bottom: 12px;">
+                                            <span style="background: #f0f4f4; color: #007A8A; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; margin-right: 8px;">
+                                                [<c:out value="${rev.branchName}" default="지점명"/>]
+                                            </span>
+                                            <i class="fa-solid fa-star" style="color: #ffc107; margin-right: 4px;"></i>
+                                            <span style="font-weight: 700; font-size: 14px; color: #333;">${rev.revRating}</span>
+                                        </div>
+                                        <p style="font-size: 14px; color: #444; line-height: 1.6; height: 4.8em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; margin: 0;">
+                                            "${rev.revContent}"
+                                        </p>
+                                        <div class="rev-info" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                                            <span style="font-weight: 700; font-size: 13px;">${rev.authorName}</span>
+                                            <span style="color: #999; font-size: 12px;">${rev.revCreatedAt}</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </c:forEach>
+                        </c:when>
+                        <c:otherwise>
+                            <div style="display: flex; justify-content: center; align-items: center; width: 100%; height: 200px; background: #f9f9f9; border: 1px dashed #ddd; border-radius: 12px;">
+                                <p style="color: #999; font-size: 15px; margin: 0;">등록된 후기가 없습니다.</p>
                             </div>
-                            <div class="rev-content-box">
-                                <div class="rev-stars" style="display: flex; align-items: center; margin-bottom: 12px;">
-                                    <span style="background: #f0f4f4; color: #007A8A; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; margin-right: 8px;">
-                                        [<c:out value="${rev.branchName}" default="지점명"/>]
-                                    </span>
-                                    <i class="fa-solid fa-star" style="color: #ffc107; margin-right: 4px;"></i>
-                                    <span style="font-weight: 700; font-size: 14px; color: #333;">${rev.revRating}</span>
-                                </div>
-                                <p style="font-size: 14px; color: #444; line-height: 1.6; height: 4.8em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; margin: 0;">
-                                    "${rev.revContent}"
-                                </p>
-                                <div class="rev-info" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-weight: 700; font-size: 13px;">${rev.authorName}</span>
-                                    <span style="color: #999; font-size: 12px;">${rev.revCreatedAt}</span>
-                                </div>
-                            </div>
-                        </a>
-                    </c:forEach>
-
-                    <c:if test="${empty recentReviews}">
-                        <a href="${pageContext.request.contextPath}/review/detail?revIdx=1" class="review-card">
-                            <div class="rev-content-box">
-                                <div class="rev-stars" style="display: flex; align-items: center; margin-bottom: 12px;">
-                                    <span style="background: #f0f4f4; color: #007A8A; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; margin-right: 8px;">[강남점]</span>
-                                    <i class="fa-solid fa-star" style="color: #ffc107; margin-right: 4px;"></i>
-                                    <span style="font-weight: 700; font-size: 14px; color: #333;">4.5</span>
-                                </div>
-                                <p style="font-size: 14px; color: #444; line-height: 1.6; height: 4.8em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; margin: 0;">
-                                    "회의실 예약이 간편해서 프로젝트 미팅할 때마다 여기만 이용합니다. 역이랑 가까워서 팀원들이 다 좋아해요!"
-                                </p>
-                                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-weight: 700; font-size: 13px;">Workholic</span>
-                                    <span style="color: #999; font-size: 12px;">2026-04-10</span>
-                                </div>
-                            </div>
-                        </a>
-                        <a href="${pageContext.request.contextPath}/review/detail?revIdx=2" class="review-card">
-                            <div class="rev-img-box" style="height: 180px; flex-shrink: 0; overflow: hidden;">
-                                <img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=400&q=60" style="width: 100%; height: 100%; object-fit: cover;">
-                            </div>
-                            <div class="rev-content-box">
-                                <div class="rev-stars" style="display: flex; align-items: center; margin-bottom: 12px;">
-                                    <span style="background: #f0f4f4; color: #007A8A; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; margin-right: 8px;">[송도점]</span>
-                                    <i class="fa-solid fa-star" style="color: #ffc107; margin-right: 4px;"></i>
-                                    <span style="font-weight: 700; font-size: 14px; color: #333;">5.0</span>
-                                </div>
-                                <p style="font-size: 14px; color: #444; line-height: 1.6; height: 4.8em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; margin: 0;">
-                                    "인테리어가 카페 같아서 일할 맛이 나네요. 화상회의 부스도 따로 있어서 유용하게 썼습니다."
-                                </p>
-                                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-weight: 700; font-size: 13px;">디자인크루</span>
-                                    <span style="color: #999; font-size: 12px;">2026-04-08</span>
-                                </div>
-                            </div>
-                        </a>
-                        <a href="${pageContext.request.contextPath}/review/detail?revIdx=3" class="review-card">
-                            <div class="rev-content-box">
-                                <div class="rev-stars" style="display: flex; align-items: center; margin-bottom: 12px;">
-                                    <span style="background: #f0f4f4; color: #007A8A; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; margin-right: 8px;">[홍대점]</span>
-                                    <i class="fa-solid fa-star" style="color: #ffc107; margin-right: 4px;"></i>
-                                    <span style="font-weight: 700; font-size: 14px; color: #333;">4.0</span>
-                                </div>
-                                <p style="font-size: 14px; color: #444; line-height: 1.6; height: 4.8em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; margin: 0;">
-                                    "프린터 이용이 무료라서 서류 작업할 때 아주 요긴합니다. 고층이라 시티뷰도 너무 예뻐요. 다음에도 여기로 예약할 예정입니다."
-                                </p>
-                                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-weight: 700; font-size: 13px;">코딩하는라이언</span>
-                                    <span style="color: #999; font-size: 12px;">2026-04-05</span>
-                                </div>
-                            </div>
-                        </a>
-                        <a href="${pageContext.request.contextPath}/review/detail?revIdx=4" class="review-card">
-                            <div class="rev-img-box" style="height: 180px; flex-shrink: 0; overflow: hidden;">
-                                <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32b7?auto=format&fit=crop&w=400&q=60" style="width: 100%; height: 100%; object-fit: cover;">
-                            </div>
-                            <div class="rev-content-box">
-                                <div class="rev-stars" style="display: flex; align-items: center; margin-bottom: 12px;">
-                                    <span style="background: #f0f4f4; color: #007A8A; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; margin-right: 8px;">[여의도점]</span>
-                                    <i class="fa-solid fa-star" style="color: #ffc107; margin-right: 4px;"></i>
-                                    <span style="font-weight: 700; font-size: 14px; color: #333;">5.0</span>
-                                </div>
-                                <p style="font-size: 14px; color: #444; line-height: 1.6; height: 4.8em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; margin: 0;">
-                                    "라운지 공간이 넓고 쾌적해서 미팅 전후로 휴식하기 정말 좋습니다. 직원분들도 아주 친절하셔요."
-                                </p>
-                                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-weight: 700; font-size: 13px;">스타트업CEO</span>
-                                    <span style="color: #999; font-size: 12px;">2026-04-03</span>
-                                </div>
-                            </div>
-                        </a>
-                        <a href="${pageContext.request.contextPath}/review/detail?revIdx=5" class="review-card">
-                            <div class="rev-content-box">
-                                <div class="rev-stars" style="display: flex; align-items: center; margin-bottom: 12px;">
-                                    <span style="background: #f0f4f4; color: #007A8A; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; margin-right: 8px;">[성수점]</span>
-                                    <i class="fa-solid fa-star" style="color: #ffc107; margin-right: 4px;"></i>
-                                    <span style="font-weight: 700; font-size: 14px; color: #333;">4.5</span>
-                                </div>
-                                <p style="font-size: 14px; color: #444; line-height: 1.6; height: 4.8em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; margin: 0;">
-                                    "방음이 잘 되어서 화상회의 할 때 눈치 보이지 않고 편하게 할 수 있었어요. 모니터 대여도 가능해서 좋았습니다."
-                                </p>
-                                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-weight: 700; font-size: 13px;">프리랜서개발자</span>
-                                    <span style="color: #999; font-size: 12px;">2026-04-01</span>
-                                </div>
-                            </div>
-                        </a>
-                    </c:if>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </div>
         </section>
@@ -478,11 +463,9 @@
     </div>
 
     <script>
-        // 비디오 재생 및 플레이리스트 처리
         function playTourVideo() {
             const video = document.getElementById('tourVideo');
             const container = document.getElementById('tourVideoContainer');
-
             if (video.paused) {
                 video.controls = true;
                 video.play();
@@ -490,19 +473,14 @@
             }
         }
 
-        // 첫 번째 영상이 끝나면 두 번째 영상으로 자동 전환
         document.getElementById('tourVideo').onended = function() {
-            const video = this;
             const introSrc = "${pageContext.request.contextPath}/static/upload/video/link_ora_소개.mp4";
-
-            /* 현재 재생 중인 영상이 투어 영상이면 소개 영상으로 교체 */
-            if (video.src.includes('office_tour.mp4')) {
-                video.src = introSrc;
-                video.play();
+            if (this.src.includes('office_tour.mp4')) {
+                this.src = introSrc;
+                this.play();
             }
         };
 
-        // 리뷰 그리드 스크롤
         function scrollReview(direction) {
             const grid = document.getElementById('reviewGrid');
             const card = grid.querySelector('.review-card');
@@ -512,7 +490,6 @@
             }
         }
 
-        // 지역 데이터 매핑
         const districtMap = {
             <c:forEach var="entry" items="${regionMap}" varStatus="status">
                 "${entry.key}": [
@@ -523,28 +500,17 @@
             </c:forEach>
         };
 
-        // 시/도, 상세 구 값을 합쳐서 hidden input에 업데이트하는 함수
         function updateRegionInput() {
             const city = document.getElementById('citySelect').value;
             const district = document.getElementById('districtSelect').value;
             const actualRegion = document.getElementById('actualRegion');
-
-            if (city && district) {
-                actualRegion.value = city + " " + district;
-            } else if (city) {
-                actualRegion.value = city;
-            } else {
-                actualRegion.value = "";
-            }
+            actualRegion.value = (city && district) ? city + " " + district : (city || "");
         }
 
-        // 시/도 선택 시 상세 지역 목록을 갱신하는 함수
         function updateDistricts() {
             const city = document.getElementById('citySelect').value;
             const districtSelect = document.getElementById('districtSelect');
-
             districtSelect.innerHTML = '<option value="">상세 지역</option>';
-
             if (city && districtMap[city]) {
                 districtSelect.disabled = false;
                 districtMap[city].forEach(dist => {
@@ -556,39 +522,25 @@
             } else {
                 districtSelect.disabled = true;
             }
-
-            // 시/도 값이 바뀔 때마다 hidden input 값 갱신
             updateRegionInput();
         }
 
-        // 페이지 로드 시 기존에 선택했던 지역 값을 세팅
         document.addEventListener('DOMContentLoaded', () => {
             const savedRegion = "${region}";
-
             if (savedRegion) {
                 const parts = savedRegion.split(' ');
-                const savedCity = parts[0];
-                const savedDistrict = parts.length > 1 ? parts[1] : '';
-
                 const citySelect = document.getElementById('citySelect');
-
-                if (citySelect && [...citySelect.options].some(opt => opt.value === savedCity)) {
-                    citySelect.value = savedCity;
+                if (citySelect && [...citySelect.options].some(opt => opt.value === parts[0])) {
+                    citySelect.value = parts[0];
                     updateDistricts();
-
-                    if (savedDistrict) {
-                        const districtSelect = document.getElementById('districtSelect');
-                        if (districtSelect && [...districtSelect.options].some(opt => opt.value === savedDistrict)) {
-                            districtSelect.value = savedDistrict;
-                        }
-                    }
+                    if (parts[1]) document.getElementById('districtSelect').value = parts[1];
                 }
             }
         });
     </script>
 
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=cd1f0f4ad9dcf4879bee2531dc5a0497&libraries=services&autoload=false"></script>
-    <script src="${pageContext.request.contextPath}/js/mp_script.js"></script>
+    <script src="${pageContext.request.contextPath}/static/js/mp_script.js"></script>
 
 </main>
 
