@@ -29,4 +29,10 @@ public interface NoticeService {
 
     /** 공지 삭제 */
     int deleteNotice(String n_idx);
+
+    /** 이전 공지 */
+    NoticeVO getPrevNotice(String ntcIdx);
+
+    /** 다음 공지 */
+    NoticeVO getNextNotice(String ntcIdx);
 }

@@ -41,10 +41,15 @@ public class PartnerWebController {
     @GetMapping("/partner/mypage")
     public String partnerMyPage(
             Authentication authentication,
+            HttpServletRequest request,
+            HttpServletResponse response,
             Model model,
             @RequestParam(value = "withdrawError", required = false) String withdrawError,
             @RequestParam(value = "pwdError", required = false) String pwdError,
-            @RequestParam(value = "pwdChanged", required = false) String pwdChanged
+            @RequestParam(value = "pwdChanged", required = false) String pwdChanged,
+            @RequestParam(value = "infoUpdated", required = false) String infoUpdated,
+            @RequestParam(value = "profileUpdated", required = false) String profileUpdated,
+            @RequestParam(value = "profileError", required = false) String profileError
     ) {
         if (WebAuthUtils.isAnonymous(authentication)) {
             return "redirect:/loginPage";
@@ -54,6 +59,10 @@ public class PartnerWebController {
         }
         String partnerId = authentication.getName();
         PartnerVO partner = partnerService.getByPartnerId(partnerId);
+        if (partner != null && Integer.valueOf(0).equals(partner.getActive())) {
+            WebAuthUtils.performLogout(request, response, authentication);
+            return "redirect:/loginPage?error=inactive";
+        }
         model.addAttribute("partnerId", partnerId);
         model.addAttribute("name", partner != null ? partner.getName() : "");
         model.addAttribute("email", partner != null ? partner.getEmail() : "");
@@ -64,6 +73,9 @@ public class PartnerWebController {
         model.addAttribute("withdrawError", withdrawError);
         model.addAttribute("pwdError", pwdError);
         model.addAttribute("pwdChanged", pwdChanged);
+        model.addAttribute("infoUpdated", infoUpdated);
+        model.addAttribute("profileUpdated", profileUpdated);
+        model.addAttribute("profileError", profileError);
         return "partner/mypage";
     }
 
@@ -77,11 +89,12 @@ public class PartnerWebController {
         if (WebAuthUtils.isAnonymous(authentication) || !WebAuthUtils.hasRole(authentication, "ROLE_PARTNER")) {
             return "redirect:/loginPage";
         }
-        if (!Objects.equals(newPassword, newPasswordConfirm)) {
-            return "redirect:/partner/mypage?pwdError=mismatch";
-        }
+        // null·길이 체크를 일치 여부보다 먼저 수행 (NPE 방지)
         if (newPassword == null || newPassword.length() < 8) {
             return "redirect:/partner/mypage?pwdError=weak";
+        }
+        if (!Objects.equals(newPassword, newPasswordConfirm)) {
+            return "redirect:/partner/mypage?pwdError=mismatch";
         }
         if (!PasswordPolicy.meetsComplexity(newPassword)) {
             return "redirect:/partner/mypage?pwdError=complex";
@@ -97,6 +110,33 @@ public class PartnerWebController {
         return "redirect:/partner/mypage?pwdChanged=success";
     }
 
+    @PostMapping("/partner/mypage/info")
+    public String updatePartnerInfo(
+            Authentication authentication,
+            @RequestParam("name") String name,
+            @RequestParam("email") String email,
+            @RequestParam("phone") String phone,
+            @RequestParam("address") String address,
+            @RequestParam(value = "profileImage", required = false) MultipartFile profileImage
+    ) {
+        if (WebAuthUtils.isAnonymous(authentication) || !WebAuthUtils.hasRole(authentication, "ROLE_PARTNER")) {
+            return "redirect:/loginPage";
+        }
+        // 이미지가 첨부된 경우: 서버에 저장 후 DB에 경로 업데이트
+        if (profileImage != null && !profileImage.isEmpty()) {
+            try {
+                String path = profileImageStorage.storeIfValid(profileImage);
+                if (path != null) {
+                    partnerService.updateProfileImage(authentication.getName(), path);
+                }
+            } catch (Exception ignored) {
+                // 이미지 저장 실패해도 나머지 정보는 저장
+            }
+        }
+        partnerService.updateInfo(authentication.getName(), name, email, phone, address);
+        return "redirect:/partner/mypage?infoUpdated=success";
+    }
+
     @PostMapping("/partner/mypage/profile")
     public String changePartnerProfileImage(
             Authentication authentication,
@@ -106,17 +146,24 @@ public class PartnerWebController {
             return "redirect:/loginPage";
         }
         if (profileImage == null || profileImage.isEmpty()) {
-            return "redirect:/partner/mypage";
+            return "redirect:/partner/mypage?profileError=empty";
         }
         try {
+            // 서버 디스크에 저장 후 웹 경로(예: /uploads/profiles/uuid.jpg) 반환
             String path = profileImageStorage.storeIfValid(profileImage);
             if (path == null) {
-                return "redirect:/partner/mypage";
+                // 허용되지 않는 확장자이거나 content-type 거부
+                return "redirect:/partner/mypage?profileError=invalid";
             }
-            partnerService.updateProfileImage(authentication.getName(), path);
-        } catch (Exception ignored) {
+            // 반환된 웹 경로를 DB p_profile 컬럼에 저장
+            boolean saved = partnerService.updateProfileImage(authentication.getName(), path);
+            if (!saved) {
+                return "redirect:/partner/mypage?profileError=dbFail";
+            }
+        } catch (Exception e) {
+            return "redirect:/partner/mypage?profileError=serverError";
         }
-        return "redirect:/partner/mypage";
+        return "redirect:/partner/mypage?profileUpdated=success";
     }
 
     @PostMapping("/partner/mypage/delete")
@@ -136,9 +183,18 @@ public class PartnerWebController {
         if (!passwordEncoder.matches(currentPassword, partner.getPassword())) {
             return "redirect:/partner/mypage?withdrawError=password";
         }
-        partnerService.deleteByPartnerId(authentication.getName());
+        boolean deleted = partnerService.deleteByPartnerId(authentication.getName());
+        if (!deleted) {
+            return "redirect:/partner/mypage?withdrawError=failed";
+        }
         WebAuthUtils.performLogout(request, response, authentication);
         return "redirect:/loginPage?withdraw=success";
+    }
+
+    @GetMapping("/partner/mypage/delete")
+    public String denyPartnerGetDelete() {
+        // 탈퇴는 POST 제출(모달 비밀번호 확인)로만 허용
+        return "redirect:/partner/mypage?withdrawError=method";
     }
 
     private static String formatBizNo(String value) {

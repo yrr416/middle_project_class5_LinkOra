@@ -49,7 +49,7 @@
         <div class="text-center px-3 pb-2">
             <div class="sidebar-avatar mx-auto">
                 <% if (request.getAttribute("profileImage") != null && !((String) request.getAttribute("profileImage")).isBlank()) { %>
-                <img src="${profileImage}" alt="프로필">
+                <img src="${ctx}${profileImage}" alt="프로필">
                 <% } else { %>
                 🏪
                 <% } %>
@@ -60,10 +60,11 @@
         <nav class="nav flex-column mt-1">
             <span class="nav-link text-white-50 small px-3 pt-2 pb-1">파트너 메뉴</span>
             <a class="nav-link" href="${ctx}/partner/reservation/list"><i class="bi bi-calendar-check"></i>파트너 예약관리</a>
-            <a class="nav-link" href="${ctx}/partner/register/step1"><i class="bi bi-person-badge"></i>파트너 등록</a>
+            <a class="nav-link" href="${ctx}/partner/register/step1"><i class="bi bi-person-badge"></i>매물 등록</a>
             <hr class="border-secondary mx-3">
             <a class="nav-link" href="${ctx}/partner/mypage"><i class="bi bi-person-circle"></i>마이페이지</a>
             <a class="nav-link" href="${ctx}/" target="_blank"><i class="bi bi-house"></i>홈페이지 이동</a>
+            <a class="nav-link text-danger" href="${ctx}/logoutNow"><i class="bi bi-box-arrow-right"></i>로그아웃</a>
         </nav>
     </div>
 
@@ -74,9 +75,6 @@
                 <h5 class="mb-1 fw-bold"><i class="bi bi-person-circle me-2 text-primary"></i>사업자 마이페이지</h5>
                 <small class="text-muted">사업자 계정 정보를 확인하고 관리합니다.</small>
             </div>
-            <a class="partner-page-btn" href="${ctx}/partner/reservation/list">
-                <i class="bi bi-calendar-check"></i>파트너 페이지
-            </a>
         </div>
 
         <!-- 프로필 정보 -->
@@ -84,7 +82,7 @@
             <div class="d-flex align-items-center gap-3 mb-4">
                 <div style="width:56px;height:56px;border-radius:50%;background:#3730a3;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;border:2px solid #e6e8ec;">
                     <% if (request.getAttribute("profileImage") != null && !((String) request.getAttribute("profileImage")).isBlank()) { %>
-                    <img src="${profileImage}" alt="프로필" style="width:100%;height:100%;object-fit:cover;">
+                    <img src="${ctx}${profileImage}" alt="프로필" style="width:100%;height:100%;object-fit:cover;">
                     <% } else { %>
                     🏪
                     <% } %>
@@ -94,11 +92,10 @@
                     <span class="badge" style="background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;font-size:11px;">사업자 계정 | LinkOra</span>
                 </div>
                 <div class="ms-auto">
-                    <form method="post" action="${ctx}/partner/mypage/profile" enctype="multipart/form-data">
-                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-                        <label class="btn btn-sm btn-outline-secondary" for="partnerProfileImageFile" style="cursor:pointer;">프로필 수정</label>
-                        <input id="partnerProfileImageFile" name="profileImage" type="file" accept="image/*" style="display:none" onchange="this.form.submit()">
-                    </form>
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                            onclick="openProfileModal()">
+                        <i class="bi bi-pencil-square me-1"></i>프로필 수정
+                    </button>
                 </div>
             </div>
 
@@ -129,6 +126,30 @@
                 </div>
             </div>
         </div>
+
+        <!-- 프로필 이미지 업로드 결과 메시지 -->
+        <% if ("success".equals(request.getAttribute("profileUpdated"))) { %>
+        <div class="alert alert-success py-2 px-3 mb-3" style="font-size:13px;">
+            <i class="bi bi-check-circle me-1"></i>프로필 이미지가 변경되었습니다.
+        </div>
+        <% } %>
+        <% if (request.getAttribute("profileError") != null) { %>
+        <div class="alert alert-danger py-2 px-3 mb-3" style="font-size:13px;">
+            <i class="bi bi-exclamation-circle me-1"></i>
+            <% if ("empty".equals(request.getAttribute("profileError"))) { %>파일을 선택해주세요.
+            <% } else if ("invalid".equals(request.getAttribute("profileError"))) { %>jpg, jpeg, png, gif, webp 형식만 업로드 가능합니다.
+            <% } else if ("dbFail".equals(request.getAttribute("profileError"))) { %>이미지 저장에 실패했습니다. 다시 시도해주세요.
+            <% } else { %>서버 오류가 발생했습니다. 다시 시도해주세요.
+            <% } %>
+        </div>
+        <% } %>
+
+        <!-- 정보 수정 성공 메시지 -->
+        <% if ("success".equals(request.getAttribute("infoUpdated"))) { %>
+        <div class="alert alert-success py-2 px-3 mb-3" style="font-size:13px;">
+            <i class="bi bi-check-circle me-1"></i>정보가 성공적으로 수정되었습니다.
+        </div>
+        <% } %>
 
         <!-- 비밀번호 변경 -->
         <div class="password-card">
@@ -194,6 +215,79 @@
 </div>
 </div>
 
+<!-- 프로필 수정 모달 -->
+<div id="profileEditModal"
+     style="position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:1000;"
+     role="dialog" aria-modal="true">
+    <div style="width:100%;max-width:480px;background:#fff;border-radius:14px;padding:28px 24px;box-shadow:0 14px 32px rgba(15,23,42,.2);">
+
+        <!-- 모달 헤더 -->
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-person-gear me-2 text-primary"></i>프로필 수정</h5>
+            <button type="button" class="btn-close" onclick="closeProfileModal()"></button>
+        </div>
+
+        <!-- 정보 수정 폼 (이미지 포함) -->
+        <form method="post" action="${ctx}/partner/mypage/info" enctype="multipart/form-data">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+
+            <!-- 프로필 이미지 선택 (미리보기 — 저장 버튼을 눌러야 실제 저장) -->
+            <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded-3" style="background:#f8fafc;border:1px solid #e6e8ec;">
+                <div id="modalProfilePreview"
+                     style="width:52px;height:52px;border-radius:50%;background:#3730a3;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;flex-shrink:0;">
+                    <% if (request.getAttribute("profileImage") != null && !((String) request.getAttribute("profileImage")).isBlank()) { %>
+                    <img id="modalProfileImg" src="${ctx}${profileImage}" alt="프로필" style="width:100%;height:100%;object-fit:cover;">
+                    <% } else { %>
+                    <span id="modalProfileEmoji">🏪</span>
+                    <% } %>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-bold small mb-1">프로필 이미지</div>
+                    <label class="btn btn-sm btn-outline-secondary" for="partnerProfileImageFile" style="cursor:pointer;font-size:12px;">
+                        <i class="bi bi-image me-1"></i>이미지 선택
+                    </label>
+                    <!-- 파일 선택만 하고, 저장 버튼을 눌러야 서버에 전송됨 -->
+                    <input id="partnerProfileImageFile" name="profileImage" type="file" accept="image/*" style="display:none"
+                           onchange="previewProfileImage(this)">
+                    <span id="profileFileNameLabel" class="ms-2 text-muted" style="font-size:11px;"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-secondary">상호 / 담당자명</label>
+                <input type="text" name="name" class="form-control form-control-sm"
+                       value="${empty name ? '' : name}" required maxlength="50">
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-secondary">이메일</label>
+                <input type="email" name="email" class="form-control form-control-sm"
+                       value="${empty email ? '' : email}" required maxlength="100">
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-secondary">전화번호</label>
+                <input type="tel" name="phone" class="form-control form-control-sm"
+                       value="${empty phone ? '' : phone}" maxlength="20" placeholder="010-0000-0000">
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-secondary">주소</label>
+                <input type="text" name="address" class="form-control form-control-sm"
+                       value="${empty address ? '' : address}" maxlength="200">
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-secondary">사업자번호</label>
+                <input type="text" class="form-control form-control-sm" value="${empty bizNo ? '-' : bizNo}" disabled
+                       style="background:#f1f5f9;color:#64748b;">
+                <div class="form-text" style="font-size:11px;">사업자번호는 변경이 불가합니다.</div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="closeProfileModal()">취소</button>
+                <button type="submit" class="btn btn-sm btn-primary px-4">저장</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- 탈퇴 모달 -->
 <div id="withdrawModal" style="position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:1000;" role="dialog" aria-modal="true" aria-hidden="true">
     <div style="width:100%;max-width:360px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;box-shadow:0 14px 24px rgba(15,23,42,.2);">
@@ -209,6 +303,46 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// 프로필 수정 모달
+var profileEditModal = document.getElementById('profileEditModal');
+// 페이지 로드 시점의 원본 미리보기 HTML 저장 (취소 시 복원용)
+var originalProfilePreviewHTML = document.getElementById('modalProfilePreview').innerHTML;
+
+function openProfileModal() {
+    profileEditModal.style.display = 'flex';
+}
+
+function closeProfileModal() {
+    profileEditModal.style.display = 'none';
+    // 파일 선택 초기화
+    var fileInput = document.getElementById('partnerProfileImageFile');
+    if (fileInput) fileInput.value = '';
+    var label = document.getElementById('profileFileNameLabel');
+    if (label) label.textContent = '';
+    // 미리보기를 원본(현재 저장된 이미지)으로 복원
+    document.getElementById('modalProfilePreview').innerHTML = originalProfilePreviewHTML;
+}
+profileEditModal.addEventListener('click', function(e) { if (e.target === profileEditModal) closeProfileModal(); });
+document.addEventListener('keydown', function(e) {
+    if (profileEditModal.style.display === 'flex' && e.key === 'Escape') closeProfileModal();
+});
+
+// 이미지 선택 시 모달 안에서 미리보기 (서버 전송은 저장 버튼을 눌러야 함)
+function previewProfileImage(input) {
+    if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
+    var label = document.getElementById('profileFileNameLabel');
+    if (label) label.textContent = file.name;
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var preview = document.getElementById('modalProfilePreview');
+        // 기존 내용 제거 후 img 태그로 교체
+        preview.innerHTML = '<img src="' + e.target.result + '" alt="미리보기" style="width:100%;height:100%;object-fit:cover;">';
+    };
+    reader.readAsDataURL(file);
+}
+
 var withdrawTargetForm = null;
 var withdrawModal = document.getElementById('withdrawModal');
 var withdrawModalInput = document.getElementById('withdrawModalPassword');

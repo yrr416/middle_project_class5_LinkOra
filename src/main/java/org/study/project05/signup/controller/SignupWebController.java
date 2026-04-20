@@ -79,7 +79,10 @@ public class SignupWebController {
         if (trimmedUserId.isEmpty()) {
             return "redirect:/signup?error=failed";
         }
-        if (userProfileService.existsUserId(trimmedUserId) || partnerSignupService.existsPartnerId(trimmedUserId)) {
+        if (userProfileService.existsUserId(trimmedUserId)) {
+            return "redirect:/signup?error=duplicateId";
+        }
+        if (partnerSignupService.existsPartnerId(trimmedUserId)) {
             return "redirect:/signup?error=duplicateId";
         }
         if (userProfileService.existsEmail(trimmedEmail) || partnerSignupService.existsPartnerEmail(trimmedEmail)) {

@@ -18,12 +18,11 @@
         <result property="inqActive" column="i_active" />
     </resultMap>
 
-    <!-- 신규 문의 등록 -->
     <insert id="insertInquiry" parameterType="InquiryVO">
         INSERT INTO inquiries (
-            u_idx, i_category, i_title, i_content, i_status, i_created
+            u_idx, i_category, i_title, i_content, i_file_url, i_status, i_created
         ) VALUES (
-            #{userIdx}, #{inqCategory}, #{inqTitle}, #{inqContent}, '대기중', NOW()
+            #{userIdx}, #{inqCategory}, #{inqTitle}, #{inqContent}, #{inqFileUrl}, '대기중', NOW()
         )
     </insert>
 
@@ -48,7 +47,7 @@
     <!-- 특정 문의 상세 내용 및 관리자 답변 조회 -->
     <select id="selectInquiryDetail" parameterType="int" resultMap="inquiryResultMap">
         SELECT 
-            i_idx, u_idx, i_category, i_title, i_content, i_status, i_answer, 
+            i_idx, u_idx, i_category, i_title, i_content, i_file_url, i_status, i_answer, 
             DATE_FORMAT(i_created, '%Y.%m.%d %H:%i') AS i_created,
             DATE_FORMAT(i_answered, '%Y.%m.%d %H:%i') AS i_answered
         FROM inquiries 
@@ -60,7 +59,8 @@
         UPDATE inquiries
         SET i_category = #{inqCategory},
             i_title = #{inqTitle},
-            i_content = #{inqContent}
+            i_content = #{inqContent},
+            i_file_url = #{inqFileUrl}
         WHERE i_idx = #{inqIdx} AND i_status = '대기중'
     </update>
 

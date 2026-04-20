@@ -5,9 +5,11 @@
     <div id="chatbot-window" class="hidden">
         <div class="chatbot-header">
             <div class="bot-profile">
-                <div class="bot-avatar">🤖</div>
+                <div class="bot-avatar">
+                    <img src="${pageContext.request.contextPath}/static/upload/chatbot/bot_avatar.png" alt="Ora Avatar">
+                </div>
                 <div class="bot-info">
-                    <span class="bot-name">오피 (Offy)</span>
+                    <span class="bot-name">오라 (Ora)</span>
                     <span class="status-online">Online</span>
                 </div>
             </div>

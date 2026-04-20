@@ -328,4 +328,3 @@ CREATE TABLE IF NOT EXISTS `wishlist` (
   PRIMARY KEY (`w_idx`),
   UNIQUE KEY `uk_user_branch` (`u_idx`,`b_idx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-

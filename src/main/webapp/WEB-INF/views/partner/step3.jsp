@@ -51,6 +51,7 @@
         <p class="text-muted small mb-4">등록할 공간(룸)을 1개 이상 입력하세요.</p>
 
         <form method="post" action="${ctx}/partner/register/step3" id="step3Form">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
             <input type="hidden" id="spacesJson" name="spacesJson">
 
             <!-- 공간 목록 영역 -->

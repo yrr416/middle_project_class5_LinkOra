@@ -33,6 +33,17 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
+    /* [추가] 메뉴 클릭 시 사이드바를 즉시 닫아 자연스러운 화면 전환 유도 */
+    document.querySelectorAll('.sidebar-nav a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            // 아코디언 버튼이 아닌 실제 이동용 링크인 경우만 사이드바 닫기
+            if (!link.classList.contains('accordion-toggle') && link.getAttribute('href') !== '#') {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+            }
+        });
+    });
+
     // 2. 프로모션(광고) 슬라이드 제어
     const promoContainer = document.getElementById('promoContainer');
     const promoTrack = document.getElementById('promoTrack');

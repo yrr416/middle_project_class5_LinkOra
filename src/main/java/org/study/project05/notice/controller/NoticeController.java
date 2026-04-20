@@ -2,6 +2,8 @@ package org.study.project05.notice.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -11,7 +13,9 @@ import org.study.project05.notice.service.NoticeService;
 import org.study.project05.notice.vo.NoticeVO;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,6 +30,10 @@ public class NoticeController {
 
     @Autowired
     private NoticeService noticeService;
+
+    /** application.properties의 app.upload.notice-dir 값 (기본: uploads/notice) */
+    @Value("${app.upload.notice-dir:uploads/notice}")
+    private String noticeUploadDir;
 
     /** 페이지당 공지 표시 수 */
     private static final int NUM_PER_PAGE   = 10;
@@ -66,11 +74,15 @@ public class NoticeController {
     }
 
     /**
-     * 공지 등록 폼 (새 공지)
-     * GET /admin/notice/register
+     * 공지/이벤트 등록 폼 (새 공지)
+     * GET /admin/notice/register?type=notice|event
+     *
+     * @param type "notice"(공지, ntcActive=0) 또는 "event"(이벤트, ntcActive=1)
      */
     @GetMapping("/register")
-    public String registerForm() {
+    public String registerForm(@RequestParam(defaultValue = "notice") String type,
+                               Model model) {
+        model.addAttribute("type", type);
         return "notice/form";
     }
 
@@ -95,19 +107,27 @@ public class NoticeController {
     }
 
     /**
-     * 공지 등록 처리 (즉시 발행 / 예약 발행)
+     * 공지 등록 처리
      * POST /admin/notice/registerok
+     * enctype="multipart/form-data" 로 전송됨
      */
     @PostMapping("/registerok")
     public String registerOk(NoticeVO noticeVO,
                              @RequestParam(defaultValue = "1") int nowPage,
+                             @RequestParam(value = "ntcImgFile", required = false) MultipartFile ntcImgFile,
+                             HttpServletRequest request,
                              RedirectAttributes rttr) {
 
-        // admIdx = 1 (관리자 고정값; 실제 세션에서 가져올 경우 교체)
         noticeVO.setAdmIdx("1");
 
+        // 이미지 파일이 첨부된 경우 서버에 저장 후 URL을 VO에 세팅
+        if (ntcImgFile != null && !ntcImgFile.isEmpty()) {
+            String imgUrl = saveNoticeImage(ntcImgFile, request);
+            if (imgUrl != null) noticeVO.setNtcImg(imgUrl);
+        }
+
         int result = noticeService.insertNotice(noticeVO);
-        log.info("공지 등록 - 제목: {}, 결과: {}", noticeVO.getNtcTitle(), result);
+        log.info("공지 등록 - 제목: {}, 이미지: {}, 결과: {}", noticeVO.getNtcTitle(), noticeVO.getNtcImg(), result);
 
         rttr.addFlashAttribute("msg", "공지가 등록되었습니다.");
         return "redirect:/admin/notice/list?nowPage=" + nowPage;
@@ -120,13 +140,47 @@ public class NoticeController {
     @PostMapping("/updateok")
     public String updateOk(NoticeVO noticeVO,
                            @RequestParam(defaultValue = "1") int nowPage,
+                           @RequestParam(value = "ntcImgFile", required = false) MultipartFile ntcImgFile,
+                           HttpServletRequest request,
                            RedirectAttributes rttr) {
 
+        // 새 이미지가 첨부된 경우에만 교체 (없으면 기존 이미지 유지)
+        if (ntcImgFile != null && !ntcImgFile.isEmpty()) {
+            String imgUrl = saveNoticeImage(ntcImgFile, request);
+            if (imgUrl != null) noticeVO.setNtcImg(imgUrl);
+        }
+
         int result = noticeService.updateNotice(noticeVO);
-        log.info("공지 수정 - ntcIdx: {}, 결과: {}", noticeVO.getNtcIdx(), result);
+        log.info("공지 수정 - ntcIdx: {}, 이미지: {}, 결과: {}", noticeVO.getNtcIdx(), noticeVO.getNtcImg(), result);
 
         rttr.addFlashAttribute("msg", "공지가 수정되었습니다.");
         return "redirect:/admin/notice/list?nowPage=" + nowPage;
+    }
+
+    /**
+     * 공지/이벤트 대표 이미지를 서버에 저장하고 접근 URL을 반환하는 공통 메서드
+     *
+     * @param file    업로드된 이미지 파일
+     * @param request HTTP 요청 (저장 경로 및 context path 추출용)
+     * @return 브라우저에서 접근 가능한 이미지 URL, 실패 시 null
+     */
+    private String saveNoticeImage(MultipartFile file, HttpServletRequest request) {
+        try {
+            // application.properties의 app.upload.notice-dir 경로를 절대 경로로 변환
+            File dir = Paths.get(noticeUploadDir).toAbsolutePath().normalize().toFile();
+            if (!dir.exists()) dir.mkdirs();
+
+            String original = file.getOriginalFilename();
+            String ext      = original.substring(original.lastIndexOf("."));
+            String fileName = UUID.randomUUID().toString() + ext;
+            file.transferTo(new File(dir, fileName));
+
+            // WebMvcConfig에 등록된 /uploads/notice/** 핸들러로 서빙
+            return request.getContextPath() + "/uploads/notice/" + fileName;
+        } catch (Exception e) {
+            log.error("공지 이미지 저장 실패", e);
+            return null;
+        }
     }
 
     /**
@@ -161,29 +215,41 @@ public class NoticeController {
     }
 
     /**
-     * 에디터 이미지 업로드 (CKEditor 5 응답 형식)
+     * 에디터 이미지 업로드 (CKEditor 5 SimpleUploadAdapter 응답 형식)
      * POST /admin/notice/imageUpload
+     *
+     * CKEditor 5는 응답 Content-Type이 반드시 application/json 이어야
+     * 파싱 후 이미지를 에디터에 삽입함.
+     * (text/plain 반환 시 CKEditor가 JSON 파싱을 건너뛰어 삽입이 안 됨)
      */
     @PostMapping("/imageUpload")
-    @ResponseBody
-    public String imageUpload(@RequestParam("upload") MultipartFile file,
-                              HttpServletRequest request) {
+    public ResponseEntity<String> imageUpload(@RequestParam("upload") MultipartFile file,
+                                              HttpServletRequest request) {
         try {
-            String uploadPath = request.getServletContext().getRealPath("/static/img/notice");
-            File dir = new File(uploadPath);
+            // 1) app.upload.notice-dir 절대 경로로 저장
+            File dir = Paths.get(noticeUploadDir).toAbsolutePath().normalize().toFile();
             if (!dir.exists()) dir.mkdirs();
 
-            String ext      = file.getOriginalFilename().substring(
-                                file.getOriginalFilename().lastIndexOf("."));
+            // 2) 파일 저장
+            String originalName = file.getOriginalFilename();
+            String ext      = originalName.substring(originalName.lastIndexOf("."));
             String fileName = UUID.randomUUID().toString() + ext;
             file.transferTo(new File(dir, fileName));
 
-            String url = request.getContextPath() + "/static/img/notice/" + fileName;
-            return "{\"url\":\"" + url + "\"}";
+            // 3) 브라우저에서 접근 가능한 URL 반환 (WebMvcConfig의 /uploads/notice/** 핸들러 사용)
+            String url = request.getContextPath() + "/uploads/notice/" + fileName;
+            log.info("이미지 업로드 성공 - 저장경로: {}, URL: {}", dir + "/" + fileName, url);
+
+            // Content-Type: application/json 으로 반환해야 CKEditor가 삽입 처리
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body("{\"url\":\"" + url + "\"}");
 
         } catch (Exception e) {
             log.error("이미지 업로드 실패", e);
-            return "{\"error\":{\"message\":\"업로드 실패\"}}";
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body("{\"error\":{\"message\":\"이미지 업로드에 실패했습니다.\"}}");
         }
     }
 

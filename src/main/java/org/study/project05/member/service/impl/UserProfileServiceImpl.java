@@ -52,7 +52,8 @@ public class UserProfileServiceImpl implements UserProfileService {
             String profilePath
     ) {
         String encoded = passwordEncoder.encode(password);
-        return userProfileMapper.insertUser(normalizeUserId(userId), encoded, name, normalizeEmail(email), address, phone, profilePath) > 0;
+        return userProfileMapper.insertUser(
+                normalizeUserId(userId), encoded, name, normalizeEmail(email), address, phone, profilePath) > 0;
     }
 
     /**
@@ -135,7 +136,7 @@ public class UserProfileServiceImpl implements UserProfileService {
         if (userId == null || userId.isBlank()) {
             return false;
         }
-        // 물리 삭제 대신 active 상태를 0으로 변경하는 논리 삭제 수행
+        // 물리 삭제 대신 u_active를 0으로 설정하는 논리 삭제
         return userProfileMapper.deactivateByUserId(userId) > 0;
     }
 

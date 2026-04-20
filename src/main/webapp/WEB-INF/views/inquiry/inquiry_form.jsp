@@ -67,8 +67,7 @@
                 <p>궁금하신 점이나 불편한 사항을 남겨주시면 정성껏 답변해 드리겠습니다.</p>
             </div>
             
-            <form action="${pageContext.request.contextPath}/inquiry/submit" method="post">
-                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+            <form action="${pageContext.request.contextPath}/inquiry/submit?${_csrf.parameterName}=${_csrf.token}" method="post" enctype="multipart/form-data">
                 
                 <div class="inq-group">
                     <label class="inq-label">문의 카테고리</label>
@@ -95,12 +94,18 @@
                     <label class="inq-label">문의 내용</label>
                     <textarea name="inqContent" class="inq-control" placeholder="문의하실 내용을 상세히 적어주세요. 관리자가 확인 후 영업일 기준 1~2일 내에 답변을 드립니다." required></textarea>
                 </div>
+
+                <div class="inq-group">
+                    <label class="inq-label">파일 첨부 (선택)</label>
+                    <input type="file" name="inqFile" class="inq-control">
+                    <p style="font-size: 12px; color: #888; margin-top: 5px;">* 이미지 및 일반 파일을 첨부하실 수 있습니다.</p>
+                </div>
                 
                 <button type="submit" class="btn-submit-inq">문의 등록하기</button>
                 
                 <div class="action-row">
-                    <a href="${pageContext.request.contextPath}/" class="inq-back-link">
-                        <i class="fa-solid fa-arrow-left"></i> 홈으로 돌아가기
+                    <a href="${pageContext.request.contextPath}/inquiry/mylist" class="inq-back-link">
+                        <i class="fa-solid fa-arrow-left"></i> 문의 목록으로 돌아가기
                     </a>
                 </div>
             </form>

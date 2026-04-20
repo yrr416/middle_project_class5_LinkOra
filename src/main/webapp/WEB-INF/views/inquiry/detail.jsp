@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn"  uri="http://java.sun.com/jsp/jstl/functions" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="ko">
@@ -134,10 +135,20 @@
                     <label class="form-label fw-semibold text-muted small">
                         <i class="bi bi-paperclip me-1"></i>첨부 파일
                     </label>
-                    <div>
-                        <a href="${inquiry.inqFileUrl}" target="_blank" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-download me-1"></i>첨부 파일 다운로드
-                        </a>
+                    <div class="d-flex flex-column gap-2">
+                        <div>
+                            <a href="${ctx}${inquiry.inqFileUrl}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-download me-1"></i>첨부 파일 열기 / 다운로드
+                            </a>
+                        </div>
+                        <%-- 이미지일 경우 관리자도 바로 확인 가능하게 표시 --%>
+                        <c:set var="fileUrlLower" value="${fn:toLowerCase(inquiry.inqFileUrl)}"/>
+                        <c:if test="${fn:endsWith(fileUrlLower, '.jpg') || fn:endsWith(fileUrlLower, '.jpeg') || fn:endsWith(fileUrlLower, '.png') || fn:endsWith(fileUrlLower, '.gif') || fn:endsWith(fileUrlLower, '.webp')}">
+                            <div class="mt-2 text-center" style="max-width: 400px; border: 1px solid #eee; padding: 10px; border-radius: 8px;">
+                                <img src="${ctx}${inquiry.inqFileUrl}" class="img-fluid rounded" alt="첨부 이미지 미리보기">
+                                <div class="mt-1 small text-muted">이미지 미리보기</div>
+                            </div>
+                        </c:if>
                     </div>
                 </div>
             </c:if>

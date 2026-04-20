@@ -5,6 +5,7 @@ package org.study.project05.login.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -21,9 +22,11 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf
                         // [추가] 자바스크립트로 POST 요청을 보내는 찜하기 API(/api/wishlist/**)에서 403 에러가 나지 않도록 CSRF 검사 예외 처리 추가
-                        .ignoringRequestMatchers("/chat/**", "/api/wishlist/**")
+                        .ignoringRequestMatchers("/chat/**", "/api/wishlist/**", "/admin/reservation/**")
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // 관리자 전용 경로 - ROLE_ADMIN만 접근 허용
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
@@ -70,7 +73,13 @@ public class SecurityConfig {
                             String target = isAdmin ? "/admin/dashboard" : isPartner ? "/partner/mypage" : "/";
                             response.sendRedirect(request.getContextPath() + target);
                         })
-                        .failureUrl("/loginPage?error")
+                        .failureHandler((request, response, exception) -> {
+                            String errorCode = "auth";
+                            if (exception instanceof DisabledException) {
+                                errorCode = "inactive";
+                            }
+                            response.sendRedirect(request.getContextPath() + "/loginPage?error=" + errorCode);
+                        })
                         .permitAll()
                 )
                 .logout(logout -> logout

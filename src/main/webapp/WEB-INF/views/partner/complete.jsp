@@ -29,8 +29,8 @@
             <div class="alert alert-success small mt-2">${msg}</div>
         </c:if>
         <div class="d-flex justify-content-center gap-3 mt-3">
-            <a href="${ctx}/admin/space/list" class="btn btn-outline-primary">
-                <i class="bi bi-list-ul me-1"></i>오피스 목록
+            <a href="${ctx}/partner/mypage" class="btn btn-outline-primary">
+                <i class="bi bi-person-circle me-1"></i>마이페이지
             </a>
             <a href="${ctx}/partner/register/step1" class="btn btn-success">
                 <i class="bi bi-plus-circle me-1"></i>추가 등록

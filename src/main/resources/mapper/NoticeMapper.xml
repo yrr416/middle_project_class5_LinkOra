@@ -4,14 +4,29 @@
 
 <mapper namespace="org.study.project05.notice.mapper.NoticeMapper">
 
+    <!--
+      n_active 값 정의 (4단계)
+        0 = 공지   (비고정)
+        1 = 이벤트 (비고정)
+        2 = 공지   (고정)
+        3 = 이벤트 (고정)
+
+      타입 판별  : n_active % 2  →  0=공지, 1=이벤트
+      고정 판별  : n_active >= 2 →  고정 여부
+    -->
+
     <!-- 공통 검색 조건 -->
     <sql id="noticeSearchCondition">
         <where>
             <if test="noticeVO.searchWord != null and noticeVO.searchWord != ''">
                 n_title LIKE CONCAT('%', #{noticeVO.searchWord}, '%')
             </if>
+            <!--
+              activeFilter: "0" = 공지만, "1" = 이벤트만, "" = 전체
+              n_active % 2 로 타입만 비교 (고정 여부 무관)
+            -->
             <if test="noticeVO.activeFilter != null and noticeVO.activeFilter != ''">
-                AND n_active = #{noticeVO.activeFilter}
+                AND MOD(n_active, 2) = #{noticeVO.activeFilter}
             </if>
         </where>
     </sql>
@@ -28,12 +43,14 @@
         SELECT n_idx    AS ntc_idx,
                n_title  AS ntc_title,
                n_active AS ntc_active,
+               n_img    AS ntc_img,
                DATE_FORMAT(n_created, '%Y-%m-%d %H:%i') AS ntc_created,
                DATE_FORMAT(n_updated, '%Y-%m-%d %H:%i') AS ntc_updated,
                a_idx    AS adm_idx
           FROM notice
         <include refid="noticeSearchCondition"/>
-         ORDER BY n_active DESC, n_created DESC
+         ORDER BY (n_active >= 2) DESC, n_created DESC
+         /* n_active >= 2 이면 고정 → 상단 표시, 그 외는 최신순 */
          LIMIT #{numPerPage} OFFSET #{offset}
     </select>
 
@@ -43,6 +60,7 @@
                n_title   AS ntc_title,
                n_content AS ntc_content,
                n_active  AS ntc_active,
+               n_img     AS ntc_img,
                DATE_FORMAT(n_created, '%Y-%m-%dT%H:%i') AS ntc_created,
                DATE_FORMAT(n_updated, '%Y-%m-%d %H:%i') AS ntc_updated,
                a_idx     AS adm_idx
@@ -52,12 +70,13 @@
 
     <!-- 공지 등록 -->
     <insert id="insertNotice" parameterType="NoticeVO">
-        INSERT INTO notice (a_idx, n_title, n_content, n_active, n_created, n_updated)
+        INSERT INTO notice (a_idx, n_title, n_content, n_active, n_img, n_created, n_updated)
         VALUES (
             #{admIdx},
             #{ntcTitle},
             #{ntcContent},
             #{ntcActive},
+            #{ntcImg},
             <choose>
                 <when test="ntcCreated != null and ntcCreated != ''">
                     #{ntcCreated}
@@ -76,6 +95,9 @@
            SET n_title   = #{ntcTitle},
                n_content = #{ntcContent},
                n_active  = #{ntcActive},
+               <if test="ntcImg != null and ntcImg != ''">
+               n_img     = #{ntcImg},
+               </if>
                n_created = <choose>
                                <when test="ntcCreated != null and ntcCreated != ''">#{ntcCreated}</when>
                                <otherwise>n_created</otherwise>
@@ -84,10 +106,20 @@
          WHERE n_idx = #{ntcIdx}
     </update>
 
-    <!-- 고정 여부 토글 (n_active: 0→1, 1→0) -->
+    <!--
+      고정 토글: 타입(공지/이벤트)은 유지하면서 고정 상태만 전환
+        0(공지 비고정)   ↔  2(공지 고정)
+        1(이벤트 비고정) ↔  3(이벤트 고정)
+    -->
     <update id="toggleNoticeActive" parameterType="String">
         UPDATE notice
-           SET n_active  = CASE WHEN n_active = 1 THEN 0 ELSE 1 END,
+           SET n_active  = CASE
+                             WHEN n_active = 0 THEN 2
+                             WHEN n_active = 2 THEN 0
+                             WHEN n_active = 1 THEN 3
+                             WHEN n_active = 3 THEN 1
+                             ELSE n_active
+                           END,
                n_updated = NOW()
          WHERE n_idx = #{ntcIdx}
     </update>
@@ -96,5 +128,25 @@
     <delete id="deleteNotice" parameterType="String">
         DELETE FROM notice WHERE n_idx = #{ntcIdx}
     </delete>
+
+    <!-- 이전 공지 (작성일 기준 현재보다 오래된 공지 중 가장 최근 것) -->
+    <select id="getPrevNotice" parameterType="String" resultType="NoticeVO">
+        SELECT n_idx    AS ntc_idx,
+               n_title  AS ntc_title
+          FROM notice
+         WHERE n_idx &lt; #{ntcIdx}
+         ORDER BY n_idx DESC
+         LIMIT 1
+    </select>
+
+    <!-- 다음 공지 (작성일 기준 현재보다 최신 공지 중 가장 오래된 것) -->
+    <select id="getNextNotice" parameterType="String" resultType="NoticeVO">
+        SELECT n_idx    AS ntc_idx,
+               n_title  AS ntc_title
+          FROM notice
+         WHERE n_idx &gt; #{ntcIdx}
+         ORDER BY n_idx ASC
+         LIMIT 1
+    </select>
 
 </mapper>

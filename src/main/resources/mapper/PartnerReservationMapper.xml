@@ -194,7 +194,7 @@
         WHERE b.p_idx = #{partnerIdx}
           AND YEAR(r.r_start_time)  = #{year}
           AND MONTH(r.r_start_time) = #{month}
-        GROUP BY DATE(r.r_start_time), s.s_idx, s.s_name
+        GROUP BY DATE_FORMAT(r.r_start_time, '%Y-%m-%d'), s.s_idx, s.s_name
         ORDER BY event_date, s.s_name
     </select>
 
@@ -224,7 +224,12 @@
          getRevenueByWeek - 주별 매출 집계
          ══════════════════════════════════════════════════════════ -->
     <select id="getRevenueByWeek" parameterType="map" resultType="map">
-        SELECT DATE_FORMAT(r.r_created, '%x-%v주') AS period_label,
+        <!--
+            ONLY_FULL_GROUP_BY 대응:
+            GROUP BY/ORDER BY 는 숫자형 YEARWEEK() 로 처리하고,
+            SELECT 표시용 period_label 은 MIN() 집계로 감싸 충돌 방지
+        -->
+        SELECT DATE_FORMAT(MIN(r.r_created), '%x-%v주') AS period_label,
                COUNT(*)              AS cnt,
                SUM(r.r_total_price)  AS revenue
           FROM reservation r
@@ -238,8 +243,8 @@
         <if test="endDate != null and endDate != ''">
            AND r.r_created &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
         </if>
-         GROUP BY DATE_FORMAT(r.r_created, '%x%v')
-         ORDER BY DATE_FORMAT(r.r_created, '%x%v')
+         GROUP BY YEARWEEK(r.r_created, 3)
+         ORDER BY YEARWEEK(r.r_created, 3)
     </select>
 
     <!-- ══════════════════════════════════════════════════════════

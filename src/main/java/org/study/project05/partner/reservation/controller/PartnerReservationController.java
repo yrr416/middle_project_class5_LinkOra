@@ -23,7 +23,8 @@ public class PartnerReservationController {
     /** TODO: 파트너 로그인 구현 후 인증 처리 필요 */
     private int getPartnerIdx(HttpSession session) {
         Object val = session.getAttribute("partnerIdx");
-        return (val != null) ? (int) val : 1;
+        // Integer, Long 등 어떤 숫자 타입으로 저장되어 있어도 안전하게 int로 변환
+        return (val instanceof Number) ? ((Number) val).intValue() : 1;
     }
 
     /* ──────────────────────────────────────────────────────────
@@ -117,7 +118,7 @@ public class PartnerReservationController {
             HttpSession session
     ) {
         int partnerIdx = getPartnerIdx(session);
-        boolean ok = service.confirmReservation(resIdx, partnerIdx);
+        boolean ok = service.confirmAndNotify(resIdx, partnerIdx);
         Map<String, Object> body = new java.util.HashMap<>();
         body.put("success", ok);
         body.put("message", ok ? "예약이 수락되었습니다." : "수락 처리에 실패했습니다. (이미 처리됐거나 권한 없음)");
