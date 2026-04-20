@@ -31,6 +31,14 @@ public class SessionSyncInterceptor implements HandlerInterceptor {
         // 1. 인증 정보가 존재하고 익명이 아닌 경우에만 동기화 시도
         if (auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)) {
             HttpSession session = request.getSession();
+            
+
+            // 2. 세션 필수 정보가 하나라도 없는 경우 동기화 실행
+            // 파트너는 loginUser 세션을 사용하지 않으므로, partnerIdx가 있으면 동기화 건너뜀
+
+            // 2. 파트너는 loginUser 세션을 사용하지 않으므로, partnerIdx가 있으면 동기화 건너뜀
+
+
 
             // 2. 세션 필수 정보가 하나라도 없는 경우 동기화 실행
             // 파트너는 loginUser 세션을 사용하지 않으므로, partnerIdx가 있으면 동기화 건너뜀

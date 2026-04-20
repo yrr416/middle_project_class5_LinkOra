@@ -14,6 +14,7 @@
         <result property="brnFile" column="b_file"/>
         <result property="brnActive" column="b_active"/>
         <result property="isWish" column="isWish"/>
+
         <result property="facParking" column="fac_parking"/>
         <result property="facHours24" column="fac_hours24"/>
         <result property="facPet" column="fac_pet"/>
@@ -21,6 +22,12 @@
         <result property="facCoffee" column="fac_coffee"/>
         <result property="facPrinter" column="fac_printer"/>
         <result property="facLocker" column="fac_locker"/>
+
+        <result property="facCafe" column="fac_cafe"/>
+        <result property="facKitchen" column="fac_kitchen"/>
+        <result property="facWater" column="fac_water"/>
+        <result property="facLounge" column="fac_lounge"/>
+
         <result property="mainImgUrl" column="main_img_url"/>
     </resultMap>
 
@@ -40,29 +47,47 @@
         WHERE u_idx = #{userIdx} AND b_idx = #{brnIdx}
     </delete>
 
-    <select id="getMyFavoriteBranches" parameterType="int" resultMap="BranchResultMap">
+    <select id="getMyFavoriteBranches" resultMap="BranchResultMap">
         SELECT
-            b.b_idx,
-            b.b_name,
-            b.b_address,
-            b.b_description,
-            b.b_latitude,
-            b.b_altitude,
-            b.b_phone,
-            b.b_file,
-            b.b_active,
-            1 AS isWish,
-            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_parking = 1) as fac_parking,
-            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_hours24 = 1) as fac_hours24,
-            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_pet = 1) as fac_pet,
-            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_desk = 1 OR f.f_wifi = 1)) as fac_wifi,
-            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_cafe = 1 OR f.f_coffee = 1)) as fac_coffee,
-            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_fax = 1 OR f.f_printer = 1)) as fac_printer,
-            (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_storage = 1 OR f.f_locker = 1)) as fac_locker,
-            (SELECT bi_url FROM branch_img WHERE branch_img.b_idx = b.b_idx AND bi_is_main = 1 LIMIT 1) as main_img_url
+        b.b_idx,
+        b.b_name,
+        b.b_address,
+        b.b_description,
+        b.b_latitude,
+        b.b_altitude,
+        b.b_phone,
+        b.b_file,
+        b.b_active,
+        1 AS isWish,
+        /* 기존 편의 시설 요약 */
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_parking = 1) as fac_parking,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_hours24 = 1) as fac_hours24,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_pet = 1) as fac_pet,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_desk = 1 OR f.f_wifi = 1)) as fac_wifi,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_cafe = 1 OR f.f_coffee = 1)) as fac_coffee,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_fax = 1 OR f.f_printer = 1)) as fac_printer,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_storage = 1 OR f.f_locker = 1)) as fac_locker,
+
+        /* 관심 지점에서도 새로운 아이콘이 보일 수 있도록 값을 SELECT문으로 가져옵니다 */
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_cafe = 1) as fac_cafe,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_kitchen = 1) as fac_kitchen,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_water = 1) as fac_water,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_lounge = 1) as fac_lounge,
+
+        (SELECT bi_url FROM branch_img WHERE branch_img.b_idx = b.b_idx AND bi_is_main = 1 LIMIT 1) as main_img_url
         FROM branch b
-            INNER JOIN wishlist w ON b.b_idx = w.b_idx
+        INNER JOIN wishlist w ON b.b_idx = w.b_idx
         WHERE w.u_idx = #{userIdx}
+        ORDER BY b.b_idx DESC
+        <if test="skip != null and size != null">
+            LIMIT #{size} OFFSET #{skip}
+        </if>
+    </select>
+
+    <select id="getMyFavoriteBranchesCount" parameterType="int" resultType="int">
+        SELECT COUNT(*)
+        FROM wishlist
+        WHERE u_idx = #{userIdx}
     </select>
 
 </mapper>

@@ -59,4 +59,13 @@ public interface ReviewMapper {
 
     /** 해당 공간에 이용 완료(FINISH) 예약이 있는지 확인 */
     int countFinishedReservation(@Param("userIdx") int userIdx, @Param("spcIdx") int spcIdx);
+
+    /** 전체 공개 리뷰 목록 (페이징, 별점 있는 최상위 후기만) */
+    List<ReviewVO> selectAllPublic(@Param("offset") int offset, @Param("limit") int limit);
+
+    /** 전체 공개 리뷰 수 */
+    int countAllPublic();
+
+    /** 리뷰 단건 조회 (삭제 전 이미지 파일명 확인용) */
+    ReviewVO selectOne(@Param("revIdx") int revIdx);
 }

@@ -44,17 +44,33 @@ public interface UserProfileService {
 
     UserIdFindIssueResult issueUserIdByEmail(String email);
 
-    record PasswordResetIssuePasswordResult(PasswordResetResult result, String email, String name, String temporaryPassword) {
-        public static PasswordResetIssuePasswordResult success(String email, String name, String temporaryPassword) {
-            return new PasswordResetIssuePasswordResult(PasswordResetResult.SUCCESS, email, name, temporaryPassword);
+    record PasswordResetIssuePasswordResult(
+            PasswordResetResult result,
+            String email,
+            String name,
+            String temporaryPassword,
+            String memberUserIdsCsv,
+            String partnerLoginIdsCsv
+    ) {
+        public static PasswordResetIssuePasswordResult success(
+                String email,
+                String name,
+                String temporaryPassword,
+                String memberUserIdsCsv,
+                String partnerLoginIdsCsv
+        ) {
+            return new PasswordResetIssuePasswordResult(
+                    PasswordResetResult.SUCCESS, email, name, temporaryPassword, memberUserIdsCsv, partnerLoginIdsCsv);
         }
 
         public static PasswordResetIssuePasswordResult notFound() {
-            return new PasswordResetIssuePasswordResult(PasswordResetResult.emailNotFound, null, null, null);
+            return new PasswordResetIssuePasswordResult(
+                    PasswordResetResult.emailNotFound, null, null, null, null, null);
         }
 
         public static PasswordResetIssuePasswordResult invalid() {
-            return new PasswordResetIssuePasswordResult(PasswordResetResult.emailInvalid, null, null, null);
+            return new PasswordResetIssuePasswordResult(
+                    PasswordResetResult.emailInvalid, null, null, null, null, null);
         }
     }
 
