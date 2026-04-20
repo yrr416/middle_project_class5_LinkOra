@@ -47,6 +47,12 @@ public class BranchVO {
     private int facPrinter;
     private int facLocker;
 
+    // 새로 추가된 편의시설 필터 변수 추가 (JSP 에러 방지용)
+    private int facCafe;
+    private int facKitchen;
+    private int facWater;
+    private int facLounge;
+
     // [상세 조회 및 연관 데이터]
     private String partnerName;          // 파트너 브랜드명
     private List<BranchSpaceVO> spaces;        // 지점 내 공간 목록

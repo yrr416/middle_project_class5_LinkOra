@@ -267,7 +267,7 @@
               <%-- 공간 선택 (지점 내 공간이 여러 개일 경우) --%>
             <c:if test="${fn:length(branch.spaces) > 1}">
               <select id="reviewSpcIdx" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3
-                                             focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                                                focus:outline-none focus:ring-2 focus:ring-indigo-300">
                 <c:forEach var="sp" items="${branch.spaces}">
                   <option value="${sp.spcIdx}">${sp.spcName}</option>
                 </c:forEach>
@@ -1386,7 +1386,8 @@
   </script>
 
   <script>
-    // 첫 번째 스크립트에서도 사진이 없을 때 첫 번째 사진을 가져오도록 동일하게 수정했어!
+    // [수정] 이 하나의 스크립트 블록 안에서 최근 본 지점을 완벽하게 저장하도록 합쳤습니다!
+    // 이전에 2개로 나뉘어 있던 코드를 하나로 깔끔하게 정리하고, 새로운 5가지 편의시설(카페, 주방 등)도 추가했어요.
     (function() {
       let recent = JSON.parse(localStorage.getItem('recentBranches')) || [];
 
@@ -1395,58 +1396,20 @@
         brnName: '${branch.brnName}',
         mainImgUrl: '${branch.mainImgUrl != null ? branch.mainImgUrl : (not empty branch.images ? branch.images[0].biUrl : "")}',
         brnAddress: '${branch.brnAddress}',
-        // [추가] 최근 본 지점에도 아이콘이 뜨도록 시설 정보도 함께 저장합니다
-        facWifi: '${branch.facWifi != null ? branch.facWifi : (not empty branch.spaces ? branch.spaces[0].facilities.facWifi : "0")}',
-        facParking: '${branch.facParking != null ? branch.facParking : (not empty branch.spaces ? branch.spaces[0].facilities.facParking : "0")}',
-        facCoffee: '${branch.facCoffee != null ? branch.facCoffee : (not empty branch.spaces ? branch.spaces[0].facilities.facCoffee : "0")}',
-        facHours24: '${branch.facHours24 != null ? branch.facHours24 : (not empty branch.spaces ? branch.spaces[0].facilities.facHours24 : "0")}',
-        facPet: '${branch.facPet != null ? branch.facPet : (not empty branch.spaces ? branch.spaces[0].facilities.facPet : "0")}'
-      };
 
-      if(!currentBranch.brnIdx) return;
+        // 기존 편의시설 5가지
+        facWifi:     '${branch.facWifi     != null ? branch.facWifi     : (not empty branch.spaces ? branch.spaces[0].facilities.facWifi     : "0")}',
+        facParking:  '${branch.facParking  != null ? branch.facParking  : (not empty branch.spaces ? branch.spaces[0].facilities.facParking  : "0")}',
+        facCoffee:   '${branch.facCoffee   != null ? branch.facCoffee   : (not empty branch.spaces ? branch.spaces[0].facilities.facCoffee   : "0")}',
+        facHours24:  '${branch.facHours24  != null ? branch.facHours24  : (not empty branch.spaces ? branch.spaces[0].facilities.facHours24  : "0")}',
+        facPet:      '${branch.facPet      != null ? branch.facPet      : (not empty branch.spaces ? branch.spaces[0].facilities.facPet      : "0")}',
 
-<<<<<<< HEAD
-      recent = recent.filter(b => b.brnIdx !== currentBranch.brnIdx);
-=======
-    let currentBranch = {
-      brnIdx: '${branch.brnIdx}',
-      brnName: '${branch.brnName}',
-      mainImgUrl: '${branch.mainImgUrl != null ? branch.mainImgUrl : (not empty branch.images ? branch.images[0].biUrl : "")}',
-      brnAddress: '${branch.brnAddress}',
-      facWifi:     '${branch.facWifi     != null ? branch.facWifi     : (not empty branch.spaces ? branch.spaces[0].facilities.facWifi     : "0")}',
-      facParking:  '${branch.facParking  != null ? branch.facParking  : (not empty branch.spaces ? branch.spaces[0].facilities.facParking  : "0")}',
-      facCoffee:   '${branch.facCoffee   != null ? branch.facCoffee   : (not empty branch.spaces ? branch.spaces[0].facilities.facCoffee   : "0")}',
-      facHours24:  '${branch.facHours24  != null ? branch.facHours24  : (not empty branch.spaces ? branch.spaces[0].facilities.facHours24  : "0")}',
-      facPet:      '${branch.facPet      != null ? branch.facPet      : (not empty branch.spaces ? branch.spaces[0].facilities.facPet      : "0")}'
-    };
->>>>>>> 232e2b3883b98d8c239dbd1817c6d050bb9cc5a8
-
-      recent.unshift(currentBranch);
-
-      if(recent.length > 5) {
-        recent.pop();
-      }
-
-      localStorage.setItem('recentBranches', JSON.stringify(recent));
-    })();
-  </script>
-
-  <script>
-    <%-- 두 번째 중복 스크립트에도 똑같이 사진을 가져오는 코드를 넣어줬어! --%>
-    (function() {
-      let recent = JSON.parse(localStorage.getItem('recentBranches')) || [];
-
-      let currentBranch = {
-        brnIdx: '${branch.brnIdx}',
-        brnName: '${branch.brnName}',
-        mainImgUrl: '${branch.mainImgUrl != null ? branch.mainImgUrl : (not empty branch.images ? branch.images[0].biUrl : "")}',
-        brnAddress: '${branch.brnAddress}',
-        // [추가] 두 번째 스크립트에도 똑같이 시설 정보를 추가해서 저장합니다
-        facWifi: '${branch.facWifi != null ? branch.facWifi : (not empty branch.spaces ? branch.spaces[0].facilities.facWifi : "0")}',
-        facParking: '${branch.facParking != null ? branch.facParking : (not empty branch.spaces ? branch.spaces[0].facilities.facParking : "0")}',
-        facCoffee: '${branch.facCoffee != null ? branch.facCoffee : (not empty branch.spaces ? branch.spaces[0].facilities.facCoffee : "0")}',
-        facHours24: '${branch.facHours24 != null ? branch.facHours24 : (not empty branch.spaces ? branch.spaces[0].facilities.facHours24 : "0")}',
-        facPet: '${branch.facPet != null ? branch.facPet : (not empty branch.spaces ? branch.spaces[0].facilities.facPet : "0")}'
+        // [핵심 추가] 새로운 편의시설 5가지를 브라우저의 기억(localStorage)에 추가로 저장합니다
+        facCafe:     '${branch.facCafe     != null ? branch.facCafe     : (not empty branch.spaces ? branch.spaces[0].facilities.facCafe     : "0")}',
+        facKitchen:  '${branch.facKitchen  != null ? branch.facKitchen  : (not empty branch.spaces ? branch.spaces[0].facilities.facKitchen  : "0")}',
+        facWater:    '${branch.facWater    != null ? branch.facWater    : (not empty branch.spaces ? branch.spaces[0].facilities.facWater    : "0")}',
+        facPrinter:  '${branch.facPrinter  != null ? branch.facPrinter  : (not empty branch.spaces ? branch.spaces[0].facilities.facPrinter  : "0")}',
+        facLounge:   '${branch.facLounge   != null ? branch.facLounge   : (not empty branch.spaces ? branch.spaces[0].facilities.facLounge   : "0")}'
       };
 
       if (!currentBranch.brnIdx) return;
@@ -1455,8 +1418,10 @@
       recent = recent.filter(b => b.brnIdx !== currentBranch.brnIdx);
       recent.unshift(currentBranch);
 
-      // 최대 4개 유지
-      if (recent.length > 5) recent.pop();
+      // 최대 5개 유지 (이전 코드에서 5개 초과 시 pop하도록 되어 있었음)
+      if (recent.length > 5) {
+        recent.pop();
+      }
 
       localStorage.setItem('recentBranches', JSON.stringify(recent));
     })();

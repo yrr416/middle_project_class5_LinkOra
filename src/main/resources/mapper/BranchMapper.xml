@@ -29,6 +29,12 @@
         <result property="facCoffee" column="fac_coffee"/>
         <result property="facPrinter" column="fac_printer"/>
         <result property="facLocker" column="fac_locker"/>
+
+        <result property="facCafe" column="fac_cafe"/>
+        <result property="facKitchen" column="fac_kitchen"/>
+        <result property="facWater" column="fac_water"/>
+        <result property="facLounge" column="fac_lounge"/>
+
         <result property="mainImgUrl" column="main_img_url"/>
     </resultMap>
 
@@ -50,6 +56,7 @@
             AND (
             b.b_name LIKE CONCAT('%', #{keyword}, '%')
             OR b.b_address LIKE CONCAT('%', #{keyword}, '%')
+            OR b.b_description LIKE CONCAT('%', #{keyword}, '%')
             OR EXISTS (
             SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_name LIKE CONCAT('%', #{keyword}, '%')
             )
@@ -76,6 +83,11 @@
         <if test="facPrinter != null and facPrinter == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_fax = 1 OR f.f_printer = 1)) </if>
         <if test="facLocker != null and facLocker == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_storage = 1 OR f.f_locker = 1)) </if>
 
+        <if test="facCafe != null and facCafe == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_cafe = 1) </if>
+        <if test="facKitchen != null and facKitchen == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_kitchen = 1) </if>
+        <if test="facWater != null and facWater == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_water = 1) </if>
+        <if test="facLounge != null and facLounge == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_lounge = 1) </if>
+
         <if test="lat != null and lng != null">
             AND (6371 * acos(cos(radians(#{lat})) * cos(radians(b.b_latitude))
             * cos(radians(b.b_altitude) - radians(#{lng}))
@@ -97,6 +109,12 @@
         (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_cafe = 1 OR f.f_coffee = 1)) as fac_coffee,
         (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_fax = 1 OR f.f_printer = 1)) as fac_printer,
         (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND (f.f_storage = 1 OR f.f_locker = 1)) as fac_locker,
+
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_cafe = 1) as fac_cafe,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_kitchen = 1) as fac_kitchen,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_water = 1) as fac_water,
+        (SELECT IF(COUNT(*) > 0, 1, 0) FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_lounge = 1) as fac_lounge,
+
         (SELECT bi_url FROM branch_img WHERE branch_img.b_idx = b.b_idx AND bi_is_main = 1 LIMIT 1) as main_img_url
         <if test="lat != null and lng != null">
             , (6371 * acos(cos(radians(#{lat})) * cos(radians(b.b_latitude))

@@ -15,7 +15,7 @@ public interface BranchMapper {
 
     /**
      * 상세 필터와 키워드로 지점을 검색하는 기능 (페이징 포함)
-     * [수정] skip과 size 파라미터를 추가하여 원하는 구간만큼만 가져오게 함
+     * [수정] skip과 size 파라터를 추가하여 원하는 구간만큼만 가져오게 함
      */
     // 컨트롤러에서 넘어온 공간 종류(type)를 받기 위해 @Param("type") String type 추가
     List<BranchVO> searchWithFilters(
@@ -30,6 +30,11 @@ public interface BranchMapper {
             @Param("facCoffee") Integer facCoffee,
             @Param("facPrinter") Integer facPrinter,
             @Param("facLocker") Integer facLocker,
+            // 신규 편의시설 파라미터 4종 추가
+            @Param("facCafe") Integer facCafe,
+            @Param("facKitchen") Integer facKitchen,
+            @Param("facWater") Integer facWater,
+            @Param("facLounge") Integer facLounge,
             @Param("lat") Double lat,
             @Param("lng") Double lng,
             @Param("skip") Integer skip, // [추가] 건너뛸 개수
@@ -53,6 +58,11 @@ public interface BranchMapper {
             @Param("facCoffee") Integer facCoffee,
             @Param("facPrinter") Integer facPrinter,
             @Param("facLocker") Integer facLocker,
+            // 페이징 카운트 조회용 신규 편의시설 파라미터 4종 추가
+            @Param("facCafe") Integer facCafe,
+            @Param("facKitchen") Integer facKitchen,
+            @Param("facWater") Integer facWater,
+            @Param("facLounge") Integer facLounge,
             @Param("lat") Double lat,
             @Param("lng") Double lng
     );
