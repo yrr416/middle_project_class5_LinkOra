@@ -67,9 +67,8 @@
                 <p>작성하신 내용을 수정하실 수 있습니다. (답변이 달린 후에는 수정이 불가능합니다.)</p>
             </div>
             
-            <form action="${pageContext.request.contextPath}/inquiry/update" method="post">
+            <form action="${pageContext.request.contextPath}/inquiry/update?${_csrf.parameterName}=${_csrf.token}" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="inqIdx" value="${inquiry.inqIdx}">
-                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                 
                 <div class="edit-group">
                     <label class="edit-label">문의 카테고리</label>
@@ -94,6 +93,20 @@
                 <div class="edit-group">
                     <label class="edit-label">문의 내용</label>
                     <textarea name="inqContent" class="edit-control" required>${inquiry.inqContent}</textarea>
+                </div>
+
+                <div class="edit-group">
+                    <label class="edit-label">첨부파일 관리</label>
+                    <c:if test="${not empty inquiry.inqFileUrl}">
+                        <div style="margin-bottom: 10px; font-size: 14px; color: #555;">
+                            현재 파일: <a href="${pageContext.request.contextPath}${inquiry.inqFileUrl}" target="_blank" style="color: #2F4F4F; font-weight: bold;">[미리보기]</a>
+                            <label style="margin-left: 15px; font-size: 13px; cursor: pointer;">
+                                <input type="checkbox" name="removeFile" value="true"> 기존 파일 삭제
+                            </label>
+                        </div>
+                    </c:if>
+                    <input type="file" name="inqFile" class="edit-control">
+                    <p style="font-size: 12px; color: #888; margin-top: 5px;">* 새 파일을 선택하면 기존 파일은 대체됩니다.</p>
                 </div>
                 
                 <button type="submit" class="btn-edit-submit">수정 완료하기</button>

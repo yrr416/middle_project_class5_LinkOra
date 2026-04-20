@@ -105,7 +105,6 @@ public interface UserProfileMapper {
 
     @Update("UPDATE `user` SET u_active = 0 WHERE u_id = #{userId}")
     int deactivateByUserId(@Param("userId") String userId);
-
     @Select("""
             SELECT u_id FROM `user`
             WHERE LOWER(TRIM(COALESCE(u_email, ''))) = #{email}
@@ -118,4 +117,5 @@ public interface UserProfileMapper {
             WHERE LOWER(TRIM(COALESCE(u_email, ''))) = #{email}
             """)
     int updatePasswordByUserEmail(@Param("email") String email, @Param("encodedPassword") String encodedPassword);
+
 }

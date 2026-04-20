@@ -226,14 +226,14 @@
  padding: 10px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 8px;">
                             <option value="">시/도 선택</option>
                             <c:forEach var="city" items="${regionMap.keySet()}">
-
-                                 <option value="${city}">${city}</option>
+                                <option value="${city}">${city}</option>
                             </c:forEach>
                         </select>
-                        <select name="region" id="sidebarDistrict" onchange="updateRegionInput()" style="width: 100%;
+                        <select id="sidebarDistrict" onchange="updateSidebarRegionInput()" style="width: 100%;
  padding: 10px; border-radius: 6px; border: 1px solid #ddd;" disabled>
                             <option value="">상세 구 선택</option>
                         </select>
+                        <input type="hidden" name="region" id="actualSidebarRegion" value="${region}">
                     </div>
 
 
@@ -264,13 +264,13 @@
 
                             <label style="cursor:pointer;"><input type="checkbox" name="facPet" value="1" ${facPet == 1 ? 'checked' : ''}> 반려동물 동반</label>
                             <label style="cursor:pointer;"><input type="checkbox" name="facWifi" value="1" ${facWifi == 1 ? 'checked' : ''}> 기가 와이파이</label>
-                            <label style="cursor:pointer;"><input type="checkbox"
- name="facCoffee" value="1" ${facCoffee == 1 ? 'checked' : ''}> 무료 커피/간식</label>
+                            <label style="cursor:pointer;"><input type="checkbox" name="facCoffee" value="1" ${facCoffee == 1 ? 'checked' : ''}> 무료 커피/간식</label>
 
                             <label style="cursor:pointer;"><input type="checkbox" name="facCafe" value="1" ${facCafe == 1 ? 'checked' : ''}> 카페테리아</label>
                             <label style="cursor:pointer;"><input type="checkbox" name="facKitchen" value="1" ${facKitchen == 1 ? 'checked' : ''}> 공용 주방</label>
                             <label style="cursor:pointer;"><input type="checkbox" name="facWater" value="1" ${facWater == 1 ? 'checked' : ''}> 정수기</label>
                             <label style="cursor:pointer;"><input type="checkbox" name="facPrinter" value="1" ${facPrinter == 1 ? 'checked' : ''}> 프린터/복사기</label>
+                            <label style="cursor:pointer;"><input type="checkbox" name="facLocker" value="1" ${facLocker == 1 ? 'checked' : ''}> 개인 사물함</label>
                             <label style="cursor:pointer;"><input type="checkbox" name="facLounge" value="1" ${facLounge == 1 ? 'checked' : ''}> 휴식 라운지</label>
                         </div>
                     </div>
@@ -305,6 +305,8 @@
  font-size: 26px; font-weight: bold; margin-bottom: 15px;">검색 결과와 일치하는 오피스가 없습니다.</h3>
                             <p style="color: #666;
  font-size: 16px;">선택하신 조건이나 검색어를 변경하여 다시 검색해 보세요.</p>
+                        </div>
+
                         </div>
                     </div>
                 </c:when>
@@ -341,6 +343,7 @@
                                                          onerror="this.parentElement.innerHTML='<div class=\'no-img-box\'>WS</div>'">
 
                                                 </c:otherwise>
+
                                             </c:choose>
                                         </c:when>
 
@@ -379,16 +382,14 @@
  gap: 12px; margin-bottom: 20px; font-size: 18px;">
                                         <c:if test="${branch.facWifi != null and branch.facWifi == 1}"><i class="fa-solid fa-wifi" title="와이파이"></i></c:if>
                                         <c:if test="${branch.facParking != null and branch.facParking == 1}"><i class="fa-solid fa-car" title="주차"></i></c:if>
-
                                         <c:if test="${branch.facCoffee != null and branch.facCoffee == 1}"><i class="fa-solid fa-mug-hot" title="무료커피"></i></c:if>
                                         <c:if test="${branch.facHours24 != null and branch.facHours24 == 1}"><i class="fa-solid fa-clock" title="24시간"></i></c:if>
-
                                         <c:if test="${branch.facPet != null and branch.facPet == 1}"><i class="fa-solid fa-paw" title="반려동물"></i></c:if>
-
                                         <c:if test="${branch.facCafe != null and branch.facCafe == 1}"><i class="fa-solid fa-utensils" title="카페테리아"></i></c:if>
                                         <c:if test="${branch.facKitchen != null and branch.facKitchen == 1}"><i class="fa-solid fa-kitchen-set" title="공용주방"></i></c:if>
                                         <c:if test="${branch.facWater != null and branch.facWater == 1}"><i class="fa-solid fa-bottle-water" title="정수기"></i></c:if>
                                         <c:if test="${branch.facPrinter != null and branch.facPrinter == 1}"><i class="fa-solid fa-print" title="프린터/복사기"></i></c:if>
+                                        <c:if test="${branch.facLocker != null and branch.facLocker == 1}"><i class="fa-solid fa-vault" title="개인사물함"></i></c:if>
                                         <c:if test="${branch.facLounge != null and branch.facLounge == 1}"><i class="fa-solid fa-couch" title="휴식 라운지"></i></c:if>
                                     </div>
 
@@ -448,7 +449,6 @@
             .then(res => res.json())
             .then(wishedList => {
                 if (Array.isArray(wishedList)) {
-
                     // API에서 받아온 brnIdx 목록만 추출
                     const wishedIds = wishedList.map(item => String(item.brnIdx));
 
@@ -459,7 +459,6 @@
                         const icon = btn.querySelector('i');
 
                         if (wishedIds.includes(brnIdx)) {
-
                             // 찜 목록에 있으면 빨간 하트 활성화
                             btn.style.color = '#ff4757';
                             if (icon) icon.className = 'fa-solid fa-heart';
@@ -494,12 +493,10 @@
                     // 찜 추가 성공 시: 하트를 빨갛게 채웁니다.
                     target.style.color = '#ff4757';
                     icon.className = 'fa-solid fa-heart'; // 꽉 찬 하트
-
                 } else {
                     // 찜 해제 성공 시: 하트를 다시 회색 테두리로 바꿉니다.
                     target.style.color = '#ccc';
                     icon.className = 'fa-regular fa-heart'; // 빈 하트
-
                 }
             } else if (data.status === 'login_required') {
                 // 비로그인 시 경고창 띄우고 로그인 페이지로 유도합니다.
@@ -524,20 +521,6 @@
         form.submit();
     }
 
-    // 시/도, 상세 구 값을 합쳐서 hidden input에 업데이트하는 함수 추가 (이전에 추가했던 유용한 기능이에요!)
-    function updateRegionInput() {
-        const city = document.getElementById('sidebarCity').value;
-        const district = document.getElementById('sidebarDistrict').value;
-        const actualRegion = document.getElementById('actualRegion');
-
-        if (city && district) {
-            actualRegion.value = city + " " + district;
-        } else if (city) {
-            actualRegion.value = city;
-        } else {
-            actualRegion.value = "";
-        }
-    }
 
     // 서버에서 받은 지역 데이터로 자바스크립트 객체를 자동으로 만들어요
     const districtMap = {
@@ -566,11 +549,46 @@
         } else {
             districtSelect.disabled = true;
         }
-        // 구/군 목록이 바뀔 때 hidden input 값도 함께 갱신해 줘요
-        if(typeof updateRegionInput === 'function') {
-            updateRegionInput();
+        updateSidebarRegionInput();
+    }
+
+    function updateSidebarRegionInput() {
+        const city = document.getElementById('sidebarCity').value;
+        const district = document.getElementById('sidebarDistrict').value;
+        const actualInput = document.getElementById('actualSidebarRegion');
+
+        if (city && district) {
+            actualInput.value = city + " " + district;
+        } else if (city) {
+            actualInput.value = city;
+        } else {
+            actualInput.value = "";
         }
     }
+
+    // 페이지 로드 시 기존 선택값 복구
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedRegion = "${region}";
+        if (savedRegion) {
+            const parts = savedRegion.split(' ');
+            const savedCity = parts[0];
+            const savedDistrict = parts.length > 1 ? parts[1] : '';
+
+            const citySelect = document.getElementById('sidebarCity');
+            if (citySelect && [...citySelect.options].some(opt => opt.value === savedCity)) {
+                citySelect.value = savedCity;
+                updateSidebarDistricts();
+
+                if (savedDistrict) {
+                    const districtSelect = document.getElementById('sidebarDistrict');
+                    if (districtSelect && [...districtSelect.options].some(opt => opt.value === savedDistrict)) {
+                        districtSelect.value = savedDistrict;
+                        updateSidebarRegionInput();
+                    }
+                }
+            }
+        }
+    });
 </script>
 
-<%@ include file="../layout/footer.jsp" %>
+<jsp:include page="/WEB-INF/views/layout/footer.jsp" />
