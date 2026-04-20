@@ -2,6 +2,7 @@ package org.study.project05.branch.service;
 
 import org.study.project05.branch.vo.BranchVO;
 import java.util.List;
+import java.util.Map; // Map 사용을 위한 import 추가
 
 public interface BranchService {
 
@@ -28,4 +29,7 @@ public interface BranchService {
     );
 
     List<BranchVO> getAllBranches();
+
+    // 지역 목록(시/도 및 구/군)을 가져오는 메서드 추가
+    Map<String, List<String>> getRegionMap();
 }
