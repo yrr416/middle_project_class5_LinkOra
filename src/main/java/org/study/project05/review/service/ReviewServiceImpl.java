@@ -26,6 +26,11 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    public List<ReviewVO> getMyReviews(int userIdx) {
+        return reviewMapper.selectByUser(userIdx);
+    }
+
+    @Override
     public Map<String, Object> getReviewPage(int bIdx, int page) {
 
         int total = reviewMapper.countParentsByBranch(bIdx);
@@ -75,6 +80,11 @@ public class ReviewServiceImpl implements ReviewService {
     public void writeReview(int spcIdx, int userIdx, String content, Integer rating, String imgUrl) {
         if (rating == null || rating < 1 || rating > 5) throw new IllegalArgumentException("별점은 1~5 사이여야 합니다.");
         if (content == null || content.isBlank()) throw new IllegalArgumentException("후기 내용을 입력해주세요.");
+
+        // 이용 완료(FINISH) 예약이 있는 사람만 리뷰 작성 가능
+        if (reviewMapper.countFinishedReservation(userIdx, spcIdx) == 0) {
+            throw new IllegalArgumentException("해당 공간의 이용이 완료된 후에만 후기를 작성할 수 있습니다.");
+        }
 
         // 욕설 필터 적용: 감지된 욕설을 *** 로 치환하여 저장
         // change(text, sings) : 단어 사이에 공백·특수문자가 끼어 있어도 감지 (예: "개 새끼", "개.새끼")
