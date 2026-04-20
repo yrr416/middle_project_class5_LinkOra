@@ -39,7 +39,7 @@
         <%-- 지점 대표 이미지 --%>
         <c:choose>
           <c:when test="${not empty branch.images}">
-            <img src="${pageContext.request.contextPath}/static/upload/branch/${branch.images[0].biUrl}"
+            <img src="${pageContext.request.contextPath}${branch.images[0].biUrl}"
                  alt="${branch.brnName}"
                  class="w-full h-44 object-cover">
           </c:when>
