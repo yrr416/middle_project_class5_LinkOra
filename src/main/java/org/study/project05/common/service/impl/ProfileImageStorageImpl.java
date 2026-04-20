@@ -1,5 +1,5 @@
 /**
- * 프로필 이미지를 디스크에 저장하고 /uploads/profiles/… URL을 반환하는 구현체.
+ * 프로필 이미지를 디스크에 저장하고 /static/upload/profiles/… URL을 반환하는 구현체.
  */
 package org.study.project05.common.service.impl;
 
@@ -25,12 +25,12 @@ public class ProfileImageStorageImpl implements ProfileImageStorageService {
 
     private final Path profilesDirectory;
 
-    public ProfileImageStorageImpl(@Value("${app.upload.profiles-dir:uploads/profiles}") String profilesDir) {
+    public ProfileImageStorageImpl(@Value("${app.upload.profiles-dir:src/main/webapp/static/upload/profiles}") String profilesDir) {
         this.profilesDirectory = Paths.get(profilesDir).toAbsolutePath().normalize();
     }
 
     /**
-     * 이미지를 저장하고 웹 경로 {@code /uploads/profiles/파일명} 을 반환. 비어 있거나 형식이 맞지 않으면 null.
+     * 이미지를 저장하고 웹 경로 {@code /static/upload/profiles/파일명} 을 반환. 비어 있거나 형식이 맞지 않으면 null.
      */
     public String storeIfValid(MultipartFile file) throws IOException {
         if (file == null || file.isEmpty()) {
@@ -55,7 +55,7 @@ public class ProfileImageStorageImpl implements ProfileImageStorageService {
         try (InputStream in = file.getInputStream()) {
             Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
         }
-        return "/static/uploads/profiles/" + filename;
+        return "/static/upload/profiles/" + filename;
     }
 
     private static String extensionOf(String original) {
