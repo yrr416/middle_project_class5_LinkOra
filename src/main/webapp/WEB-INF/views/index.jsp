@@ -31,8 +31,8 @@
                 /* 이벤트 슬라이더 - 고정 높이 제거, 이미지 크기에 맞게 자동 늘어남 */
                 .promo-slider-container { position: relative; overflow-x: hidden; overflow-y: visible; border-radius: 12px; margin-top: 30px; cursor: pointer; }
                 .promo-track { display: flex; transition: transform 0.5s ease-in-out; }
-                /* 슬라이드 너비는 JS로 동적 설정됨 */
-                .promo-slide { flex-shrink: 0; display: flex; align-items: center; gap: 20px; text-decoration: none; color: #fff; padding: 24px 36px; box-sizing: border-box; position: relative; border-radius: 12px; }
+                /* 슬라이드 내부 여백 조정: 왼쪽 여백을 60px로 늘려 버튼과 겹침 방지 */
+                .promo-slide { display: flex; align-items: center; gap: 20px; text-decoration: none; color: #fff; padding: 24px 36px 24px 60px; box-sizing: border-box; position: relative; border-radius: 12px; }
                 /* 슬라이드 그라데이션 배경 (순서대로 반복) */
                 .promo-slide:nth-child(5n+1) { background: linear-gradient(135deg, #2F4F4F 0%, #007A8A 100%); }
                 .promo-slide:nth-child(5n+2) { background: linear-gradient(135deg, #1a3a5c 0%, #2563eb 100%); }
@@ -85,6 +85,10 @@
                 .inline-video-container.playing .inline-video-overlay { display: none; }
                 .play-icon-circle { width: 55px; height: 55px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 12px; backdrop-filter: blur(4px); transition: 0.3s; }
                 .inline-video-container:hover .play-icon-circle { background: #007A8A; border-color: #007A8A; transform: scale(1.1); }
+
+                /* 카테고리 카드 링크 스타일: 텍스트 꾸밈 제거 및 블록화 */
+                .category-link { text-decoration: none; color: inherit; display: block; }
+                .category-link:hover .category-card { border-color: #007A8A; transform: translateY(-3px); transition: 0.3s; }
             </style>
 
             <div class="search-wrapper">
@@ -151,9 +155,17 @@
                 <c:choose>
                     <c:when test="${not empty eventList}">
                         <c:forEach var="ev" items="${eventList}">
-                            <%-- 이벤트 슬라이드: 클릭 시 상세 페이지로 이동 --%>
+                            <%-- 이벤트 슬라이드 --%>
                             <a href="${pageContext.request.contextPath}/notice/detail?ntcIdx=${ev.ntcIdx}"
                                class="promo-slide">
+                                <%-- 이미지가 있으면 먼저 출력하여 왼쪽에 배치 --%>
+                                <c:if test="${not empty ev.ntcImg}">
+                                    <div class="promo-slide-img-col">
+                                        <img src="${ev.ntcImg}" alt="${ev.ntcTitle}" class="promo-slide-img">
+                                    </div>
+                                </c:if>
+
+                                <%-- 텍스트 정보를 이미지 뒤(오른쪽)에 배치 --%>
                                 <div class="promo-slide-text">
                                     <span class="promo-slide-badge">EVENT</span>
                                     <h3 class="promo-slide-title">${ev.ntcTitle}</h3>
@@ -163,12 +175,8 @@
                                         </c:if>
                                     </p>
                                 </div>
-                                <%-- 대표 이미지가 있으면 오른쪽 고정 컬럼에 전체 표시 --%>
-                                <c:if test="${not empty ev.ntcImg}">
-                                    <div class="promo-slide-img-col">
-                                        <img src="${ev.ntcImg}" alt="${ev.ntcTitle}" class="promo-slide-img">
-                                    </div>
-                                </c:if>
+
+                                <%-- 이미지가 없을 경우에만 화살표 아이콘 표시 --%>
                                 <c:if test="${empty ev.ntcImg}">
                                     <span class="promo-slide-arrow">›</span>
                                 </c:if>
@@ -196,7 +204,7 @@
 
         </div>
 
-        <%-- 슬라이더 점(dot): 슬라이더 컨테이너 바깥, 아래에 배치 --%>
+        <%-- 슬라이더 하단 점 메뉴 --%>
         <div class="promo-dots-bar" id="promoDots">
             <c:choose>
                 <c:when test="${not empty eventList}">
@@ -210,10 +218,6 @@
             </c:choose>
         </div>
 
-        <%--
-          슬라이드 너비 동적 설정 스크립트
-          mp_script.js가 로드되기 전에 실행되어 track/slide 너비를 슬라이드 개수에 맞게 조정
-        --%>
         <script>
         (function() {
             var track = document.getElementById('promoTrack');
@@ -221,9 +225,9 @@
             var slides = track.querySelectorAll('.promo-slide');
             var n = slides.length;
             if (n === 0) return;
-            // track 전체 너비 = 슬라이드 수 × 100%
+            // 트랙 전체 너비 설정
             track.style.width = (n * 100) + '%';
-            // 각 슬라이드 너비 = track의 1/n (= 컨테이너 100%)
+            // 각 슬라이드 너비 균등 배분
             for (var i = 0; i < n; i++) {
                 slides[i].style.width = (100 / n) + '%';
             }
@@ -234,21 +238,27 @@
             <div class="content-left">
                 <div class="section-header"><h2>공간 찾아보기</h2></div>
                 <div class="category-grid">
-                    <div class="category-card">
-                        <i class="fa-solid fa-door-closed"></i>
-                        <div>
-                            <h3>프라이빗 오피스</h3>
-                            <p>개인을 위한 독립된 공간</p>
+                    <%-- 프라이빗 오피스 검색 필터 연결 (type=INDIVIDUAL) --%>
+                    <a href="${pageContext.request.contextPath}/branch/search?type=INDIVIDUAL" class="category-link">
+                        <div class="category-card">
+                            <i class="fa-solid fa-door-closed"></i>
+                            <div>
+                                <h3>프라이빗 오피스</h3>
+                                <p>개인을 위한 독립된 공간</p>
+                            </div>
                         </div>
-                    </div>
+                    </a>
 
-                    <div class="category-card">
-                        <i class="fa-solid fa-laptop"></i>
-                        <div>
-                            <h3>코워킹 스페이스</h3>
-                            <p>자유로운 업무 환경 (회의실/오픈 오피스)</p>
+                    <%-- 코워킹 스페이스 검색 필터 연결 (type=GROUP) --%>
+                    <a href="${pageContext.request.contextPath}/branch/search?type=GROUP" class="category-link">
+                        <div class="category-card">
+                            <i class="fa-solid fa-laptop"></i>
+                            <div>
+                                <h3>코워킹 스페이스</h3>
+                                <p>자유로운 업무 환경 (회의실/오픈 오피스)</p>
+                            </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
 
                 <div class="map-tab-header" style="display: flex !important; justify-content: space-between !important; align-items: center !important; margin-bottom: 20px;">
@@ -274,7 +284,6 @@
                         <c:when test="${not empty noticeList}">
                             <c:forEach var="n" items="${noticeList}">
                                 <li>
-                                    <%-- n_active % 2 == 1 이면 이벤트, 0이면 공지 --%>
                                     <c:choose>
                                         <c:when test="${n.ntcActive % 2 == 1}">
                                             <span class="tag event">이벤트</span>
@@ -298,8 +307,8 @@
 
                     <div class="inline-video-overlay" id="tourVideoOverlay">
                         <div class="play-icon-circle"><i class="fa-solid fa-play" style="margin-left: 4px;"></i></div>
-                        <h4 style="margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 0.5px;">1분 랜선 투어</h4>
-                        <span style="font-size: 13px; opacity: 0.8; margin-top: 6px;">Link Ora 공간 미리보기</span>
+                        <h4 style="margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 0.5px;">1분 랜선 투어 & 소개</h4>
+                        <span style="font-size: 13px; opacity: 0.8; margin-top: 6px;">영상이 끝나면 소개 영상이 이어집니다</span>
                     </div>
                 </div>
             </div>
@@ -454,7 +463,7 @@
     </div>
 
     <script>
-        // 랜선 투어 비디오 재생 처리 함수 (이건 겹치지 않아서 그대로 뒀어!)
+        // 비디오 재생 및 플레이리스트 처리
         function playTourVideo() {
             const video = document.getElementById('tourVideo');
             const container = document.getElementById('tourVideoContainer');
@@ -466,7 +475,19 @@
             }
         }
 
-        // 리뷰 좌우 스크롤 기능 (이것도 HTML 전용 기능이라 그대로 뒀어!)
+        // 첫 번째 영상이 끝나면 두 번째 영상으로 자동 전환
+        document.getElementById('tourVideo').onended = function() {
+            const video = this;
+            const introSrc = "${pageContext.request.contextPath}/static/upload/video/link_ora_소개.mp4";
+
+            /* 현재 재생 중인 영상이 투어 영상이면 소개 영상으로 교체 */
+            if (video.src.includes('office_tour.mp4')) {
+                video.src = introSrc;
+                video.play();
+            }
+        };
+
+        // 리뷰 그리드 스크롤
         function scrollReview(direction) {
             const grid = document.getElementById('reviewGrid');
             const card = grid.querySelector('.review-card');
@@ -476,7 +497,7 @@
             }
         }
 
-        // 지역 선택 기능 (마찬가지로 그대로 유지!)
+        // 지역 선택 기능
         const districtMap = {
             "서울": ["강남구", "서초구", "종로구", "마포구", "송파구", "영등포구", "성동구"],
             "인천": ["남동구", "연수구", "부평구", "미추홀구", "서구", "중구", "동구"]

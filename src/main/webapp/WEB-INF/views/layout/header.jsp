@@ -8,8 +8,10 @@
     boolean loggedIn = request.getUserPrincipal() != null;
     boolean adminUser = request.isUserInRole("ROLE_ADMIN");
     boolean partnerUser = request.isUserInRole("ROLE_PARTNER");
-    String mypageUrl = adminUser ? (request.getContextPath() + "/admin/dashboard")
-            : partnerUser ? (request.getContextPath() + "/partner/mypage")
+    String mypageUrl = adminUser ?
+        (request.getContextPath() + "/admin/dashboard")
+            : partnerUser ?
+        (request.getContextPath() + "/partner/mypage")
             : (request.getContextPath() + "/mypage");
 %>
 <!DOCTYPE html>
@@ -33,7 +35,8 @@
     <script src="${pageContext.request.contextPath}/js/mp_script.js" defer></script>
 
     <style>
-        /* 기본 햄버거 메뉴 색상 (진한 녹색) */
+
+    /* 기본 햄버거 메뉴 색상 (진한 녹색) */
         .main-header .hamburger-menu {
             color: #2F4F4F !important;
             font-family: "Font Awesome 6 Free" !important; /* 아이콘 모양 고정 */
@@ -85,7 +88,8 @@
         <li class="accordion-item">
             <a href="#" class="accordion-toggle">
                 <div class="acc-left"><i class="fa-regular fa-circle-user"></i> 내 정보</div>
-                <i class="fa-solid fa-chevron-down acc-arrow"></i>
+
+            <i class="fa-solid fa-chevron-down acc-arrow"></i>
             </a>
             <ul class="accordion-content">
                 <li><a href="${pageContext.request.contextPath}/inquiry/mylist">내 문의</a></li>
@@ -93,18 +97,23 @@
             </ul>
         </li>
 
+
         <li class="accordion-item">
             <a href="#" class="accordion-toggle">
                 <div class="acc-left"><i class="fa-regular fa-building"></i> 공간 소개</div>
                 <i class="fa-solid fa-chevron-down acc-arrow"></i>
             </a>
             <ul class="accordion-content">
-                <li>
-                    <a href="${pageContext.request.contextPath}/map" style="color: #007A8A; font-weight: 700;">
+
+    <li>
+                    <a href="${pageContext.request.contextPath}/map" style="color: #007A8A;
+                        font-weight: 700;">
                         <i class="fa-solid fa-map-location-dot" style="margin-right: 8px;"></i> 지도에서 찾기
                     </a>
                 </li>
                 <li><a href="${pageContext.request.contextPath}/branch/search">전체 지점</a></li>
+
+                <%-- 사이드바 메뉴도 메인 페이지와 동일한 필터 규칙 적용 --%>
                 <li><a href="${pageContext.request.contextPath}/branch/search?type=INDIVIDUAL">프라이빗 오피스</a></li>
                 <li><a href="${pageContext.request.contextPath}/branch/search?type=GROUP">코워킹 스페이스</a></li>
             </ul>
@@ -114,7 +123,8 @@
         <li>
             <a href="${pageContext.request.contextPath}/reservation/mylist">
                 <div class="acc-left"><i class="fa-regular fa-calendar-check"></i> 내 예약</div>
-            </a>
+
+        </a>
         </li>
         <% } %>
 
@@ -122,7 +132,8 @@
             <a href="#" class="accordion-toggle">
                 <div class="acc-left"><i class="fa-regular fa-circle-question"></i> 고객 지원</div>
                 <i class="fa-solid fa-chevron-down acc-arrow"></i>
-            </a>
+
+        </a>
             <ul class="accordion-content">
                 <li><a href="${pageContext.request.contextPath}/notice/list">공지사항</a></li>
                 <li><a href="${pageContext.request.contextPath}/inquiry">1:1 문의</a></li>
@@ -137,6 +148,7 @@
                 <div class="acc-left"><i class="fa-regular fa-circle-question"></i> 사업자 전용</div>
                 <i class="fa-solid fa-chevron-down acc-arrow"></i>
             </a>
+
             <ul class="accordion-content">
                 <li><a href="${pageContext.request.contextPath}/notice/list">고객 관리</a></li>
                 <li><a href="${pageContext.request.contextPath}/inquiry">오피스 관리</a></li>
@@ -150,21 +162,28 @@
 <%-- 상단 헤더 --%>
 <header class="main-header">
     <div class="container header-content">
-        <div class="header-left">
+
+       <div class="header-left">
             <%-- 햄버거 메뉴 아이콘 --%>
-            <i class="fa-solid fa-bars hamburger-menu" id="hamburgerBtn" style="cursor: pointer; z-index: 9999 !important; position: relative;"></i>
+            <i class="fa-solid fa-bars hamburger-menu" id="hamburgerBtn" style="cursor: pointer;
+                z-index: 9999 !important; position: relative;"></i>
 
             <%-- 로고 --%>
             <div class="logo">
                 <a href="${pageContext.request.contextPath}/">
-                    <svg class="logo__icon" viewBox="0 -10 160 80" fill="none" style="width: 150px; height: 60px;">
+                    <svg class="logo__icon" viewBox="0 -10 160 80" fill="none" style="width: 150px;
+                        height: 60px;">
                         <rect x="4" y="21.5" width="26" height="26" stroke="#a3b8b8" stroke-width="1.5" transform="rotate(-25 17 35)"/>
-                        <rect x="28" y="10" width="26" height="26" fill="${isSearchPage ? '#ffffff' : '#2F4F4F'}" fill-opacity="0.1" stroke="${isSearchPage ? '#ffffff' : '#2F4F4F'}" stroke-width="1.5" transform="rotate(-25 41 23)"/>
+                        <rect x="28" y="10" width="26" height="26" fill="${isSearchPage ?
+                            '#ffffff' : '#2F4F4F'}" fill-opacity="0.1" stroke="${isSearchPage ? '#ffffff' : '#2F4F4F'}" stroke-width="1.5" transform="rotate(-25 41 23)"/>
                         <rect x="50" y="20" width="26" height="26" stroke="#a3b8b8" stroke-width="1" transform="rotate(-25 53 33)"/>
-                        <rect x="38.2" y="38.5" width="26" height="26" fill="${isSearchPage ? '#ffffff' : '#2F4F4F'}" fill-opacity="0.1" stroke="${isSearchPage ? '#ffffff' : '#2F4F4F'}" stroke-width="1.5" transform="rotate(-25 41 47)"/>
+                        <rect x="38.2" y="38.5" width="26" height="26" fill="${isSearchPage ?
+                            '#ffffff' : '#2F4F4F'}" fill-opacity="0.1" stroke="${isSearchPage ? '#ffffff' : '#2F4F4F'}" stroke-width="1.5" transform="rotate(-25 41 47)"/>
 
-                        <text x="95" y="35" font-weight="bold" font-size="24" font-family="'Pretendard', sans-serif" fill="${isSearchPage ? '#ffffff' : '#2a2a2a'}">link</text>
-                        <text x="95" y="55" font-weight="bold" font-size="24" font-family="'Pretendard', sans-serif" fill="${isSearchPage ? '#ffffff' : '#2F4F4F'}">ora</text>
+                        <text x="95" y="35" font-weight="bold" font-size="24" font-family="'Pretendard', sans-serif" fill="${isSearchPage ?
+                            '#ffffff' : '#2a2a2a'}">link</text>
+                        <text x="95" y="55" font-weight="bold" font-size="24" font-family="'Pretendard', sans-serif" fill="${isSearchPage ?
+                            '#ffffff' : '#2F4F4F'}">ora</text>
                     </svg>
                 </a>
             </div>
@@ -173,12 +192,14 @@
         <%-- 우측 버튼 --%>
         <div class="header-right">
             <% if (adminUser) { %>
-            <button class="login-btn" onclick="location.href='<%= mypageUrl %>'">관리자페이지</button>
+
+       <button class="login-btn" onclick="location.href='<%= mypageUrl %>'">관리자페이지</button>
             <a href="${pageContext.request.contextPath}/logout" class="btn-book">로그아웃</a>
             <% } else if (partnerUser) { %>
             <button class="login-btn" onclick="location.href='<%= mypageUrl %>'">마이페이지</button>
             <a href="${pageContext.request.contextPath}/logoutNow" class="btn-book">로그아웃</a>
             <% } else { %>
+
             <a href="${pageContext.request.contextPath}/detail/list" class="btn-book">예약하기</a>
             <% if (loggedIn) { %>
             <button class="login-btn" onclick="location.href='<%= mypageUrl %>'">마이페이지</button>
@@ -186,6 +207,7 @@
             <button class="login-btn" onclick="location.href='${pageContext.request.contextPath}/login'">LOGIN</button>
             <% } %>
             <% } %>
+
         </div>
     </div>
 </header>
