@@ -135,6 +135,7 @@
                 </p>
             </div>
 
+
             <%-- 인원수 --%>
             <div class="mb-6" id="headcountSection"
                  <c:if test="${safeSpaceType eq 'GROUP'}">style="display:none"</c:if>>
