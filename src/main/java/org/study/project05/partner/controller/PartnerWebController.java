@@ -46,7 +46,10 @@ public class PartnerWebController {
             Model model,
             @RequestParam(value = "withdrawError", required = false) String withdrawError,
             @RequestParam(value = "pwdError", required = false) String pwdError,
-            @RequestParam(value = "pwdChanged", required = false) String pwdChanged
+            @RequestParam(value = "pwdChanged", required = false) String pwdChanged,
+            @RequestParam(value = "infoUpdated", required = false) String infoUpdated,
+            @RequestParam(value = "profileUpdated", required = false) String profileUpdated,
+            @RequestParam(value = "profileError", required = false) String profileError
     ) {
         if (WebAuthUtils.isAnonymous(authentication)) {
             return "redirect:/loginPage";
@@ -70,6 +73,9 @@ public class PartnerWebController {
         model.addAttribute("withdrawError", withdrawError);
         model.addAttribute("pwdError", pwdError);
         model.addAttribute("pwdChanged", pwdChanged);
+        model.addAttribute("infoUpdated", infoUpdated);
+        model.addAttribute("profileUpdated", profileUpdated);
+        model.addAttribute("profileError", profileError);
         return "partner/mypage";
     }
 
@@ -104,6 +110,33 @@ public class PartnerWebController {
         return "redirect:/partner/mypage?pwdChanged=success";
     }
 
+    @PostMapping("/partner/mypage/info")
+    public String updatePartnerInfo(
+            Authentication authentication,
+            @RequestParam("name") String name,
+            @RequestParam("email") String email,
+            @RequestParam("phone") String phone,
+            @RequestParam("address") String address,
+            @RequestParam(value = "profileImage", required = false) MultipartFile profileImage
+    ) {
+        if (WebAuthUtils.isAnonymous(authentication) || !WebAuthUtils.hasRole(authentication, "ROLE_PARTNER")) {
+            return "redirect:/loginPage";
+        }
+        // 이미지가 첨부된 경우: 서버에 저장 후 DB에 경로 업데이트
+        if (profileImage != null && !profileImage.isEmpty()) {
+            try {
+                String path = profileImageStorage.storeIfValid(profileImage);
+                if (path != null) {
+                    partnerService.updateProfileImage(authentication.getName(), path);
+                }
+            } catch (Exception ignored) {
+                // 이미지 저장 실패해도 나머지 정보는 저장
+            }
+        }
+        partnerService.updateInfo(authentication.getName(), name, email, phone, address);
+        return "redirect:/partner/mypage?infoUpdated=success";
+    }
+
     @PostMapping("/partner/mypage/profile")
     public String changePartnerProfileImage(
             Authentication authentication,
@@ -113,17 +146,24 @@ public class PartnerWebController {
             return "redirect:/loginPage";
         }
         if (profileImage == null || profileImage.isEmpty()) {
-            return "redirect:/partner/mypage";
+            return "redirect:/partner/mypage?profileError=empty";
         }
         try {
+            // 서버 디스크에 저장 후 웹 경로(예: /uploads/profiles/uuid.jpg) 반환
             String path = profileImageStorage.storeIfValid(profileImage);
             if (path == null) {
-                return "redirect:/partner/mypage";
+                // 허용되지 않는 확장자이거나 content-type 거부
+                return "redirect:/partner/mypage?profileError=invalid";
             }
-            partnerService.updateProfileImage(authentication.getName(), path);
-        } catch (Exception ignored) {
+            // 반환된 웹 경로를 DB p_profile 컬럼에 저장
+            boolean saved = partnerService.updateProfileImage(authentication.getName(), path);
+            if (!saved) {
+                return "redirect:/partner/mypage?profileError=dbFail";
+            }
+        } catch (Exception e) {
+            return "redirect:/partner/mypage?profileError=serverError";
         }
-        return "redirect:/partner/mypage";
+        return "redirect:/partner/mypage?profileUpdated=success";
     }
 
     @PostMapping("/partner/mypage/delete")
