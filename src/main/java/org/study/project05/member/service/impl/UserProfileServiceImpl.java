@@ -8,8 +8,13 @@ import org.springframework.stereotype.Service;
 import org.study.project05.member.mapper.UserProfileMapper;
 import org.study.project05.member.service.UserProfileService;
 import org.study.project05.member.vo.UserProfileVO;
+import org.study.project05.partner.mapper.PartnerMapper;
+import org.study.project05.partner.vo.PartnerVO;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -17,12 +22,18 @@ import java.util.UUID;
 public class UserProfileServiceImpl implements UserProfileService {
 
     private final UserProfileMapper userProfileMapper;
+    private final PartnerMapper partnerMapper;
     private final PasswordEncoder passwordEncoder;
     private static final String RESET_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-    public UserProfileServiceImpl(UserProfileMapper userProfileMapper, PasswordEncoder passwordEncoder) {
+    public UserProfileServiceImpl(
+            UserProfileMapper userProfileMapper,
+            PartnerMapper partnerMapper,
+            PasswordEncoder passwordEncoder
+    ) {
         this.userProfileMapper = userProfileMapper;
+        this.partnerMapper = partnerMapper;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -154,20 +165,56 @@ public class UserProfileServiceImpl implements UserProfileService {
         if (email == null || email.isBlank() || !email.contains("@")) {
             return PasswordResetIssuePasswordResult.invalid();
         }
-        UserProfileVO user = userProfileMapper.findLatestByEmail(email.trim());
-        if (user == null || user.getUserId() == null || user.getUserId().isBlank()) {
+        String normalized = normalizeEmail(email);
+        if (normalized.isEmpty()) {
+            return PasswordResetIssuePasswordResult.invalid();
+        }
+        List<String> memberIds = userProfileMapper.listUserIdsByEmail(normalized);
+        if (memberIds == null) {
+            memberIds = new ArrayList<>();
+        }
+        List<String> partnerIds = partnerMapper.listPartnerIdsByEmail(normalized);
+        if (partnerIds == null) {
+            partnerIds = new ArrayList<>();
+        }
+        if (memberIds.isEmpty() && partnerIds.isEmpty()) {
             return PasswordResetIssuePasswordResult.notFound();
         }
         String temporaryPassword = generateTemporaryPassword(10);
         String encoded = passwordEncoder.encode(temporaryPassword);
-        int updated = userProfileMapper.updatePasswordByUserId(user.getUserId(), encoded);
-        if (updated <= 0) {
-            return PasswordResetIssuePasswordResult.notFound();
+        // 이메일 조건 UPDATE만 하면, 동일 u_id/p_id에 이메일이 다른 중복 행이 있을 때
+        // findByUserId가 고르는 행(LIMIT 1)이 갱신되지 않아 로그인이 계속 실패할 수 있다.
+        // 복구 메일에 안내한 로그인 ID마다 u_id/p_id 기준으로 전부 갱신한다.
+        LinkedHashSet<String> distinctMemberIds = new LinkedHashSet<>(memberIds);
+        for (String uid : distinctMemberIds) {
+            if (uid != null && !uid.isBlank()) {
+                userProfileMapper.updatePasswordByUserId(uid.strip(), encoded);
+            }
+        }
+        LinkedHashSet<String> distinctPartnerIds = new LinkedHashSet<>(partnerIds);
+        for (String pid : distinctPartnerIds) {
+            if (pid != null && !pid.isBlank()) {
+                partnerMapper.updatePasswordByPartnerId(pid.strip(), encoded);
+            }
+        }
+
+        String memberCsv = memberIds.isEmpty() ? null : String.join(", ", memberIds);
+        String partnerCsv = partnerIds.isEmpty() ? null : String.join(", ", partnerIds);
+
+        UserProfileVO uv = userProfileMapper.findLatestByEmail(normalized);
+        PartnerVO pv = partnerMapper.findLatestByEmail(normalized);
+        String mailName = "";
+        if (uv != null && uv.getName() != null && !uv.getName().isBlank()) {
+            mailName = uv.getName();
+        } else if (pv != null && pv.getName() != null && !pv.getName().isBlank()) {
+            mailName = pv.getName();
         }
         return PasswordResetIssuePasswordResult.success(
-                user.getEmail() != null ? user.getEmail().trim() : email.trim(),
-                user.getName(),
-                temporaryPassword
+                email.trim(),
+                mailName,
+                temporaryPassword,
+                memberCsv,
+                partnerCsv
         );
     }
 
@@ -175,7 +222,11 @@ public class UserProfileServiceImpl implements UserProfileService {
         if (email == null || email.isBlank() || !email.contains("@")) {
             return UserIdFindIssueResult.invalid();
         }
-        UserProfileVO user = userProfileMapper.findLatestByEmail(email.trim());
+        String normalized = normalizeEmail(email);
+        if (normalized.isEmpty()) {
+            return UserIdFindIssueResult.invalid();
+        }
+        UserProfileVO user = userProfileMapper.findLatestByEmail(normalized);
         if (user == null || user.getUserId() == null || user.getUserId().isBlank()) {
             return UserIdFindIssueResult.notFound();
         }
