@@ -85,7 +85,7 @@
           <div class="flex transition-transform duration-300 ease-in-out" id="imgTrack">
             <c:forEach var="img" items="${branch.images}">
               <div class="min-w-full h-64 flex-shrink-0">
-                <img src="${pageContext.request.contextPath}/static/upload/branch/${img.biUrl}"
+                <img src="${pageContext.request.contextPath}${img.biUrl}"
                      alt="${branch.brnName}"
                      class="w-full h-full object-cover">
               </div>
