@@ -240,6 +240,13 @@
                             <label style="cursor:pointer;"><input type="checkbox" name="facPet" value="1" ${facPet == 1 ? 'checked' : ''}> 반려동물 동반</label>
                             <label style="cursor:pointer;"><input type="checkbox" name="facWifi" value="1" ${facWifi == 1 ? 'checked' : ''}> 기가 와이파이</label>
                             <label style="cursor:pointer;"><input type="checkbox" name="facCoffee" value="1" ${facCoffee == 1 ? 'checked' : ''}> 무료 커피/간식</label>
+
+                            <label style="cursor:pointer;"><input type="checkbox" name="facCafe" value="1" ${facCafe == 1 ? 'checked' : ''}> 카페테리아</label>
+                            <label style="cursor:pointer;"><input type="checkbox" name="facKitchen" value="1" ${facKitchen == 1 ? 'checked' : ''}> 공용 주방</label>
+                            <label style="cursor:pointer;"><input type="checkbox" name="facWater" value="1" ${facWater == 1 ? 'checked' : ''}> 정수기</label>
+                            <label style="cursor:pointer;"><input type="checkbox" name="facPrinter" value="1" ${facPrinter == 1 ? 'checked' : ''}> 프린터/복사기</label>
+                            <label style="cursor:pointer;"><input type="checkbox" name="facLocker" value="1" ${facLocker == 1 ? 'checked' : ''}> 개인 사물함</label>
+                            <label style="cursor:pointer;"><input type="checkbox" name="facLounge" value="1" ${facLounge == 1 ? 'checked' : ''}> 휴식 라운지</label>
                         </div>
                     </div>
 
@@ -318,12 +325,18 @@
                                         <i class="fa-solid fa-location-dot" style="color: #2F4F4F; margin-right: 5px;"></i> ${branch.brnAddress}
                                     </p>
 
-                                    <div class="facility-icons" style="display: flex; gap: 12px; margin-bottom: 20px; font-size: 18px;">
+                                    <div class="facility-icons" style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; font-size: 18px;">
                                         <c:if test="${branch.facWifi == 1}"><i class="fa-solid fa-wifi" title="와이파이"></i></c:if>
                                         <c:if test="${branch.facParking == 1}"><i class="fa-solid fa-car" title="주차"></i></c:if>
                                         <c:if test="${branch.facCoffee == 1}"><i class="fa-solid fa-mug-hot" title="무료커피"></i></c:if>
                                         <c:if test="${branch.facHours24 == 1}"><i class="fa-solid fa-clock" title="24시간"></i></c:if>
                                         <c:if test="${branch.facPet == 1}"><i class="fa-solid fa-paw" title="반려동물"></i></c:if>
+                                        <c:if test="${branch.facCafe == 1}"><i class="fa-solid fa-utensils" title="카페테리아"></i></c:if>
+                                        <c:if test="${branch.facKitchen == 1}"><i class="fa-solid fa-kitchen-set" title="공용주방"></i></c:if>
+                                        <c:if test="${branch.facWater == 1}"><i class="fa-solid fa-bottle-water" title="정수기"></i></c:if>
+                                        <c:if test="${branch.facPrinter == 1}"><i class="fa-solid fa-print" title="프린터/복사기"></i></c:if>
+                                        <c:if test="${branch.facLocker == 1}"><i class="fa-solid fa-vault" title="개인사물함"></i></c:if>
+                                        <c:if test="${branch.facLounge == 1}"><i class="fa-solid fa-couch" title="휴식 라운지"></i></c:if>
                                     </div>
 
                                     <a href="${pageContext.request.contextPath}/detail/detail?brnIdx=${branch.brnIdx}" class="btn-reservation"

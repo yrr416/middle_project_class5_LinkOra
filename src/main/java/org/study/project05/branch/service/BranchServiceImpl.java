@@ -33,12 +33,16 @@ public class BranchServiceImpl implements BranchService {
             String type,
             Integer facParking, Integer facHours24, Integer facPet,
             Integer facWifi, Integer facCoffee, Integer facPrinter, Integer facLocker,
+            // [추가] 신규 시설 필터 4종
+            Integer facCafe, Integer facKitchen, Integer facWater, Integer facLounge,
             Double lat, Double lng, Integer skip, Integer size
     ) {
-        // [작동] 매퍼(DB)로 type 값을 포함해서 15개 파라미터를 전달함
+        // [작동] 매퍼(DB)로 모든 필터 값을 포함해서 전달함
         return branchMapper.searchWithFilters(
                 keyword, region, capacity, type, facParking, facHours24, facPet,
-                facWifi, facCoffee, facPrinter, facLocker, lat, lng, skip, size
+                facWifi, facCoffee, facPrinter, facLocker,
+                facCafe, facKitchen, facWater, facLounge,
+                lat, lng, skip, size
         );
     }
 
@@ -50,12 +54,16 @@ public class BranchServiceImpl implements BranchService {
             String type,
             Integer facParking, Integer facHours24, Integer facPet,
             Integer facWifi, Integer facCoffee, Integer facPrinter, Integer facLocker,
+            // [추가] 신규 시설 필터 4종
+            Integer facCafe, Integer facKitchen, Integer facWater, Integer facLounge,
             Double lat, Double lng
     ) {
-        // [작동] 매퍼의 getCountWithFilters를 부르면서 type도 같이 던져줌!
+        // [작동] 매퍼의 getCountWithFilters를 부르면서 모든 필터를 던져줌!
         return branchMapper.getCountWithFilters(
                 keyword, region, capacity, type, facParking, facHours24, facPet,
-                facWifi, facCoffee, facPrinter, facLocker, lat, lng
+                facWifi, facCoffee, facPrinter, facLocker,
+                facCafe, facKitchen, facWater, facLounge,
+                lat, lng
         );
     }
 

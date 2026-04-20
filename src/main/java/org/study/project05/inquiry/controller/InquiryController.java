@@ -173,7 +173,7 @@ public class InquiryController {
     }
 
     /**
-     * 파일을 /uploads/review/ 에 저장하고 접근 가능한 웹 경로를 반환합니다.
+     * 파일을 /static/upload/inquiry/ 에 저장하고 접근 가능한 웹 경로를 반환합니다.
      */
     private String saveInquiryFile(MultipartFile file, HttpServletRequest request) throws IOException {
         String ext = StringUtils.getFilenameExtension(file.getOriginalFilename());

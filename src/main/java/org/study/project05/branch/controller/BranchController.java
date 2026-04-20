@@ -64,6 +64,11 @@ public class BranchController {
             @RequestParam(required = false) Integer facCoffee,
             @RequestParam(required = false) Integer facPrinter,
             @RequestParam(required = false) Integer facLocker,
+            // [추가] 신규 시설 필터 4종
+            @RequestParam(required = false) Integer facCafe,
+            @RequestParam(required = false) Integer facKitchen,
+            @RequestParam(required = false) Integer facWater,
+            @RequestParam(required = false) Integer facLounge,
             @RequestParam(required = false) String lat,
             @RequestParam(required = false) String lng,
             @RequestParam(defaultValue = "1") int page,
@@ -98,18 +103,20 @@ public class BranchController {
         int skip = (page - 1) * pageSize;
 
         // 3. 서비스 호출 (리스트 가져오기)
-        // [수정] DB 조회 시 유연하게 바꾼 cleanRegion 값을 던져줍니다.
+        // [수정] 신규 필터 4개를 포함하여 19개 파라미터 전달
         List<BranchVO> list = branchService.searchWithFilters(
                 cleanKeyword, cleanRegion, intCapacity, type,
                 facParking, facHours24, facPet, facWifi, facCoffee, facPrinter, facLocker,
+                facCafe, facKitchen, facWater, facLounge,
                 dblLat, dblLng, skip, pageSize
         );
 
         // 4. 전체 개수 가져오기
-        // [수정] 개수 조회 시에도 유연하게 바꾼 cleanRegion 값을 던져줍니다.
+        // [수정] 개수 조회 시에도 모든 필터 전달
         int totalCount = branchService.getCountWithFilters(
                 cleanKeyword, cleanRegion, intCapacity, type,
                 facParking, facHours24, facPet, facWifi, facCoffee, facPrinter, facLocker,
+                facCafe, facKitchen, facWater, facLounge,
                 dblLat, dblLng
         );
 
@@ -119,11 +126,9 @@ public class BranchController {
         Map<String, List<String>> regionMap = branchService.getRegionMap();
         model.addAttribute("regionMap", regionMap);
 
-        // 5. 화면(Model)에 데이터 전달
+        // 5. 화면(Model)에 데이터 전달 (UI 체크박스 상태 유지를 위함)
         model.addAttribute("branches", list);
         model.addAttribute("keyword", cleanKeyword);
-
-        // [중요] 화면 선택창(select) 유지를 위해 유연하게 바꾼 값이 아닌 원본 region을 그대로 전달함
         model.addAttribute("region", region);
         model.addAttribute("capacity", intCapacity);
         model.addAttribute("type", type);
@@ -134,6 +139,10 @@ public class BranchController {
         model.addAttribute("facCoffee", facCoffee);
         model.addAttribute("facPrinter", facPrinter);
         model.addAttribute("facLocker", facLocker);
+        model.addAttribute("facCafe", facCafe);
+        model.addAttribute("facKitchen", facKitchen);
+        model.addAttribute("facWater", facWater);
+        model.addAttribute("facLounge", facLounge);
 
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", totalPages);
@@ -156,9 +165,12 @@ public class BranchController {
         }
 
         // 지도는 페이징 없이 전체를 가져와야 하므로 skip, size는 null로 전달
-
+        // 파라미터가 19개로 늘어났으므로 규격에 맞춰 null을 추가로 던져줌
         return branchService.searchWithFilters(
-                cleanKeyword, null, null, null, null, null, null, null, null, null, null, lat, lng, null, null
+                cleanKeyword, null, null, null,
+                null, null, null, null, null, null, null,
+                null, null, null, null, // 신규 시설 4종 null
+                lat, lng, null, null
         );
     }
 }

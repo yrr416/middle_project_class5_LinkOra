@@ -30,6 +30,11 @@ public interface BranchMapper {
             @Param("facCoffee") Integer facCoffee,
             @Param("facPrinter") Integer facPrinter,
             @Param("facLocker") Integer facLocker,
+            // [추가] 신규 시설 필터 4종
+            @Param("facCafe") Integer facCafe,
+            @Param("facKitchen") Integer facKitchen,
+            @Param("facWater") Integer facWater,
+            @Param("facLounge") Integer facLounge,
             @Param("lat") Double lat,
             @Param("lng") Double lng,
             @Param("skip") Integer skip, // [추가] 건너뛸 개수
@@ -53,6 +58,11 @@ public interface BranchMapper {
             @Param("facCoffee") Integer facCoffee,
             @Param("facPrinter") Integer facPrinter,
             @Param("facLocker") Integer facLocker,
+            // [추가] 신규 시설 필터 4종
+            @Param("facCafe") Integer facCafe,
+            @Param("facKitchen") Integer facKitchen,
+            @Param("facWater") Integer facWater,
+            @Param("facLounge") Integer facLounge,
             @Param("lat") Double lat,
             @Param("lng") Double lng
     );

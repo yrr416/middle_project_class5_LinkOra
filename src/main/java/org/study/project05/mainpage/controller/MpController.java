@@ -41,11 +41,12 @@ public class MpController {
 
         // 2. [수정 포인트] 지점 목록 가져오기
 
-        // 서비스 인터페이스 변경에 맞춰 파라미터를 15개로 조정함
+        // 서비스 인터페이스 변경에 맞춰 파라미터를 19개로 조정함 (신규 4종 추가)
         List<BranchVO> list = branchService.searchWithFilters(
                 keyword, region, capacity,
                 type,                                     // 추가된 type 파라미터 전달
-                null, null, null, null, null, null, null, // 시설 필터 7개
+                null, null, null, null, null, null, null, // 기존 시설 필터 7개
+                null, null, null, null,                   // [추가] 신규 시설 필터 4개 (Cafe, Kitchen, Water, Lounge)
                 null, null,                               // lat, lng
                 null, null                                // skip, size
         );

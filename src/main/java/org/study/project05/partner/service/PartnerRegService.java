@@ -29,4 +29,9 @@ public interface PartnerRegService {
 
     // Step5 · 미리보기용 공간 목록 조회
     List<SpaceRegVO> getSpacesByBranchId(int bIdx);
+
+    // 내 매물 관리
+    List<BranchRegVO> getMyBranches(int partnerIdx);
+    boolean toggleBranchActive(int brnIdx, int partnerIdx);
+    boolean toggleSpaceActive(int spcIdx, int partnerIdx);
 }
