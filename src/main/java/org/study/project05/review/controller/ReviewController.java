@@ -28,6 +28,17 @@ public class ReviewController {
     @Autowired
     private ReviewService reviewService;
 
+    /** 전체 리뷰 공개 페이지 (/review/all) */
+    @GetMapping("/all")
+    public String all(@RequestParam(defaultValue = "1") int page, Model model) {
+        Map<String, Object> result = reviewService.getAllReviewsPage(page);
+        model.addAttribute("reviewList", result.get("reviews"));
+        model.addAttribute("paging",     result.get("paging"));
+        model.addAttribute("total",      result.get("total"));
+        model.addAttribute("brnIdx", result.get("brnIdx"));
+        return "review/all";
+    }
+
     /** 마이페이지 리뷰 관리 (/review/management) */
     @GetMapping("/management")
     public String management(HttpSession session, Model model) {

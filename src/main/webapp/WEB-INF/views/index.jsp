@@ -322,8 +322,8 @@
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 5px;">
-                    <a href="${pageContext.request.contextPath}/detail/list" class="more-link" style="font-size: 14px; font-weight: 600; color: #007A8A; text-decoration: none; margin: 0;">
-                        모든 지점 보러가기 <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
+                    <a href="${pageContext.request.contextPath}/review/all" class="more-link" style="font-size: 14px; font-weight: 600; color: #007A8A; text-decoration: none; margin: 0;">
+                        모든 리뷰 보기 <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
                     </a>
 
                     <div style="display: flex; gap: 8px; margin-left: 5px;">

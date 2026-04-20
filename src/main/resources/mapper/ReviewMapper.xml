@@ -195,6 +195,11 @@
         DELETE FROM review WHERE v_idx = #{revIdx}
     </delete>
 
+    <!-- 리뷰 단건 조회 (삭제 전 이미지 파일명 확인용) -->
+    <select id="selectOne" resultMap="reviewResultMap">
+        SELECT v_idx, v_img FROM review WHERE v_idx = #{revIdx}
+    </select>
+
     <!-- 이용 완료(FINISH) 예약 존재 여부 확인
          리뷰 작성 전 해당 공간을 실제로 이용한 사람인지 검증 -->
     <select id="countFinishedReservation" resultType="int">
@@ -226,6 +231,40 @@
         WHERE r.u_idx        = #{userIdx}
           AND r.v_parent_idx = 0
         ORDER BY r.v_idx DESC
+    </select>
+
+    <!-- 전체 공개 리뷰 목록 (페이징, 별점 있는 최상위 후기만) -->
+    <select id="selectAllPublic" resultMap="reviewResultMap">
+        SELECT r.v_idx,
+               r.s_idx,
+               r.u_idx,
+               r.v_parent_idx,
+               r.v_content,
+               r.v_rating,
+               IFNULL(u.u_name, '탈퇴한 유저') AS u_name,
+               s.s_name,
+               b.b_name,
+               b.b_idx,
+               r.v_created_at,
+               r.v_img
+        FROM review r
+        LEFT JOIN user   u ON r.u_idx  = u.u_idx
+        JOIN       space s ON r.s_idx  = s.s_idx
+        JOIN       branch b ON s.b_idx = b.b_idx
+        WHERE r.v_parent_idx = 0
+          AND r.v_rating     > 0
+        ORDER BY r.v_idx DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 전체 공개 리뷰 수 -->
+    <select id="countAllPublic" resultType="int">
+        SELECT COUNT(*)
+        FROM review r
+        JOIN space   s ON r.s_idx  = s.s_idx
+        JOIN branch  b ON s.b_idx  = b.b_idx
+        WHERE r.v_parent_idx = 0
+          AND r.v_rating     > 0
     </select>
 
     <!-- 후기/답글 등록 -->
