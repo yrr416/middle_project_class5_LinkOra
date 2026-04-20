@@ -36,13 +36,18 @@ public class ProfileImageStorageImpl implements ProfileImageStorageService {
         if (file == null || file.isEmpty()) {
             return null;
         }
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.toLowerCase(Locale.ROOT).startsWith("image/")) {
-            return null;
-        }
         String ext = extensionOf(file.getOriginalFilename());
         if (ext == null || !ALLOWED_EXT.contains(ext)) {
             return null;
+        }
+        // content-type 이 없거나 브라우저가 application/octet-stream 으로 보내는 경우에도
+        // 위에서 확장자로 이미 허용 여부를 검증했으므로 통과
+        String contentType = file.getContentType();
+        if (contentType != null
+                && !contentType.isBlank()
+                && !contentType.toLowerCase(Locale.ROOT).startsWith("image/")
+                && !contentType.equalsIgnoreCase("application/octet-stream")) {
+            return null; // 명백히 이미지가 아닌 타입(예: text/html)만 거부
         }
         Files.createDirectories(profilesDirectory);
         String filename = UUID.randomUUID() + ext;

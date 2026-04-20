@@ -25,4 +25,6 @@ public interface PartnerService {
     boolean deleteByPartnerId(String partnerId);
 
     PasswordChangeResult changePassword(String partnerId, String currentPassword, String newPassword);
+
+    boolean updateInfo(String partnerId, String name, String email, String phone, String address);
 }
