@@ -476,10 +476,7 @@
                             <i class="bi bi-exclamation-triangle me-1"></i>강제 취소 처리
                         </div>
                         <form method="post" action="${ctx}/admin/reservation/cancel" id="cancelFormTag">
-<<<<<<< HEAD
                             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-=======
->>>>>>> 232e2b3883b98d8c239dbd1817c6d050bb9cc5a8
                             <!-- 현재 필터 유지용 hidden 값은 JavaScript 에서 동적 추가 -->
                             <input type="hidden" name="resIdx"      id="cancel_r_idx">
                             <input type="hidden" name="nowPage"     value="${nowPage}">
@@ -695,12 +692,8 @@ function renderFooterButtons(d) {
 
     /* PENDING → 예약 확정 버튼 */
     if (d.resStatus === 'PENDING') {
-<<<<<<< HEAD
         html = '<form method="post" action="' + CTX + '/admin/reservation/confirm" class="d-inline">' +
                '  <input type="hidden" name="' + CSRF_PARAM + '" value="' + CSRF_TOKEN + '">' +
-=======
-        html = '<form method="post" action="${ctx}/admin/reservation/confirm" class="d-inline">' +
->>>>>>> 232e2b3883b98d8c239dbd1817c6d050bb9cc5a8
                '  <input type="hidden" name="resIdx"        value="' + d.resIdx + '">' +
                '  <input type="hidden" name="nowPage"       value="' + CURRENT_PAGE + '">' +
                '  <input type="hidden" name="startDate"    value="${searchVO.startDate}">' +
@@ -716,14 +709,9 @@ function renderFooterButtons(d) {
     }
 
     /* CONFIRMED / USING → 이용 완료 처리 버튼 */
-<<<<<<< HEAD
     if (d.resStatus === 'CONFIRMED' || d.resStatus === 'USE') {
         html = '<form method="post" action="' + CTX + '/admin/reservation/complete" class="d-inline">' +
                '  <input type="hidden" name="' + CSRF_PARAM + '" value="' + CSRF_TOKEN + '">' +
-=======
-    if (d.resStatus === 'CONFIRMED' || d.resStatus === 'USING') {
-        html = '<form method="post" action="${ctx}/admin/reservation/complete" class="d-inline">' +
->>>>>>> 232e2b3883b98d8c239dbd1817c6d050bb9cc5a8
                '  <input type="hidden" name="resIdx"        value="' + d.resIdx + '">' +
                '  <input type="hidden" name="nowPage"       value="' + CURRENT_PAGE + '">' +
                '  <input type="hidden" name="startDate"    value="${searchVO.startDate}">' +

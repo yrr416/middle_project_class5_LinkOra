@@ -55,4 +55,16 @@ public interface InquiryMapper {
     /** 관리자 답변 저장 (상태 → COMPLETE, i_answered = NOW()) */
     int answerInquiry(@Param("inqIdx")    Integer inqIdx,
                       @Param("inqAnswer") String  inqAnswer);
+
+    /* ===== 답변 템플릿 관리 ===== */
+
+    /** 전체 템플릿 목록 조회 */
+    List<java.util.Map<String, Object>> selectAllTemplates();
+
+    /** 템플릿 추가 */
+    int insertTemplate(@Param("title")   String title,
+                       @Param("content") String content);
+
+    /** 템플릿 삭제 */
+    int deleteTemplate(@Param("tIdx") int tIdx);
 }
