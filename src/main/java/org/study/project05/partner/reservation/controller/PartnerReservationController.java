@@ -118,7 +118,7 @@ public class PartnerReservationController {
             HttpSession session
     ) {
         int partnerIdx = getPartnerIdx(session);
-        boolean ok = service.confirmReservation(resIdx, partnerIdx);
+        boolean ok = service.confirmAndNotify(resIdx, partnerIdx);
         Map<String, Object> body = new java.util.HashMap<>();
         body.put("success", ok);
         body.put("message", ok ? "예약이 수락되었습니다." : "수락 처리에 실패했습니다. (이미 처리됐거나 권한 없음)");

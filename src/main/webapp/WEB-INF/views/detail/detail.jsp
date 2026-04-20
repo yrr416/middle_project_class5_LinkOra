@@ -1405,7 +1405,21 @@
 
       if(!currentBranch.brnIdx) return;
 
+<<<<<<< HEAD
       recent = recent.filter(b => b.brnIdx !== currentBranch.brnIdx);
+=======
+    let currentBranch = {
+      brnIdx: '${branch.brnIdx}',
+      brnName: '${branch.brnName}',
+      mainImgUrl: '${branch.mainImgUrl != null ? branch.mainImgUrl : (not empty branch.images ? branch.images[0].biUrl : "")}',
+      brnAddress: '${branch.brnAddress}',
+      facWifi:     '${branch.facWifi     != null ? branch.facWifi     : (not empty branch.spaces ? branch.spaces[0].facilities.facWifi     : "0")}',
+      facParking:  '${branch.facParking  != null ? branch.facParking  : (not empty branch.spaces ? branch.spaces[0].facilities.facParking  : "0")}',
+      facCoffee:   '${branch.facCoffee   != null ? branch.facCoffee   : (not empty branch.spaces ? branch.spaces[0].facilities.facCoffee   : "0")}',
+      facHours24:  '${branch.facHours24  != null ? branch.facHours24  : (not empty branch.spaces ? branch.spaces[0].facilities.facHours24  : "0")}',
+      facPet:      '${branch.facPet      != null ? branch.facPet      : (not empty branch.spaces ? branch.spaces[0].facilities.facPet      : "0")}'
+    };
+>>>>>>> 232e2b3883b98d8c239dbd1817c6d050bb9cc5a8
 
       recent.unshift(currentBranch);
 

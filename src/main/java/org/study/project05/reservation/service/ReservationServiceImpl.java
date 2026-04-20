@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.study.project05.reservation.mapper.ReservationMapper;
 import org.study.project05.reservation.vo.AdminReservationVO;
+import org.study.project05.reservation.user.service.ReservationMailService;
 
 import java.util.*;
 
@@ -12,6 +13,9 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Autowired
     private ReservationMapper reservationMapper;
+
+    @Autowired
+    private ReservationMailService mailService;
 
     private Map<String, Object> buildParams(int offset, int numPerPage, AdminReservationVO vo) {
         Map<String, Object> p = new HashMap<>();
@@ -45,7 +49,20 @@ public class ReservationServiceImpl implements ReservationService {
         p.put("userIdx", userIdx); p.put("resIdx", resIdx);
         return reservationMapper.getRecentReservationsByUser(p);
     }
-    @Override public void confirmReservation(int resIdx) { reservationMapper.confirmReservation(resIdx); }
+    @Override public void confirmReservation(int resIdx) {
+        reservationMapper.confirmReservation(resIdx);
+        // 예약 확정 후 사용자에게 승인 안내 메일 발송 (메일 실패해도 확정은 유지)
+        AdminReservationVO detail = reservationMapper.getReservationDetail(resIdx);
+        if (detail != null && detail.getUserEmail() != null) {
+            mailService.sendReservationApproved(
+                    detail.getUserEmail(),
+                    detail.getUserName(),
+                    detail.getSpcName(),
+                    detail.getResStartTime(),
+                    detail.getResEndTime()
+            );
+        }
+    }
     @Override public void completeReservation(int resIdx) { reservationMapper.completeReservation(resIdx); }
     @Override public void cancelReservation(int resIdx, String reason) {
         Map<String, Object> p = new HashMap<>();

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.study.project05.partner.reservation.mapper.PartnerReservationMapper;
 import org.study.project05.partner.reservation.vo.PartnerReservationVO;
+import org.study.project05.reservation.user.service.ReservationMailService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +15,9 @@ public class PartnerReservationServiceImpl implements PartnerReservationService 
 
     @Autowired
     private PartnerReservationMapper mapper;
+
+    @Autowired
+    private ReservationMailService mailService;
 
     @Override
     public Map<String, Object> getSummary(int partnerIdx) {
@@ -102,6 +106,29 @@ public class PartnerReservationServiceImpl implements PartnerReservationService 
         params.put("resIdx",     resIdx);
         params.put("partnerIdx", partnerIdx);
         return mapper.confirmReservation(params) > 0;
+    }
+
+    @Override
+    public boolean confirmAndNotify(int resIdx, int partnerIdx) {
+        // ① 기존 승인 로직 그대로 실행
+        boolean ok = confirmReservation(resIdx, partnerIdx);
+
+        // ② 승인 성공했을 때만 이메일 발송
+        if (ok) {
+            // getDetail로 사용자 이메일·이름·공간명·시간 정보를 한 번에 가져옴
+            PartnerReservationVO detail = getDetail(resIdx, partnerIdx);
+            if (detail != null && detail.getUserEmail() != null) {
+                // sendReservationApproved 내부에서 예외를 잡으므로 여기서 try-catch 불필요
+                mailService.sendReservationApproved(
+                        detail.getUserEmail(),
+                        detail.getUserName(),
+                        detail.getSpcName(),
+                        detail.getResStartTime(),
+                        detail.getResEndTime()
+                );
+            }
+        }
+        return ok;
     }
 
     @Override
