@@ -107,4 +107,13 @@ public interface PartnerMapper {
 
     @Update("UPDATE `partner` SET p_active = 0 WHERE p_id = #{partnerId}")
     int deactivateByPartnerId(@Param("partnerId") String partnerId);
+
+    @Update("UPDATE `partner` SET p_name = #{name}, p_email = #{email}, p_phone = #{phone}, p_addr = #{address} WHERE p_id = #{partnerId}")
+    int updateInfoByPartnerId(
+            @Param("partnerId") String partnerId,
+            @Param("name") String name,
+            @Param("email") String email,
+            @Param("phone") String phone,
+            @Param("address") String address
+    );
 }

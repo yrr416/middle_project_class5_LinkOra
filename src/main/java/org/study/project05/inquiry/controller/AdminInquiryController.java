@@ -7,11 +7,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.study.project05.inquiry.mapper.InquiryMapper;
 import org.study.project05.inquiry.vo.InquiryVO;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 관리자 문의 관리 컨트롤러
@@ -91,7 +94,11 @@ public class AdminInquiryController {
             return "redirect:/admin/inquiry/list";
         }
 
+        // DB에서 답변 템플릿 목록 조회
+        List<Map<String, Object>> templates = inquiryMapper.selectAllTemplates();
+
         model.addAttribute("inquiry",      inquiry);
+        model.addAttribute("templates",    templates);
         model.addAttribute("nowPage",      nowPage);
         model.addAttribute("statusFilter", statusFilter);
         model.addAttribute("searchWord",   searchWord);
@@ -115,5 +122,50 @@ public class AdminInquiryController {
         return "redirect:/admin/inquiry/list?nowPage=" + nowPage
                 + "&statusFilter=" + statusFilter
                 + "&searchWord=" + searchWord;
+    }
+
+    /**
+     * 템플릿 추가 (POST /admin/inquiry/template/add) — AJAX
+     */
+    @PostMapping("/template/add")
+    @ResponseBody
+    public Map<String, Object> templateAdd(
+            @RequestParam("title")   String title,
+            @RequestParam("content") String content) {
+
+        Map<String, Object> result = new HashMap<>();
+        try {
+            if (title == null || title.isBlank() || content == null || content.isBlank()) {
+                result.put("success", false);
+                result.put("message", "제목과 내용을 모두 입력해주세요.");
+                return result;
+            }
+            inquiryMapper.insertTemplate(title.trim(), content.trim());
+            // 추가 후 전체 목록 반환 (화면 갱신용)
+            result.put("success",   true);
+            result.put("templates", inquiryMapper.selectAllTemplates());
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "저장 중 오류가 발생했습니다.");
+        }
+        return result;
+    }
+
+    /**
+     * 템플릿 삭제 (POST /admin/inquiry/template/delete) — AJAX
+     */
+    @PostMapping("/template/delete")
+    @ResponseBody
+    public Map<String, Object> templateDelete(@RequestParam("tIdx") int tIdx) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            inquiryMapper.deleteTemplate(tIdx);
+            result.put("success",   true);
+            result.put("templates", inquiryMapper.selectAllTemplates());
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "삭제 중 오류가 발생했습니다.");
+        }
+        return result;
     }
 }

@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +27,28 @@ public class ReviewController {
 
     @Autowired
     private ReviewService reviewService;
+
+    /** 전체 리뷰 공개 페이지 (/review/all) */
+    @GetMapping("/all")
+    public String all(@RequestParam(defaultValue = "1") int page, Model model) {
+        Map<String, Object> result = reviewService.getAllReviewsPage(page);
+        model.addAttribute("reviewList", result.get("reviews"));
+        model.addAttribute("paging",     result.get("paging"));
+        model.addAttribute("total",      result.get("total"));
+        model.addAttribute("brnIdx", result.get("brnIdx"));
+        return "review/all";
+    }
+
+    /** 마이페이지 리뷰 관리 (/review/management) */
+    @GetMapping("/management")
+    public String management(HttpSession session, Model model) {
+        UserProfileVO user = (UserProfileVO) session.getAttribute("loginUser");
+        if (user == null) {
+            return "redirect:/loginPage";
+        }
+        model.addAttribute("reviewList", reviewService.getMyReviews(user.getUserIdx()));
+        return "review/mylist";
+    }
 
     /** 지점 이용후기 목록 (AJAX GET) */
     @GetMapping("/list")

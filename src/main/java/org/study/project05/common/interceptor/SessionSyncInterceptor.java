@@ -38,6 +38,11 @@ public class SessionSyncInterceptor implements HandlerInterceptor {
 
             // 2. 파트너는 loginUser 세션을 사용하지 않으므로, partnerIdx가 있으면 동기화 건너뜀
 
+
+
+            // 2. 세션 필수 정보가 하나라도 없는 경우 동기화 실행
+            // 파트너는 loginUser 세션을 사용하지 않으므로, partnerIdx가 있으면 동기화 건너뜀
+            // 2. 파트너는 loginUser 세션을 사용하지 않으므로, partnerIdx가 있으면 동기화 건너뜀
             boolean isPartner = session.getAttribute("partnerIdx") != null;
             if (!isPartner && (session.getAttribute("userIdx") == null || session.getAttribute("loginUser") == null)) {
                 Object principal = auth.getPrincipal();

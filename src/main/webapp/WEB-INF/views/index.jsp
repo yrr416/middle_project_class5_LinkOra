@@ -29,7 +29,8 @@
                 .search-bar-round { max-width: 1000px !important; }
 
                 /* 이벤트 슬라이더 - 고정 높이 제거, 이미지 크기에 맞게 자동 늘어남 */
-                .promo-slider-container { position: relative; overflow-x: hidden; overflow-y: visible; border-radius: 12px; margin-top: 30px; cursor: pointer; }
+                /* [수정] 스크롤 강제 생성 버그를 막기 위해 overflow: hidden 으로 통합 */
+                .promo-slider-container { position: relative; overflow: hidden; border-radius: 12px; margin-top: 30px; cursor: pointer; }
                 .promo-track { display: flex; transition: transform 0.5s ease-in-out; }
                 /* 슬라이드 내부 여백 조정: 왼쪽 여백을 60px로 늘려 버튼과 겹침 방지 */
                 .promo-slide { display: flex; align-items: center; gap: 20px; text-decoration: none; color: #fff; padding: 24px 36px 24px 60px; box-sizing: border-box; position: relative; border-radius: 12px; }
@@ -97,19 +98,25 @@
                         <input type="text" name="keyword" id="keywordSearchInput" value="${keyword}" placeholder="어떤 공간을 찾으시나요?">
                     </div>
                     <div class="search-divider"></div>
+
                     <div class="search-item">
+                        <input type="hidden" name="region" id="actualRegion" value="${region}">
                         <select id="citySelect" onchange="updateDistricts()">
                             <option value="">지역 전체</option>
-                            <option value="서울">서울특별시</option>
-                            <option value="인천">인천광역시</option>
+                            <c:forEach var="city" items="${regionMap.keySet()}">
+                                <option value="${city}">${city}</option>
+                            </c:forEach>
                         </select>
                     </div>
+
                     <div class="search-divider"></div>
+
                     <div class="search-item">
-                        <select name="region" id="districtSelect" disabled>
+                        <select id="districtSelect" onchange="updateRegionInput()" disabled>
                             <option value="">상세 지역</option>
                         </select>
                     </div>
+
                     <div class="search-divider"></div>
                     <div class="search-item">
                         <select name="capacity">
@@ -155,17 +162,24 @@
                 <c:choose>
                     <c:when test="${not empty eventList}">
                         <c:forEach var="ev" items="${eventList}">
-                            <%-- 이벤트 슬라이드 --%>
                             <a href="${pageContext.request.contextPath}/notice/detail?ntcIdx=${ev.ntcIdx}"
                                class="promo-slide">
-                                <%-- 이미지가 있으면 먼저 출력하여 왼쪽에 배치 --%>
                                 <c:if test="${not empty ev.ntcImg}">
                                     <div class="promo-slide-img-col">
-                                        <img src="${ev.ntcImg}" alt="${ev.ntcTitle}" class="promo-slide-img">
+                                        <c:choose>
+                                            <c:when test="${fn:startsWith(ev.ntcImg, 'http')}">
+                                                <img src="${ev.ntcImg}" alt="${ev.ntcTitle}" class="promo-slide-img">
+                                            </c:when>
+                                            <c:when test="${fn:startsWith(ev.ntcImg, '/')}">
+                                                <img src="${pageContext.request.contextPath}${ev.ntcImg}" alt="${ev.ntcTitle}" class="promo-slide-img">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <img src="${pageContext.request.contextPath}/static/upload/notice/${ev.ntcImg}" alt="${ev.ntcTitle}" class="promo-slide-img">
+                                            </c:otherwise>
+                                        </c:choose>
                                     </div>
                                 </c:if>
 
-                                <%-- 텍스트 정보를 이미지 뒤(오른쪽)에 배치 --%>
                                 <div class="promo-slide-text">
                                     <span class="promo-slide-badge">EVENT</span>
                                     <h3 class="promo-slide-title">${ev.ntcTitle}</h3>
@@ -176,7 +190,6 @@
                                     </p>
                                 </div>
 
-                                <%-- 이미지가 없을 경우에만 화살표 아이콘 표시 --%>
                                 <c:if test="${empty ev.ntcImg}">
                                     <span class="promo-slide-arrow">›</span>
                                 </c:if>
@@ -184,7 +197,6 @@
                         </c:forEach>
                     </c:when>
                     <c:otherwise>
-                        <%-- 등록된 이벤트가 없을 때 기본 슬라이드 --%>
                         <a href="${pageContext.request.contextPath}/notice/list?activeFilter=1"
                            class="promo-slide">
                             <div>
@@ -198,13 +210,11 @@
                 </c:choose>
             </div>
 
-            <%-- 좌우 화살표 버튼 --%>
             <button class="promo-nav prev" id="promoPrev">&#8249;</button>
             <button class="promo-nav next" id="promoNext">&#8250;</button>
 
         </div>
 
-        <%-- 슬라이더 하단 점 메뉴 --%>
         <div class="promo-dots-bar" id="promoDots">
             <c:choose>
                 <c:when test="${not empty eventList}">
@@ -225,9 +235,7 @@
             var slides = track.querySelectorAll('.promo-slide');
             var n = slides.length;
             if (n === 0) return;
-            // 트랙 전체 너비 설정
             track.style.width = (n * 100) + '%';
-            // 각 슬라이드 너비 균등 배분
             for (var i = 0; i < n; i++) {
                 slides[i].style.width = (100 / n) + '%';
             }
@@ -238,7 +246,6 @@
             <div class="content-left">
                 <div class="section-header"><h2>공간 찾아보기</h2></div>
                 <div class="category-grid">
-                    <%-- 프라이빗 오피스 검색 필터 연결 (type=INDIVIDUAL) --%>
                     <a href="${pageContext.request.contextPath}/branch/search?type=INDIVIDUAL" class="category-link">
                         <div class="category-card">
                             <i class="fa-solid fa-door-closed"></i>
@@ -249,7 +256,6 @@
                         </div>
                     </a>
 
-                    <%-- 코워킹 스페이스 검색 필터 연결 (type=GROUP) --%>
                     <a href="${pageContext.request.contextPath}/branch/search?type=GROUP" class="category-link">
                         <div class="category-card">
                             <i class="fa-solid fa-laptop"></i>
@@ -322,8 +328,8 @@
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 5px;">
-                    <a href="${pageContext.request.contextPath}/detail/list" class="more-link" style="font-size: 14px; font-weight: 600; color: #007A8A; text-decoration: none; margin: 0;">
-                        모든 지점 보러가기 <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
+                    <a href="${pageContext.request.contextPath}/review/all" class="more-link" style="font-size: 14px; font-weight: 600; color: #007A8A; text-decoration: none; margin: 0;">
+                        모든 리뷰 보기 <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
                     </a>
 
                     <div style="display: flex; gap: 8px; margin-left: 5px;">
@@ -340,8 +346,17 @@
                             <div class="rev-img-box" style="height: 180px; flex-shrink: 0; overflow: hidden;">
                                 <c:choose>
                                     <c:when test="${not empty rev.revImg}">
-                                        <img src="${pageContext.request.contextPath}/static/upload/review/${rev.revImg}"
-                                             style="width: 100%; height: 100%; object-fit: cover;">
+                                        <c:choose>
+                                            <c:when test="${fn:startsWith(rev.revImg, 'http')}">
+                                                <img src="${rev.revImg}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </c:when>
+                                            <c:when test="${fn:startsWith(rev.revImg, '/')}">
+                                                <img src="${pageContext.request.contextPath}${rev.revImg}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <img src="${pageContext.request.contextPath}/static/upload/review/${rev.revImg}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </c:otherwise>
+                                        </c:choose>
                                     </c:when>
                                     <c:otherwise>
                                         <img src="${pageContext.request.contextPath}/static/images/default_office.png"
@@ -497,12 +512,33 @@
             }
         }
 
-        // 지역 선택 기능
+        // 지역 데이터 매핑
         const districtMap = {
-            "서울": ["강남구", "서초구", "종로구", "마포구", "송파구", "영등포구", "성동구"],
-            "인천": ["남동구", "연수구", "부평구", "미추홀구", "서구", "중구", "동구"]
+            <c:forEach var="entry" items="${regionMap}" varStatus="status">
+                "${entry.key}": [
+                    <c:forEach var="dist" items="${entry.value}" varStatus="distStatus">
+                        "${dist}"${!distStatus.last ? ',' : ''}
+                    </c:forEach>
+                ]${!status.last ? ',' : ''}
+            </c:forEach>
         };
 
+        // 시/도, 상세 구 값을 합쳐서 hidden input에 업데이트하는 함수
+        function updateRegionInput() {
+            const city = document.getElementById('citySelect').value;
+            const district = document.getElementById('districtSelect').value;
+            const actualRegion = document.getElementById('actualRegion');
+
+            if (city && district) {
+                actualRegion.value = city + " " + district;
+            } else if (city) {
+                actualRegion.value = city;
+            } else {
+                actualRegion.value = "";
+            }
+        }
+
+        // 시/도 선택 시 상세 지역 목록을 갱신하는 함수
         function updateDistricts() {
             const city = document.getElementById('citySelect').value;
             const districtSelect = document.getElementById('districtSelect');
@@ -520,7 +556,35 @@
             } else {
                 districtSelect.disabled = true;
             }
+
+            // 시/도 값이 바뀔 때마다 hidden input 값 갱신
+            updateRegionInput();
         }
+
+        // 페이지 로드 시 기존에 선택했던 지역 값을 세팅
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedRegion = "${region}";
+
+            if (savedRegion) {
+                const parts = savedRegion.split(' ');
+                const savedCity = parts[0];
+                const savedDistrict = parts.length > 1 ? parts[1] : '';
+
+                const citySelect = document.getElementById('citySelect');
+
+                if (citySelect && [...citySelect.options].some(opt => opt.value === savedCity)) {
+                    citySelect.value = savedCity;
+                    updateDistricts();
+
+                    if (savedDistrict) {
+                        const districtSelect = document.getElementById('districtSelect');
+                        if (districtSelect && [...districtSelect.options].some(opt => opt.value === savedDistrict)) {
+                            districtSelect.value = savedDistrict;
+                        }
+                    }
+                }
+            }
+        });
     </script>
 
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=cd1f0f4ad9dcf4879bee2531dc5a0497&libraries=services&autoload=false"></script>

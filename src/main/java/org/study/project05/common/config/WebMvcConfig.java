@@ -57,6 +57,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
         if (!noticeLocation.endsWith("/")) noticeLocation += "/";
         registry.addResourceHandler("/uploads/notice/**")
                 .addResourceLocations(noticeLocation);
+
+        // webapp/static/ 하위 업로드 이미지 서빙 (branch, review, video 등)
+        Path staticDir = Paths.get("src", "main", "webapp", "static").toAbsolutePath().normalize();
+        String staticLocation = staticDir.toUri().toString();
+        if (!staticLocation.endsWith("/")) staticLocation += "/";
+        registry.addResourceHandler("/static/**")
+                .addResourceLocations(staticLocation);
     }
 
     @Bean

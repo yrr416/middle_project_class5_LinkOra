@@ -9,7 +9,13 @@ public interface ReviewService {
 
     Map<String, Object> getReviewPage(int bIdx, int page);
 
+    /** 내가 쓴 리뷰 목록 */
+    List<ReviewVO> getMyReviews(int userIdx);
+
     List<ReviewVO> getRecentReviews(int limit);
+
+    /** 전체 공개 리뷰 페이징 목록 */
+    Map<String, Object> getAllReviewsPage(int page);
 
     void writeReply(int spcIdx, int revParentIdx, int userIdx, String content);
 

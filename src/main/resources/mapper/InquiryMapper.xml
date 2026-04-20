@@ -129,6 +129,28 @@
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
+    <!-- ===== 답변 템플릿 관리 ===== -->
+
+    <!-- 전체 템플릿 목록 조회 -->
+    <select id="selectAllTemplates" resultType="map">
+        SELECT t_idx   AS tIdx,
+               t_title AS tTitle,
+               t_content AS tContent
+        FROM inquiry_template
+        ORDER BY t_idx
+    </select>
+
+    <!-- 템플릿 추가 -->
+    <insert id="insertTemplate">
+        INSERT INTO inquiry_template (t_title, t_content)
+        VALUES (#{title}, #{content})
+    </insert>
+
+    <!-- 템플릿 삭제 -->
+    <delete id="deleteTemplate">
+        DELETE FROM inquiry_template WHERE t_idx = #{tIdx}
+    </delete>
+
     <!-- 관리자 답변 저장 (i_status → '답변완료') -->
     <update id="answerInquiry">
         UPDATE inquiries
