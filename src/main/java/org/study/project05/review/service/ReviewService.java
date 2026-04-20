@@ -14,6 +14,9 @@ public interface ReviewService {
 
     List<ReviewVO> getRecentReviews(int limit);
 
+    /** 전체 공개 리뷰 페이징 목록 */
+    Map<String, Object> getAllReviewsPage(int page);
+
     void writeReply(int spcIdx, int revParentIdx, int userIdx, String content);
 
     void writeReview(int spcIdx, int userIdx, String content, Integer rating, String imgUrl);
