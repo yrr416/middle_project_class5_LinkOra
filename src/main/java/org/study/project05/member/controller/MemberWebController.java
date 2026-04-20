@@ -163,7 +163,7 @@ public class MemberWebController {
     @PostMapping("/mypage/delete")
     public String deleteUserAccount(
             Authentication authentication,
-            @RequestParam("currentPassword") String currentPassword,
+            @RequestParam(value = "currentPassword", required = false, defaultValue = "") String currentPassword,
             HttpServletRequest request,
             HttpServletResponse response
     ) {
@@ -174,7 +174,9 @@ public class MemberWebController {
         if (user == null || user.getPassword() == null || user.getPassword().isBlank()) {
             return "redirect:/mypage?withdrawError=failed";
         }
-        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+        String userId = user.getUserId() != null ? user.getUserId() : "";
+        boolean oauthLinked = userId.startsWith("kakao_") || userId.startsWith("naver_");
+        if (!oauthLinked && !passwordEncoder.matches(currentPassword, user.getPassword())) {
             return "redirect:/mypage?withdrawError=password";
         }
         boolean deleted = userProfileService.deleteByUserId(authentication.getName());

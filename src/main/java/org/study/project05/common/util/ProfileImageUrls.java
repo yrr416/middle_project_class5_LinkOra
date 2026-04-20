@@ -15,6 +15,9 @@ public final class ProfileImageUrls {
             return null;
         }
         String trimmed = storedPath.trim();
+        if (trimmed.startsWith("/uploads/profiles/")) {
+            trimmed = "/static/upload/profiles/" + trimmed.substring("/uploads/profiles/".length());
+        }
         if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
             return trimmed;
         }

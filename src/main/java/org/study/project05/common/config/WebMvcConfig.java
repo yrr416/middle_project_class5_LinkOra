@@ -1,5 +1,5 @@
 /**
- * MVC 설정: 프로필 업로드 디렉터리를 /uploads/profiles 로 노출, JSP용 document root 지정.
+ * MVC 설정: 프로필 업로드 디렉터리를 /static/upload/profiles 로 노출, JSP용 document root 지정.
  */
 package org.study.project05.common.config;
 
@@ -21,7 +21,7 @@ import java.nio.file.Paths;
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
-    @Value("${app.upload.profiles-dir:uploads/profiles}")
+    @Value("${app.upload.profiles-dir:src/main/webapp/static/upload/profiles}")
     private String profilesDir;
 
     @Value("${app.upload.notice-dir:uploads/notice}")
@@ -48,6 +48,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
         if (!location.endsWith("/")) {
             location += "/";
         }
+        registry.addResourceHandler("/static/upload/profiles/**")
+                .addResourceLocations(location);
+
+        // 레거시 URL(/uploads/profiles/**) 호환 유지
         registry.addResourceHandler("/uploads/profiles/**")
                 .addResourceLocations(location);
 
