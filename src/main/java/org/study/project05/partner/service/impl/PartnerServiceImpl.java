@@ -82,6 +82,16 @@ public class PartnerServiceImpl implements PartnerService {
         }
     }
 
+    public boolean updateInfo(String partnerId, String name, String email, String phone, String address) {
+        if (partnerId == null || partnerId.isBlank()) return false;
+        try {
+            return partnerMapper.updateInfoByPartnerId(partnerId, name, email, phone, address) > 0;
+        } catch (Exception e) {
+            log.error("[updateInfo] 사업자 정보 수정 실패 - partnerId={}", partnerId, e);
+            return false;
+        }
+    }
+
     public PasswordChangeResult changePassword(String partnerId, String currentPassword, String newPassword) {
         if (partnerId == null || partnerId.isBlank()) {
             return PasswordChangeResult.partnerNotFound;
