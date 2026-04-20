@@ -394,7 +394,7 @@
     <section class="content-box">
         <div class="profile-head">
             <div class="manage-links">
-                <a class="manage-btn" href="${pageContext.request.contextPath}/review-management">리뷰관리</a>
+                <a class="manage-btn" href="${pageContext.request.contextPath}/review/management">리뷰관리</a>
                 <a class="manage-btn" href="${pageContext.request.contextPath}/inquiry/mylist">문의관리</a>
                 <a class="manage-btn" href="${pageContext.request.contextPath}/reservation/mylist">예약관리</a>
             </div>
@@ -508,7 +508,11 @@
             <form id="userWithdrawForm" class="withdraw-form" method="post" action="${pageContext.request.contextPath}/mypage/delete">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                 <input type="hidden" name="currentPassword">
+                <% if (Boolean.TRUE.equals(request.getAttribute("oauthLogin"))) { %>
+                <button type="button" class="btn btn-danger" onclick="submitOauthWithdraw()">회원 탈퇴</button>
+                <% } else { %>
                 <button type="button" class="btn btn-danger" onclick="openWithdrawModal('회원')">회원 탈퇴</button>
+                <% } %>
             </form>
             <a class="btn btn-danger" href="${pageContext.request.contextPath}/logoutNow">로그아웃</a>
         </div>
@@ -580,6 +584,16 @@
         }
         withdrawTargetForm.currentPassword.value = password;
         withdrawTargetForm.submit();
+    }
+
+    function submitOauthWithdraw() {
+        var form = document.getElementById('userWithdrawForm');
+        if (!form) return;
+        if (!window.confirm('소셜 로그인 계정을 탈퇴하시겠습니까? 계정 정보는 복구할 수 없습니다.')) {
+            return;
+        }
+        form.currentPassword.value = '';
+        form.submit();
     }
 
     withdrawModal.addEventListener('click', function (event) {

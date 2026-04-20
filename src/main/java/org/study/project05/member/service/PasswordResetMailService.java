@@ -4,7 +4,13 @@
 package org.study.project05.member.service;
 
 public interface PasswordResetMailService {
-    void sendTemporaryPassword(String toEmail, String name, String temporaryPassword);
+    void sendTemporaryPassword(
+            String toEmail,
+            String name,
+            String temporaryPassword,
+            String memberUserIdsCsv,
+            String partnerLoginIdsCsv
+    );
 
     void sendUserId(String toEmail, String name, String userId);
 }

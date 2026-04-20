@@ -3,23 +3,88 @@
  */
 package org.study.project05.login.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 @Configuration
 public class SecurityConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public PasswordEncoder passwordEncoder() {
+        PasswordEncoder delegating = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        PasswordEncoder bcrypt = new BCryptPasswordEncoder();
+
+        return new PasswordEncoder() {
+            @Override
+            public String encode(CharSequence rawPassword) {
+                return delegating.encode(rawPassword);
+            }
+
+            @Override
+            public boolean matches(CharSequence rawPassword, String encodedPassword) {
+                if (rawPassword == null || encodedPassword == null) {
+                    return false;
+                }
+                String stored = encodedPassword.strip();
+                String presented = rawPassword.toString().strip();
+
+                if (stored.startsWith("{")) {
+                    return delegating.matches(presented, stored);
+                }
+
+                if (stored.startsWith("$2a$")
+                        || stored.startsWith("$2b$")
+                        || stored.startsWith("$2y$")) {
+                    return bcrypt.matches(presented, stored);
+                }
+
+                return delegating.matches(presented, "{noop}" + stored);
+            }
+
+            @Override
+            public boolean upgradeEncoding(String encodedPassword) {
+                return delegating.upgradeEncoding(encodedPassword);
+            }
+        };
+    }
+
+    /**
+     * 폼 로그인이 항상 아래 {@link PasswordEncoder}·{@link UserDetailsService} 조합만 쓰도록 단일 프로바이더로 고정한다.
+     * (Security 7 + 자동 구성에서 인코더가 어긋나 임시 비밀번호 검증이 실패하는 경우를 막음)
+     */
+    @Bean
+    public AuthenticationManager authenticationManager(
+            UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder
+    ) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder);
+        return new ProviderManager(provider);
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager)
+            throws Exception {
         http
+                .authenticationManager(authenticationManager)
+                .addFilterBefore(new LoginFormParameterTrimFilter(), UsernamePasswordAuthenticationFilter.class)
                 .csrf(csrf -> csrf
                         // [추가] 자바스크립트로 POST 요청을 보내는 찜하기 API(/api/wishlist/**)에서 403 에러가 나지 않도록 CSRF 검사 예외 처리 추가
                         .ignoringRequestMatchers("/chat/**", "/api/wishlist/**", "/admin/reservation/**")
@@ -75,8 +140,12 @@ public class SecurityConfig {
                         })
                         .failureHandler((request, response, exception) -> {
                             String errorCode = "auth";
-                            if (exception instanceof DisabledException) {
+                            // DaoAuthenticationProvider가 loadUserByUsername의 DisabledException을
+                            // InternalAuthenticationServiceException으로 감싸 전달하는 경우가 있음
+                            if (containsInChain(exception, DisabledException.class)) {
                                 errorCode = "inactive";
+                            } else {
+                                log.warn("로그인 실패: {}", exception.toString());
                             }
                             response.sendRedirect(request.getContextPath() + "/loginPage?error=" + errorCode);
                         })
@@ -93,40 +162,12 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        PasswordEncoder delegating = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-        PasswordEncoder bcrypt = new BCryptPasswordEncoder();
-
-        return new PasswordEncoder() {
-            @Override
-            public String encode(CharSequence rawPassword) {
-                return delegating.encode(rawPassword);
+    private static boolean containsInChain(Throwable throwable, Class<? extends Throwable> type) {
+        for (Throwable t = throwable; t != null; t = t.getCause()) {
+            if (type.isInstance(t)) {
+                return true;
             }
-
-            @Override
-            public boolean matches(CharSequence rawPassword, String encodedPassword) {
-                if (rawPassword == null || encodedPassword == null) {
-                    return false;
-                }
-
-                if (encodedPassword.startsWith("{")) {
-                    return delegating.matches(rawPassword, encodedPassword);
-                }
-
-                if (encodedPassword.startsWith("$2a$")
-                        || encodedPassword.startsWith("$2b$")
-                        || encodedPassword.startsWith("$2y$")) {
-                    return bcrypt.matches(rawPassword, encodedPassword);
-                }
-
-                return delegating.matches(rawPassword, "{noop}" + encodedPassword);
-            }
-
-            @Override
-            public boolean upgradeEncoding(String encodedPassword) {
-                return delegating.upgradeEncoding(encodedPassword);
-            }
-        };
+        }
+        return false;
     }
 }
