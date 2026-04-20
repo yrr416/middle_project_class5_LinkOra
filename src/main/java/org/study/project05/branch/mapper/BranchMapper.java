@@ -58,7 +58,8 @@ public interface BranchMapper {
     );
 
     /**
-     * [추가] 지역별 필터 구성을 위해 DB의 중복 없는 모든 주소 목록을 가져옴
+     * [추가] 지역별 필터 구성을 위해 DB에 등록된 지점의 모든 주소 목록을 중복 없이 가져옵니다.
      */
+
     List<String> getDistinctAddresses();
 }

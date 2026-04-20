@@ -36,14 +36,32 @@ public class PasswordResetMailServiceImpl implements PasswordResetMailService {
     public PasswordResetMailServiceImpl() {
     }
 
-    public void sendTemporaryPassword(String toEmail, String name, String temporaryPassword) {
+    public void sendTemporaryPassword(
+            String toEmail,
+            String name,
+            String temporaryPassword,
+            String memberUserIdsCsv,
+            String partnerLoginIdsCsv
+    ) {
         if (mockEnabled) {
-            log.info("[MAIL MOCK] temporary password email={}, name={}, temporaryPassword={}",
-                    toEmail, name, temporaryPassword);
+            log.info("[MAIL MOCK] temporary password email={}, name={}, temporaryPassword={}, memberIds={}, partnerIds={}",
+                    toEmail, name, temporaryPassword, memberUserIdsCsv, partnerLoginIdsCsv);
             return;
         }
         validateMailConfig();
         String displayName = (name == null || name.isBlank()) ? "회원" : name.trim();
+
+        StringBuilder loginBlock = new StringBuilder();
+        if (memberUserIdsCsv != null && !memberUserIdsCsv.isBlank()) {
+            loginBlock.append("일반 회원 로그인 아이디: ").append(memberUserIdsCsv).append('\n');
+        }
+        if (partnerLoginIdsCsv != null && !partnerLoginIdsCsv.isBlank()) {
+            loginBlock.append("사업자 회원 로그인 아이디: ").append(partnerLoginIdsCsv).append('\n');
+        }
+        if (loginBlock.length() == 0) {
+            loginBlock.append("로그인 화면의 \"아이디\"에는 가입 시 사용한 아이디를 입력해주세요.\n");
+        }
+        loginBlock.append('\n');
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(resolveFromAddress());
@@ -51,8 +69,10 @@ public class PasswordResetMailServiceImpl implements PasswordResetMailService {
         message.setSubject("[LinkOra] 임시 비밀번호 안내");
         message.setText(
                 displayName + "님,\n\n"
-                        + "요청하신 임시 비밀번호를 발급해드렸습니다.\n"
+                        + "요청하신 임시 비밀번호를 발급해드렸습니다.\n\n"
+                        + loginBlock
                         + "임시 비밀번호: " + temporaryPassword + "\n\n"
+                        + "로그인 시 위 아이디와 임시 비밀번호를 함께 사용해주세요. (이메일 주소는 아이디로 사용할 수 없습니다.)\n"
                         + "로그인 후 마이페이지에서 비밀번호를 반드시 변경해주세요.\n"
                         + "본 메일은 발신 전용입니다."
         );

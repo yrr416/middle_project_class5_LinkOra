@@ -40,6 +40,7 @@ public class MpController {
         }
 
         // 2. [수정 포인트] 지점 목록 가져오기
+
         // 서비스 인터페이스 변경에 맞춰 파라미터를 15개로 조정함
         List<BranchVO> list = branchService.searchWithFilters(
                 keyword, region, capacity,

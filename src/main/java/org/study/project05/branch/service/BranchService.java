@@ -4,6 +4,7 @@ import org.study.project05.branch.vo.BranchVO;
 import java.util.List;
 import java.util.Map;
 
+
 public interface BranchService {
 
     // 검색 결과 리스트 (페이징 포함)
@@ -33,5 +34,6 @@ public interface BranchService {
     /**
      * 지역 목록(시/도 및 구/군)을 가져오는 메서드
      */
+
     Map<String, List<String>> getRegionMap();
 }

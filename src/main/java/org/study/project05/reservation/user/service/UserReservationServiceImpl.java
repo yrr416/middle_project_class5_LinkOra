@@ -53,6 +53,11 @@ public class UserReservationServiceImpl implements UserReservationService {
             throw new IllegalArgumentException("종료 시간은 시작 시간보다 늦어야 합니다.");
         }
 
+        // 현재 시각보다 과거인 예약 차단
+        if (start.isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("현재 시각 이후로만 예약할 수 있습니다.");
+        }
+
         // DB 저장용 포맷으로 변환
         vo.setResStartTime(start.format(DB_FMT));
         vo.setResEndTime(end.format(DB_FMT));

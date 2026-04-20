@@ -16,7 +16,7 @@ public class UserProfileVO {
     private String phone;
     private LocalDate createdDate;
     private Integer active;
-    /** 웹 경로 예: /uploads/profiles/uuid.png */
+    /** 웹 경로 예: /static/upload/profiles/uuid.png */
     private String profileImage;
 
     public int getUserIdx() {

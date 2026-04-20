@@ -40,7 +40,7 @@ public class ChatServiceImpl implements ChatService {
         if ("[OPEN_CHAT]".equals(userMessage)) {
             String welcomeMenu = "[[WELCOME_MENU:공간 추천 및 안내|🏢 공간 추천 및 안내|🏢, 예약 안내|📅 예약 안내|📅, 자주 묻는 질문|❓ 자주 묻는 질문|❓]]";
             String welcomeMsg = "안녕하세요! 공유 오피스의 친절한 안내원 오라(Ora)입니다. 무엇을 도와드릴까요? " + welcomeMenu;
-            
+
             if (currentPage.contains("reservation")) {
                 welcomeMsg = "예약을 고민 중이신가요? 저 오라가 날짜나 인원수에 맞는 최적의 공간을 추천해 드릴게요! 📅 " + welcomeMenu;
             } else if (currentPage.contains("list") || currentPage.contains("search")) {
@@ -77,6 +77,7 @@ public class ChatServiceImpl implements ChatService {
 
         systemMsg.put("content",
                 "너는 공유 오피스의 인공지능 예약 에이전트 '오라(Ora)'야. 아래 [기능별 준수 지침]을 최우선으로 따라줘:\n" +
+
                         "[강력 준수 지침 - 예약 및 취소]\n" +
                         "1. **회원 전용 기능**: 예약(`COMMIT_BOOKING`) 및 취소(`CANCEL_BOOKING`)는 로그인한 회원만 가능해. 만약 사용자 ID가 0(Guest)이라면 \"회원 전용 기능입니다. 로그인 후 이용해 주세요\"라고 안내하고 로그인을 유도해.\n" +
                         "2. **실시간 정보 동기화 (Smart Prefill)**: 대화 도중 날짜, 시간, 인원수가 언급되면 즉시 `[[PREFILL:yyyy-MM-dd|시작|종료]]` 태그를 답변 끝에 포함해. 이건 비회원에게도 보여줘.\n" +

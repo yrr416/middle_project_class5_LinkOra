@@ -11,6 +11,8 @@ import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 import org.study.project05.partner.vo.PartnerVO;
 
+import java.util.List;
+
 @Mapper
 public interface PartnerMapper {
 
@@ -67,6 +69,38 @@ public interface PartnerMapper {
             @Param("partnerId") String partnerId,
             @Param("encodedPassword") String encodedPassword
     );
+
+    @Select("""
+            SELECT
+                p_idx AS ptnIdx,
+                p_id AS partnerId,
+                p_pwd AS password,
+                p_name AS name,
+                p_email AS email,
+                p_addr AS address,
+                p_phone AS phone,
+                p_number AS businessNo,
+                p_profile AS profileImage,
+                p_active AS active
+            FROM `partner`
+            WHERE LOWER(TRIM(COALESCE(p_email, ''))) = #{email}
+            ORDER BY p_idx DESC
+            LIMIT 1
+            """)
+    PartnerVO findLatestByEmail(String email);
+
+    @Select("""
+            SELECT p_id FROM `partner`
+            WHERE LOWER(TRIM(COALESCE(p_email, ''))) = #{email}
+            ORDER BY p_idx DESC
+            """)
+    List<String> listPartnerIdsByEmail(@Param("email") String email);
+
+    @Update("""
+            UPDATE `partner` SET p_pwd = #{encodedPassword}
+            WHERE LOWER(TRIM(COALESCE(p_email, ''))) = #{email}
+            """)
+    int updatePasswordByPartnerEmail(@Param("email") String email, @Param("encodedPassword") String encodedPassword);
 
     @Delete("DELETE FROM `partner` WHERE p_id = #{partnerId}")
     int deleteByPartnerId(@Param("partnerId") String partnerId);

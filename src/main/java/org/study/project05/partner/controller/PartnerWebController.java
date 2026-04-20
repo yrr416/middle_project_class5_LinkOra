@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.study.project05.common.service.ProfileImageStorageService;
 import org.study.project05.common.util.PasswordPolicy;
+import org.study.project05.common.util.ProfileImageUrls;
 import org.study.project05.common.util.WebAuthUtils;
 import org.study.project05.partner.service.PartnerService;
 import org.study.project05.partner.vo.PartnerVO;
@@ -68,7 +69,7 @@ public class PartnerWebController {
         model.addAttribute("email", partner != null ? partner.getEmail() : "");
         model.addAttribute("phone", partner != null ? partner.getPhone() : "");
         model.addAttribute("address", partner != null ? partner.getAddress() : "");
-        model.addAttribute("profileImage", normalizeProfilePath(partner != null ? partner.getProfileImage() : ""));
+        model.addAttribute("profileImage", ProfileImageUrls.forRequest(request, partner != null ? partner.getProfileImage() : ""));
         model.addAttribute("bizNo", formatBizNo(partner != null ? partner.getBusinessNo() : ""));
         model.addAttribute("withdrawError", withdrawError);
         model.addAttribute("pwdError", pwdError);
@@ -149,7 +150,7 @@ public class PartnerWebController {
             return "redirect:/partner/mypage?profileError=empty";
         }
         try {
-            // 서버 디스크에 저장 후 웹 경로(예: /uploads/profiles/uuid.jpg) 반환
+            // 브라우저에서 접근 가능한 URL 반환 (ContextPath 자동 포함을 위해 /static/upload/...으로 반환)
             String path = profileImageStorage.storeIfValid(profileImage);
             if (path == null) {
                 // 허용되지 않는 확장자이거나 content-type 거부
@@ -212,17 +213,4 @@ public class PartnerWebController {
         return trimmed;
     }
 
-    private static String normalizeProfilePath(String value) {
-        if (value == null) {
-            return "";
-        }
-        String trimmed = value.trim();
-        if (trimmed.isBlank()) {
-            return "";
-        }
-        if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("/")) {
-            return trimmed;
-        }
-        return "/" + trimmed;
-    }
 }

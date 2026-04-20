@@ -54,7 +54,7 @@
             <a class="nav-link" href="${ctx}/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
             <a class="nav-link" href="${ctx}/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
             <a class="nav-link" href="${ctx}/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
-            <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
+            <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지/이벤트 관리</a>
             <a class="nav-link active" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
             <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
             <hr class="border-secondary mx-3">
@@ -172,25 +172,67 @@
                 ${inquiry.inqStatus == '답변완료' ? '답변 수정' : '답변 작성'}
             </h6>
 
-            <!-- 답변 템플릿 선택 버튼 -->
+            <!-- 답변 템플릿 선택 버튼 (DB에서 동적 렌더링) -->
             <div class="mb-2">
                 <small class="text-muted me-2">답변 템플릿:</small>
-                <button type="button" class="btn btn-outline-secondary btn-sm template-btn me-1"
-                        onclick="applyTemplate('greeting')">
-                    <i class="bi bi-hand-thumbs-up me-1"></i>인사말
+
+                <!-- DB 템플릿 버튼 목록 -->
+                <span id="templateBtnArea">
+                    <c:choose>
+                        <c:when test="${empty templates}">
+                            <span class="text-muted small">등록된 템플릿이 없습니다.</span>
+                        </c:when>
+                        <c:otherwise>
+                            <c:forEach var="tmpl" items="${templates}">
+                                <span class="d-inline-flex align-items-center me-1 mb-1 template-item"
+                                      data-tidx="${tmpl.tIdx}">
+                                    <button type="button"
+                                            class="btn btn-outline-secondary btn-sm template-btn"
+                                            onclick="applyTemplateText(this)"
+                                            data-content="${tmpl.tContent}">
+                                        <i class="bi bi-file-text me-1"></i>${tmpl.tTitle}
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-sm btn-link text-danger p-0 ms-1"
+                                            title="삭제"
+                                            onclick="deleteTemplate(${tmpl.tIdx}, this)">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </span>
+                            </c:forEach>
+                        </c:otherwise>
+                    </c:choose>
+                </span>
+
+                <!-- 템플릿 추가 버튼 -->
+                <button type="button" class="btn btn-outline-primary btn-sm template-btn ms-1"
+                        onclick="toggleAddTemplateForm()">
+                    <i class="bi bi-plus-circle me-1"></i>템플릿 추가
                 </button>
-                <button type="button" class="btn btn-outline-secondary btn-sm template-btn me-1"
-                        onclick="applyTemplate('reservation')">
-                    <i class="bi bi-calendar me-1"></i>예약 관련
-                </button>
-                <button type="button" class="btn btn-outline-secondary btn-sm template-btn me-1"
-                        onclick="applyTemplate('refund')">
-                    <i class="bi bi-arrow-return-left me-1"></i>환불 안내
-                </button>
-                <button type="button" class="btn btn-outline-secondary btn-sm template-btn"
-                        onclick="applyTemplate('contact')">
-                    <i class="bi bi-telephone me-1"></i>전화 안내
-                </button>
+            </div>
+
+            <!-- 템플릿 추가 폼 (기본 숨김) -->
+            <div id="addTemplateForm" class="border rounded p-3 mb-3 bg-light" style="display:none;">
+                <div class="row g-2 align-items-end">
+                    <div class="col-auto">
+                        <label class="form-label small fw-semibold mb-1">버튼 이름</label>
+                        <input type="text" id="newTmplTitle" class="form-control form-control-sm"
+                               placeholder="예) 환불 안내" maxlength="50" style="width:160px;">
+                    </div>
+                    <div class="col">
+                        <label class="form-label small fw-semibold mb-1">템플릿 내용</label>
+                        <textarea id="newTmplContent" class="form-control form-control-sm" rows="3"
+                                  placeholder="답변 템플릿 내용을 입력하세요..."></textarea>
+                    </div>
+                    <div class="col-auto d-flex gap-2">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="saveTemplate()">
+                            <i class="bi bi-save me-1"></i>저장
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                onclick="toggleAddTemplateForm()">취소</button>
+                    </div>
+                </div>
+                <div id="tmplFormMsg" class="mt-2 small" style="display:none;"></div>
             </div>
 
             <!-- 답변 폼 -->
@@ -256,34 +298,121 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // ── 답변 템플릿 내용 ──────────────────────────────────────
-    const templates = {
-        greeting: `안녕하세요, 오피스 예약 플랫폼 고객센터입니다.\n\n문의해 주셔서 감사합니다.\n확인 후 신속히 처리해 드리겠습니다.\n\n감사합니다.`,
-        reservation: `안녕하세요, 오피스 예약 플랫폼 고객센터입니다.\n\n예약과 관련하여 문의해 주셔서 감사합니다.\n\n예약 변경 또는 취소는 마이페이지 > 예약 내역에서 가능하며,\n예약 확정 후 24시간 이내 취소 시 전액 환불됩니다.\n\n추가 문의사항이 있으시면 언제든지 연락해 주세요.\n감사합니다.`,
-        refund: `안녕하세요, 오피스 예약 플랫폼 고객센터입니다.\n\n환불 문의 주셔서 감사합니다.\n\n환불 처리는 영업일 기준 3~5일이 소요되며,\n결제 수단에 따라 다소 차이가 있을 수 있습니다.\n\n환불이 완료되면 등록하신 이메일로 안내드리겠습니다.\n감사합니다.`,
-        contact: `안녕하세요, 오피스 예약 플랫폼 고객센터입니다.\n\n보다 빠른 상담을 원하신다면 아래 전화번호로 연락해 주세요.\n\n📞 고객센터: 02-1234-5678\n⏰ 운영시간: 평일 09:00 ~ 18:00 (공휴일 제외)\n\n감사합니다.`
-    };
+const ctx = '<%=request.getContextPath()%>';
+const csrfParam = '${_csrf.parameterName}';
+const csrfToken = '${_csrf.token}';
 
-    // ── 템플릿 적용 ─────────────────────────────────────────
-    function applyTemplate(type) {
-        const textarea = document.getElementById('answerTextarea');
-        // 기존 내용이 있으면 덮어쓸지 확인
-        if (textarea.value.trim() !== '') {
-            if (!confirm('기존 내용을 템플릿으로 교체하시겠습니까?')) return;
-        }
-        textarea.value = templates[type];
-        updateCharCount();
-        textarea.focus();
-    }
+// ── 글자 수 카운트 ───────────────────────────────────────
+const textarea = document.getElementById('answerTextarea');
+function updateCharCount() {
+    document.getElementById('charCount').textContent = textarea.value.length;
+}
+textarea.addEventListener('input', updateCharCount);
+updateCharCount();
 
-    // ── 글자 수 카운트 ───────────────────────────────────────
-    const textarea = document.getElementById('answerTextarea');
-    function updateCharCount() {
-        document.getElementById('charCount').textContent = textarea.value.length;
+// ── 템플릿 내용을 답변창에 적용 ─────────────────────────
+function applyTemplateText(btn) {
+    const content = btn.getAttribute('data-content');
+    if (textarea.value.trim() !== '') {
+        if (!confirm('기존 내용을 템플릿으로 교체하시겠습니까?')) return;
     }
-    textarea.addEventListener('input', updateCharCount);
-    // 페이지 로드 시 초기 글자 수 표시
+    textarea.value = content;
     updateCharCount();
+    textarea.focus();
+}
+
+// ── 템플릿 추가 폼 토글 ──────────────────────────────────
+function toggleAddTemplateForm() {
+    var form = document.getElementById('addTemplateForm');
+    form.style.display = (form.style.display === 'none') ? '' : 'none';
+    document.getElementById('newTmplTitle').value   = '';
+    document.getElementById('newTmplContent').value = '';
+    document.getElementById('tmplFormMsg').style.display = 'none';
+}
+
+// ── 템플릿 저장 (AJAX) ───────────────────────────────────
+function saveTemplate() {
+    var title   = document.getElementById('newTmplTitle').value.trim();
+    var content = document.getElementById('newTmplContent').value.trim();
+    var msgEl   = document.getElementById('tmplFormMsg');
+
+    if (!title || !content) {
+        msgEl.textContent   = '버튼 이름과 내용을 모두 입력해주세요.';
+        msgEl.className     = 'mt-2 small text-danger';
+        msgEl.style.display = '';
+        return;
+    }
+
+    fetch(ctx + '/admin/inquiry/template/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: csrfParam + '=' + encodeURIComponent(csrfToken)
+            + '&title='   + encodeURIComponent(title)
+            + '&content=' + encodeURIComponent(content)
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            renderTemplates(data.templates);
+            toggleAddTemplateForm();
+        } else {
+            msgEl.textContent   = data.message || '저장 실패';
+            msgEl.className     = 'mt-2 small text-danger';
+            msgEl.style.display = '';
+        }
+    })
+    .catch(function() {
+        msgEl.textContent   = '서버 오류가 발생했습니다.';
+        msgEl.className     = 'mt-2 small text-danger';
+        msgEl.style.display = '';
+    });
+}
+
+// ── 템플릿 삭제 (AJAX) ───────────────────────────────────
+function deleteTemplate(tIdx, btn) {
+    if (!confirm('이 템플릿을 삭제하시겠습니까?')) return;
+    fetch(ctx + '/admin/inquiry/template/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: csrfParam + '=' + encodeURIComponent(csrfToken) + '&tIdx=' + tIdx
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) renderTemplates(data.templates);
+        else alert(data.message || '삭제 실패');
+    })
+    .catch(function() { alert('서버 오류가 발생했습니다.'); });
+}
+
+// ── 템플릿 버튼 영역 재렌더링 ────────────────────────────
+// 추가/삭제 후 서버에서 받은 최신 목록으로 버튼 목록을 교체
+function renderTemplates(list) {
+    var area = document.getElementById('templateBtnArea');
+    if (!list || list.length === 0) {
+        area.innerHTML = '<span class="text-muted small">등록된 템플릿이 없습니다.</span>';
+        return;
+    }
+    var html = '';
+    list.forEach(function(tmpl) {
+        // data-content 안의 따옴표/HTML 특수문자 이스케이프
+        var safeContent = tmpl.tContent
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        html +=
+            '<span class="d-inline-flex align-items-center me-1 mb-1 template-item" data-tidx="' + tmpl.tIdx + '">' +
+            '<button type="button" class="btn btn-outline-secondary btn-sm template-btn"' +
+            ' onclick="applyTemplateText(this)" data-content="' + safeContent + '">' +
+            '<i class="bi bi-file-text me-1"></i>' + tmpl.tTitle +
+            '</button>' +
+            '<button type="button" class="btn btn-sm btn-link text-danger p-0 ms-1" title="삭제"' +
+            ' onclick="deleteTemplate(' + tmpl.tIdx + ', this)">' +
+            '<i class="bi bi-x-circle"></i></button>' +
+            '</span>';
+    });
+    area.innerHTML = html;
+}
 </script>
 </body>
 </html>

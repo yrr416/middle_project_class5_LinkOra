@@ -89,7 +89,9 @@ public class LoginWebController {
             passwordResetMailService.sendTemporaryPassword(
                     result.email(),
                     result.name(),
-                    result.temporaryPassword()
+                    result.temporaryPassword(),
+                    result.memberUserIdsCsv(),
+                    result.partnerLoginIdsCsv()
             );
             return "redirect:/loginPage?reset=mailSent";
         } catch (IllegalStateException e) {

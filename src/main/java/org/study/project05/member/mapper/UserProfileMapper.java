@@ -11,6 +11,8 @@ import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 import org.study.project05.member.vo.UserProfileVO;
 
+import java.util.List;
+
 @Mapper
 public interface UserProfileMapper {
 
@@ -54,7 +56,7 @@ public interface UserProfileMapper {
                 u_active AS active,
                 u_profile AS profileImage
             FROM `user`
-            WHERE u_email = #{email}
+            WHERE LOWER(TRIM(COALESCE(u_email, ''))) = #{email}
             ORDER BY u_idx DESC
             LIMIT 1
             """)
@@ -103,4 +105,17 @@ public interface UserProfileMapper {
 
     @Update("UPDATE `user` SET u_active = 0 WHERE u_id = #{userId}")
     int deactivateByUserId(@Param("userId") String userId);
+    @Select("""
+            SELECT u_id FROM `user`
+            WHERE LOWER(TRIM(COALESCE(u_email, ''))) = #{email}
+            ORDER BY u_idx DESC
+            """)
+    List<String> listUserIdsByEmail(@Param("email") String email);
+
+    @Update("""
+            UPDATE `user` SET u_pwd = #{encodedPassword}
+            WHERE LOWER(TRIM(COALESCE(u_email, ''))) = #{email}
+            """)
+    int updatePasswordByUserEmail(@Param("email") String email, @Param("encodedPassword") String encodedPassword);
+
 }

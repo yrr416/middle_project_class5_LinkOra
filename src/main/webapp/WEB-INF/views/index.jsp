@@ -29,7 +29,9 @@
                 .search-bar-round { max-width: 1000px !important; }
 
                 /* 이벤트 슬라이더 - 고정 높이 제거, 이미지 크기에 맞게 자동 늘어남 */
-                .promo-slider-container { position: relative; overflow-x: hidden; overflow-y: visible; border-radius: 12px; margin-top: 30px; cursor: pointer; }
+                /* [수정] 스크롤 강제 생성 버그를 막기 위해 overflow: hidden 으로 통합 */
+                .promo-slider-container { position: relative; overflow: hidden; border-radius: 12px; margin-top: 30px; cursor: pointer; }
+
                 .promo-track { display: flex; transition: transform 0.5s ease-in-out; }
                 /* 슬라이드 내부 여백 조정: 왼쪽 여백을 60px로 늘려 버튼과 겹침 방지 */
                 .promo-slide { display: flex; align-items: center; gap: 20px; text-decoration: none; color: #fff; padding: 24px 36px 24px 60px; box-sizing: border-box; position: relative; border-radius: 12px; }
@@ -97,15 +99,20 @@
                         <input type="text" name="keyword" id="keywordSearchInput" value="${keyword}" placeholder="어떤 공간을 찾으시나요?">
                     </div>
                     <div class="search-divider"></div>
+
                     <div class="search-item">
+                        <input type="hidden" name="region" id="actualRegion" value="${region}">
                         <select id="citySelect" onchange="updateDistricts()">
                             <option value="">지역 전체</option>
                             <c:forEach var="entry" items="${regionMap}">
                                 <option value="${entry.key}">${entry.key}</option>
+
                             </c:forEach>
                         </select>
                     </div>
+
                     <div class="search-divider"></div>
+
                     <div class="search-item">
                         <select id="districtSelect" onchange="updateRegionInput()" disabled>
                             <option value="">상세 지역</option>
@@ -113,6 +120,7 @@
                         <%-- 실제 서버로 전송될 지역 데이터 (시/도 + 구/군) --%>
                         <input type="hidden" name="region" id="actualRegion" value="${region}">
                     </div>
+
                     <div class="search-divider"></div>
                     <div class="search-item">
                         <select name="capacity">
@@ -158,17 +166,25 @@
                 <c:choose>
                     <c:when test="${not empty eventList}">
                         <c:forEach var="ev" items="${eventList}">
-                            <%-- 이벤트 슬라이드 --%>
                             <a href="${pageContext.request.contextPath}/notice/detail?ntcIdx=${ev.ntcIdx}"
                                class="promo-slide">
-                                <%-- 이미지가 있으면 먼저 출력하여 왼쪽에 배치 --%>
                                 <c:if test="${not empty ev.ntcImg}">
                                     <div class="promo-slide-img-col">
-                                        <img src="${ev.ntcImg}" alt="${ev.ntcTitle}" class="promo-slide-img">
+                                        <c:choose>
+                                            <c:when test="${fn:startsWith(ev.ntcImg, 'http')}">
+                                                <img src="${ev.ntcImg}" alt="${ev.ntcTitle}" class="promo-slide-img">
+                                            </c:when>
+                                            <c:when test="${fn:startsWith(ev.ntcImg, '/')}">
+                                                <img src="${pageContext.request.contextPath}${ev.ntcImg}" alt="${ev.ntcTitle}" class="promo-slide-img">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <%-- 사용자 요청에 따른 내부 상용 경로(/static/upload/)로 변경 --%>
+                                                <img src="${pageContext.request.contextPath}/static/upload/notice/${ev.ntcImg}" alt="${ev.ntcTitle}" class="promo-slide-img">
+                                            </c:otherwise>
+                                        </c:choose>
                                     </div>
                                 </c:if>
 
-                                <%-- 텍스트 정보를 이미지 뒤(오른쪽)에 배치 --%>
                                 <div class="promo-slide-text">
                                     <span class="promo-slide-badge">EVENT</span>
                                     <h3 class="promo-slide-title">${ev.ntcTitle}</h3>
@@ -325,8 +341,8 @@
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 5px;">
-                    <a href="${pageContext.request.contextPath}/detail/list" class="more-link" style="font-size: 14px; font-weight: 600; color: #007A8A; text-decoration: none; margin: 0;">
-                        모든 지점 보러가기 <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
+                    <a href="${pageContext.request.contextPath}/review/all" class="more-link" style="font-size: 14px; font-weight: 600; color: #007A8A; text-decoration: none; margin: 0;">
+                        모든 리뷰 보기 <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
                     </a>
 
                     <div style="display: flex; gap: 8px; margin-left: 5px;">
