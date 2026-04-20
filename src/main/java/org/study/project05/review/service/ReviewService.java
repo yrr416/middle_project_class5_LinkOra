@@ -9,6 +9,9 @@ public interface ReviewService {
 
     Map<String, Object> getReviewPage(int bIdx, int page);
 
+    /** 내가 쓴 리뷰 목록 */
+    List<ReviewVO> getMyReviews(int userIdx);
+
     List<ReviewVO> getRecentReviews(int limit);
 
     void writeReply(int spcIdx, int revParentIdx, int userIdx, String content);

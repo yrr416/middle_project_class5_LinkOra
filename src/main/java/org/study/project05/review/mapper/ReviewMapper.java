@@ -53,4 +53,10 @@ public interface ReviewMapper {
 
     /** 관리자 리뷰 강제 삭제 */
     int deleteByAdmin(@Param("revIdx") int revIdx);
+
+    /** 내가 쓴 리뷰 목록 (userIdx 기준) */
+    List<ReviewVO> selectByUser(@Param("userIdx") int userIdx);
+
+    /** 해당 공간에 이용 완료(FINISH) 예약이 있는지 확인 */
+    int countFinishedReservation(@Param("userIdx") int userIdx, @Param("spcIdx") int spcIdx);
 }
