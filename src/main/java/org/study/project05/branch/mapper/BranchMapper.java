@@ -56,4 +56,7 @@ public interface BranchMapper {
             @Param("lat") Double lat,
             @Param("lng") Double lng
     );
+
+    // [여기 추가!] DB에 등록된 모든 지점의 진짜 주소들만 중복 없이 가져오는 마법의 명령어예요!
+    List<String> getDistinctAddresses();
 }

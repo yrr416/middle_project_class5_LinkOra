@@ -50,7 +50,6 @@
             AND (
             b.b_name LIKE CONCAT('%', #{keyword}, '%')
             OR b.b_address LIKE CONCAT('%', #{keyword}, '%')
-            OR b.b_description LIKE CONCAT('%', #{keyword}, '%')
             OR EXISTS (
             SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_name LIKE CONCAT('%', #{keyword}, '%')
             )
@@ -164,6 +163,12 @@
         <include refid="branchJoin"/>
         JOIN space s ON s.b_idx = b.b_idx
         WHERE s.s_idx = #{sIdx}
+    </select>
+
+    <select id="getDistinctAddresses" resultType="string">
+        SELECT DISTINCT b_address
+        FROM branch
+        WHERE b_active = 1 AND b_address IS NOT NULL AND b_address != ''
     </select>
 
 </mapper>

@@ -194,16 +194,26 @@
             <div class="filter-box">
                 <h3 style="margin-bottom: 25px; font-size: 18px; border-bottom: 2px solid #2F4F4F; padding-bottom: 12px; color: #222;">상세 필터</h3>
                 <form action="${pageContext.request.contextPath}/branch/search" method="get" id="sidebarFilterForm">
-                    <input type="hidden" name="keyword" value="${keyword}">
+
+                    <div class="filter-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 10px; font-weight: bold; color: #444;">키워드 검색</label>
+                        <input type="text" name="keyword" value="${keyword}" placeholder="오피스 이름, 키워드"
+                               style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; box-sizing: border-box; outline: none;">
+                    </div>
 
                     <div class="filter-group" style="margin-bottom: 20px;">
                         <label style="display: block; margin-bottom: 10px; font-weight: bold; color: #444;">지역 선택</label>
+
+                        <input type="hidden" name="region" id="actualRegion" value="${region}">
+
                         <select id="sidebarCity" onchange="updateSidebarDistricts()" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 8px;">
                             <option value="">시/도 선택</option>
-                            <option value="서울">서울특별시</option>
-                            <option value="인천">인천광역시</option>
+                            <c:forEach var="city" items="${regionMap.keySet()}">
+                                <option value="${city}">${city}</option>
+                            </c:forEach>
                         </select>
-                        <select name="region" id="sidebarDistrict" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd;" disabled>
+
+                        <select id="sidebarDistrict" onchange="updateRegionInput()" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd;" disabled>
                             <option value="">상세 구 선택</option>
                         </select>
                     </div>
@@ -238,109 +248,138 @@
         </aside>
 
         <section class="branch-list-content" style="flex-grow: 1;">
-            <div class="branch-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px;">
-                <c:forEach var="branch" items="${branches}">
-                    <div class="branch-card" style="box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
 
-                        <div class="branch-img" style="height: 180px; background: #f0f0f0;">
-                            <c:choose>
-                                <c:when test="${not empty branch.mainImgUrl}">
-                                    <c:choose>
-                                        <c:when test="${fn:startsWith(branch.mainImgUrl, '/')}">
-                                            <img src="${pageContext.request.contextPath}${branch.mainImgUrl}"
-                                                 alt="${branch.brnName}"
-                                                 style="width:100%; height:100%; object-fit:cover;"
-                                                 onerror="this.parentElement.innerHTML='<div class=\'no-img-box\'>WS</div>'">
-                                        </c:when>
-                                        <c:otherwise>
-                                            <img src="${pageContext.request.contextPath}/static/upload/branch/${branch.mainImgUrl}"
-                                                 alt="${branch.brnName}"
-                                                 style="width:100%; height:100%; object-fit:cover;"
-                                                 onerror="this.parentElement.innerHTML='<div class=\'no-img-box\'>WS</div>'">
-                                        </c:otherwise>
-                                    </c:choose>
-                                </c:when>
-                                <c:otherwise>
-                                    <div class="no-img-box">WS</div>
-                                </c:otherwise>
-                            </c:choose>
-                        </div>
+            <c:choose>
+                <c:when test="${empty branches}">
+                    <div style="
+                        text-align: center;
+                        padding: 100px 20px;
+                        background-color: #f5f5f5;
+                        border-radius: 12px;
+                        min-height: 400px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        flex-direction: column;">
 
-                        <div class="branch-info" style="padding: 20px; flex-grow: 1; display: flex; flex-direction: column;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                <h3 style="margin: 0; font-size: 20px;">${branch.brnName}</h3>
-                                <button class="search-wish-btn"
-                                        data-brn-idx="${branch.brnIdx}"
-                                        onclick="toggleSearchWish(this, '${branch.brnIdx}')"
-                                        style="color: ${branch.isWish ? '#ff4757' : '#ccc'};">
-                                    <i class="${branch.isWish ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
-                                </button>
-                            </div>
-
-                            <p class="location-text" style="margin-bottom: 15px;">
-                                <i class="fa-solid fa-location-dot" style="color: #2F4F4F; margin-right: 5px;"></i> ${branch.brnAddress}
-                            </p>
-
-                            <div class="facility-icons" style="display: flex; gap: 12px; margin-bottom: 20px; font-size: 18px;">
-                                <c:if test="${branch.facWifi == 1}"><i class="fa-solid fa-wifi" title="와이파이"></i></c:if>
-                                <c:if test="${branch.facParking == 1}"><i class="fa-solid fa-car" title="주차"></i></c:if>
-                                <c:if test="${branch.facCoffee == 1}"><i class="fa-solid fa-mug-hot" title="무료커피"></i></c:if>
-                                <c:if test="${branch.facHours24 == 1}"><i class="fa-solid fa-clock" title="24시간"></i></c:if>
-                                <c:if test="${branch.facPet == 1}"><i class="fa-solid fa-paw" title="반려동물"></i></c:if>
-                            </div>
-
-                            <a href="${pageContext.request.contextPath}/detail/detail?brnIdx=${branch.brnIdx}" class="btn-reservation"
-                               onmouseover="this.style.background='#1e3333'"
-                               onmouseout="this.style.background='#2F4F4F'">
-                                 오피스 보러가기
-                            </a>
+                        <div>
+                            <i class="fa-solid fa-magnifying-glass" style="font-size: 40px; color: #999; margin-bottom: 20px;"></i>
+                            <h3 style="color: #333; font-size: 26px; font-weight: bold; margin-bottom: 15px;">검색 결과와 일치하는 오피스가 없습니다.</h3>
+                            <p style="color: #666; font-size: 16px;">선택하신 조건이나 검색어를 변경하여 다시 검색해 보세요.</p>
                         </div>
                     </div>
-                </c:forEach>
-            </div>
+                </c:when>
+                <c:otherwise>
+                    <div class="branch-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px;">
+                        <c:forEach var="branch" items="${branches}">
+                            <div class="branch-card" style="box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
 
-            <c:if test="${totalPages > 0}">
-                <div class="pagination" style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 50px;">
-                    <c:if test="${currentPage > 1}">
-                        <button type="button" onclick="goPage(${currentPage - 1})" style="padding: 8px 12px; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; color: #555;">&lt;</button>
+                                <div class="branch-img" style="height: 180px; background: #f0f0f0;">
+                                    <c:choose>
+                                        <c:when test="${not empty branch.mainImgUrl}">
+                                            <c:choose>
+                                                <c:when test="${fn:startsWith(branch.mainImgUrl, '/')}">
+                                                    <img src="${pageContext.request.contextPath}${branch.mainImgUrl}"
+                                                         alt="${branch.brnName}"
+                                                         style="width:100%; height:100%; object-fit:cover;"
+                                                         onerror="this.parentElement.innerHTML='<div class=\'no-img-box\'>WS</div>'">
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <img src="${pageContext.request.contextPath}/static/upload/branch/${branch.mainImgUrl}"
+                                                         alt="${branch.brnName}"
+                                                         style="width:100%; height:100%; object-fit:cover;"
+                                                         onerror="this.parentElement.innerHTML='<div class=\'no-img-box\'>WS</div>'">
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="no-img-box">WS</div>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+
+                                <div class="branch-info" style="padding: 20px; flex-grow: 1; display: flex; flex-direction: column;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                        <h3 style="margin: 0; font-size: 20px;">${branch.brnName}</h3>
+                                        <button class="search-wish-btn"
+                                                data-brn-idx="${branch.brnIdx}"
+                                                onclick="toggleSearchWish(this, '${branch.brnIdx}')"
+                                                style="color: ${branch.isWish ? '#ff4757' : '#ccc'};">
+                                            <i class="${branch.isWish ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                                        </button>
+                                    </div>
+
+                                    <p class="location-text" style="margin-bottom: 15px;">
+                                        <i class="fa-solid fa-location-dot" style="color: #2F4F4F; margin-right: 5px;"></i> ${branch.brnAddress}
+                                    </p>
+
+                                    <div class="facility-icons" style="display: flex; gap: 12px; margin-bottom: 20px; font-size: 18px;">
+                                        <c:if test="${branch.facWifi == 1}"><i class="fa-solid fa-wifi" title="와이파이"></i></c:if>
+                                        <c:if test="${branch.facParking == 1}"><i class="fa-solid fa-car" title="주차"></i></c:if>
+                                        <c:if test="${branch.facCoffee == 1}"><i class="fa-solid fa-mug-hot" title="무료커피"></i></c:if>
+                                        <c:if test="${branch.facHours24 == 1}"><i class="fa-solid fa-clock" title="24시간"></i></c:if>
+                                        <c:if test="${branch.facPet == 1}"><i class="fa-solid fa-paw" title="반려동물"></i></c:if>
+                                    </div>
+
+                                    <a href="${pageContext.request.contextPath}/detail/detail?brnIdx=${branch.brnIdx}" class="btn-reservation"
+                                       onmouseover="this.style.background='#1e3333'"
+                                       onmouseout="this.style.background='#2F4F4F'">
+                                         오피스 보러가기
+                                    </a>
+                                </div>
+                            </div>
+                        </c:forEach>
+                    </div>
+
+                    <c:if test="${totalPages > 0}">
+                        <div class="pagination" style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 50px;">
+                            <c:if test="${currentPage > 1}">
+                                <button type="button" onclick="goPage(${currentPage - 1})" style="padding: 8px 12px; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; color: #555;">&lt;</button>
+                            </c:if>
+                            <c:forEach begin="1" end="${totalPages}" var="i">
+                                <button type="button" onclick="goPage(${i})"
+                                        class="page-btn ${i == currentPage ? 'active' : ''}"
+                                        style="padding: 8px 14px; border: 1px solid ${i == currentPage ? '#2F4F4F' : '#ddd'}; background: ${i == currentPage ? '#2F4F4F' : '#fff'}; color: ${i == currentPage ? '#fff' : '#555'}; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                                    ${i}
+                                </button>
+                            </c:forEach>
+                            <c:if test="${currentPage < totalPages}">
+                                <button type="button" onclick="goPage(${currentPage + 1})" style="padding: 8px 12px; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; color: #555;">&gt;</button>
+                            </c:if>
+                        </div>
                     </c:if>
-                    <c:forEach begin="1" end="${totalPages}" var="i">
-                        <button type="button" onclick="goPage(${i})"
-                                class="page-btn ${i == currentPage ? 'active' : ''}"
-                                style="padding: 8px 14px; border: 1px solid ${i == currentPage ? '#2F4F4F' : '#ddd'}; background: ${i == currentPage ? '#2F4F4F' : '#fff'}; color: ${i == currentPage ? '#fff' : '#555'}; border-radius: 6px; cursor: pointer; font-weight: bold;">
-                            ${i}
-                        </button>
-                    </c:forEach>
-                    <c:if test="${currentPage < totalPages}">
-                        <button type="button" onclick="goPage(${currentPage + 1})" style="padding: 8px 12px; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; color: #555;">&gt;</button>
-                    </c:if>
-                </div>
-            </c:if>
+                </c:otherwise>
+            </c:choose>
         </section>
     </div>
 </main>
 
 <script>
-    /* [핵심 수정] 찜 목록 동기화 함수: 지도가 로드될 때와 동일한 API를 호출하여 화면을 강제로 갱신합니다. */
+    // 지역 선택 데이터 (서버에서 가져온 값을 자바스크립트 객체로 매핑)
+    const districtMap = {
+        <c:forEach var="entry" items="${regionMap}" varStatus="status">
+            "${entry.key}": [
+                <c:forEach var="dist" items="${entry.value}" varStatus="distStatus">
+                    "${dist}"${!distStatus.last ? ',' : ''}
+                </c:forEach>
+            ]${!status.last ? ',' : ''}
+        </c:forEach>
+    };
+
     function syncWishlistUI() {
         fetch('/linkora/api/wishlist/my')
             .then(res => res.json())
             .then(wishedList => {
                 if (Array.isArray(wishedList)) {
-                    // API에서 받아온 brnIdx 목록만 추출
                     const wishedIds = wishedList.map(item => String(item.brnIdx));
-
-                    // 화면에 있는 모든 찜 버튼을 확인하여 동기화
                     document.querySelectorAll('.search-wish-btn').forEach(btn => {
                         const brnIdx = btn.getAttribute('data-brn-idx');
                         const icon = btn.querySelector('i');
 
                         if (wishedIds.includes(brnIdx)) {
-                            // 찜 목록에 있으면 빨간 하트 활성화
                             btn.style.color = '#ff4757';
                             if (icon) icon.className = 'fa-solid fa-heart';
                         } else {
-                            // 찜 목록에 없으면 회색 하트 비활성화
                             btn.style.color = '#ccc';
                             if (icon) icon.className = 'fa-regular fa-heart';
                         }
@@ -350,14 +389,41 @@
             .catch(err => console.warn("찜 목록 동기화 실패:", err));
     }
 
-    /* 페이지 로드 시 즉시 동기화 실행 */
-    document.addEventListener('DOMContentLoaded', syncWishlistUI);
+    // [수정] 페이지 로드 시 찜 목록 동기화 및 기존에 선택했던 지역 값을 세팅
+    document.addEventListener('DOMContentLoaded', () => {
+        syncWishlistUI();
 
-    /* 검색 페이지 전용 찜하기(하트) 토글 함수 */
+        // 서버에서 전달받은 지역 값(예: "서울특별시 강남구" 또는 "서울특별시")
+        const savedRegion = "${region}";
+
+        if (savedRegion) {
+            // 공백을 기준으로 시/도 와 구/군을 분리
+            const parts = savedRegion.split(' ');
+            const savedCity = parts[0];
+            const savedDistrict = parts.length > 1 ? parts[1] : '';
+
+            const citySelect = document.getElementById('sidebarCity');
+
+            // 시/도 select box에 저장된 값 세팅
+            if (citySelect && [...citySelect.options].some(opt => opt.value === savedCity)) {
+                citySelect.value = savedCity;
+                // 해당 시/도에 맞는 상세 구 목록 렌더링
+                updateSidebarDistricts();
+
+                // 상세 구 select box에 저장된 값 세팅
+                if (savedDistrict) {
+                    const districtSelect = document.getElementById('sidebarDistrict');
+                    if (districtSelect && [...districtSelect.options].some(opt => opt.value === savedDistrict)) {
+                        districtSelect.value = savedDistrict;
+                    }
+                }
+            }
+        }
+    });
+
     window.toggleSearchWish = function(target, brnIdx) {
         const icon = target.querySelector('i');
 
-        // 지도 페이지와 동일한 서버 API를 호출합니다.
         fetch('/linkora/api/wishlist/toggle', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json; charset=UTF-8' },
@@ -367,16 +433,13 @@
         .then(data => {
             if (data.status === 'success') {
                 if (data.isAdded) {
-                    // 찜 추가 성공 시: 하트를 빨갛게 채웁니다.
                     target.style.color = '#ff4757';
-                    icon.className = 'fa-solid fa-heart'; // 꽉 찬 하트
+                    icon.className = 'fa-solid fa-heart';
                 } else {
-                    // 찜 해제 성공 시: 하트를 다시 회색 테두리로 바꿉니다.
                     target.style.color = '#ccc';
-                    icon.className = 'fa-regular fa-heart'; // 빈 하트
+                    icon.className = 'fa-regular fa-heart';
                 }
             } else if (data.status === 'login_required') {
-                // 비로그인 시 경고창 띄우고 로그인 페이지로 유도합니다.
                 alert("로그인이 필요한 서비스입니다.");
                 location.href = "/linkora/login";
             }
@@ -396,15 +459,26 @@
         form.submit();
     }
 
-    const districtMap = {
-        "서울": ["강남구", "서초구", "종로구", "마포구", "송파구", "영등포구", "성동구"],
-        "인천": ["남동구", "연수구", "부평구", "미추홀구", "서구", "중구", "동구"]
-    };
+    // 시/도, 상세 구 값을 합쳐서 hidden input에 업데이트하는 함수 추가
+    function updateRegionInput() {
+        const city = document.getElementById('sidebarCity').value;
+        const district = document.getElementById('sidebarDistrict').value;
+        const actualRegion = document.getElementById('actualRegion');
+
+        if (city && district) {
+            actualRegion.value = city + " " + district;
+        } else if (city) {
+            actualRegion.value = city;
+        } else {
+            actualRegion.value = "";
+        }
+    }
 
     function updateSidebarDistricts() {
         const city = document.getElementById('sidebarCity').value;
         const districtSelect = document.getElementById('sidebarDistrict');
         districtSelect.innerHTML = '<option value="">상세 구 선택</option>';
+
         if (city && districtMap[city]) {
             districtSelect.disabled = false;
             districtMap[city].forEach(dist => {
@@ -415,6 +489,9 @@
         } else {
             districtSelect.disabled = true;
         }
+
+        // 지역 콤보박스가 바뀔 때마다 hidden input 값 갱신
+        updateRegionInput();
     }
 </script>
 
