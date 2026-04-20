@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 // 세션을 사용하기 위해 추가
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/branch")
@@ -83,6 +84,17 @@ public class BranchController {
             }
         }
 
+        // [핵심 추가] DB의 다양한 서울 표기("서울 특별시", "서울시")를 모두 찾을 수 있도록 유연하게 변경
+        String cleanRegion = null;
+        if (region != null && !region.trim().isEmpty()) {
+            cleanRegion = region.trim();
+            if (cleanRegion.startsWith("서울특별시")) {
+                cleanRegion = cleanRegion.replaceFirst("서울특별시", "서울");
+            }
+            // "서울 강남구" -> "서울%강남구" 로 변환하여 DB 검색 시 띄어쓰기를 유연하게 허용함
+            cleanRegion = cleanRegion.replace(" ", "%");
+        }
+
         Integer intCapacity = (capacity != null && !capacity.isEmpty()) ? Integer.parseInt(capacity) : null;
         Double dblLat = (lat != null && !lat.isEmpty()) ? Double.parseDouble(lat) : null;
         Double dblLng = (lng != null && !lng.isEmpty()) ? Double.parseDouble(lng) : null;
@@ -92,29 +104,34 @@ public class BranchController {
         int skip = (page - 1) * pageSize;
 
         // 3. 서비스 호출 (리스트 가져오기)
-        // type 조건을 서비스로 넘겨줌
+        // [수정] DB 조회 시 유연하게 바꾼 cleanRegion 값을 던져줍니다.
         List<BranchVO> list = branchService.searchWithFilters(
-                cleanKeyword, region, intCapacity, type,
+                cleanKeyword, cleanRegion, intCapacity, type,
                 facParking, facHours24, facPet, facWifi, facCoffee, facPrinter, facLocker,
                 dblLat, dblLng, skip, pageSize
         );
 
-        // 4. [수정 포인트] 전체 개수 가져오기 (메서드명 변경 및 좌표 파라미터 추가)
-        // 개수를 셀 때도 type 조건을 넘겨줌
+        // 4. 전체 개수 가져오기
+        // [수정] 개수 조회 시에도 유연하게 바꾼 cleanRegion 값을 던져줍니다.
         int totalCount = branchService.getCountWithFilters(
-                cleanKeyword, region, intCapacity, type,
+                cleanKeyword, cleanRegion, intCapacity, type,
                 facParking, facHours24, facPet, facWifi, facCoffee, facPrinter, facLocker,
-                dblLat, dblLng // lat, lng를 추가로 보내줘야 함!
+                dblLat, dblLng
         );
 
         int totalPages = (int) Math.ceil((double) totalCount / pageSize);
 
+        // DB에서 주소를 읽어와 시/도별로 정리한 목록을 가져옴
+        Map<String, List<String>> regionMap = branchService.getRegionMap();
+        model.addAttribute("regionMap", regionMap);
+
         // 5. 화면(Model)에 데이터 전달
         model.addAttribute("branches", list);
         model.addAttribute("keyword", cleanKeyword);
+
+        // [중요] 화면 선택창(select) 유지를 위해 유연하게 바꾼 값이 아닌 원본 region을 그대로 전달함
         model.addAttribute("region", region);
         model.addAttribute("capacity", intCapacity);
-        // 화면에서도 type을 알 수 있게 모델에 담아줌
         model.addAttribute("type", type);
         model.addAttribute("facParking", facParking);
         model.addAttribute("facHours24", facHours24);

@@ -166,4 +166,10 @@
         WHERE s.s_idx = #{sIdx}
     </select>
 
+    <select id="getDistinctAddresses" resultType="string">
+        SELECT DISTINCT b_address
+        FROM branch
+        WHERE b_active = 1 AND b_address IS NOT NULL AND b_address != ''
+    </select>
+
 </mapper>

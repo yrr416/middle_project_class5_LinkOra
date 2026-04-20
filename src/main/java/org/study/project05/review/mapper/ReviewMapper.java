@@ -53,4 +53,19 @@ public interface ReviewMapper {
 
     /** 관리자 리뷰 강제 삭제 */
     int deleteByAdmin(@Param("revIdx") int revIdx);
+
+    /** 리뷰 단건 조회 (이미지 조회 등) */
+    ReviewVO selectOne(int revIdx);
+
+    /** 이용 완료 예약 존재 여부 확인 (리뷰 작성 권한) */
+    int countFinishedReservation(@Param("userIdx") int userIdx, @Param("spcIdx") int spcIdx);
+
+    /** 사용자가 작성한 리뷰 목록 */
+    List<ReviewVO> selectByUser(int userIdx);
+
+    /** 전체 공개 리뷰 목록 (페이징) */
+    List<ReviewVO> selectAllPublic(@Param("offset") int offset, @Param("limit") int limit);
+
+    /** 전체 공개 리뷰 총 개수 */
+    int countAllPublic();
 }

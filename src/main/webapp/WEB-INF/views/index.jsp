@@ -100,15 +100,18 @@
                     <div class="search-item">
                         <select id="citySelect" onchange="updateDistricts()">
                             <option value="">지역 전체</option>
-                            <option value="서울">서울특별시</option>
-                            <option value="인천">인천광역시</option>
+                            <c:forEach var="entry" items="${regionMap}">
+                                <option value="${entry.key}">${entry.key}</option>
+                            </c:forEach>
                         </select>
                     </div>
                     <div class="search-divider"></div>
                     <div class="search-item">
-                        <select name="region" id="districtSelect" disabled>
+                        <select id="districtSelect" onchange="updateRegionInput()" disabled>
                             <option value="">상세 지역</option>
                         </select>
+                        <%-- 실제 서버로 전송될 지역 데이터 (시/도 + 구/군) --%>
+                        <input type="hidden" name="region" id="actualRegion" value="${region}">
                     </div>
                     <div class="search-divider"></div>
                     <div class="search-item">
@@ -340,8 +343,17 @@
                             <div class="rev-img-box" style="height: 180px; flex-shrink: 0; overflow: hidden;">
                                 <c:choose>
                                     <c:when test="${not empty rev.revImg}">
-                                        <img src="${pageContext.request.contextPath}/static/upload/review/${rev.revImg}"
-                                             style="width: 100%; height: 100%; object-fit: cover;">
+                                        <c:choose>
+                                            <c:when test="${fn:startsWith(rev.revImg, 'http')}">
+                                                <img src="${rev.revImg}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </c:when>
+                                            <c:when test="${fn:startsWith(rev.revImg, '/')}">
+                                                <img src="${pageContext.request.contextPath}${rev.revImg}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <img src="${pageContext.request.contextPath}/static/upload/review/${rev.revImg}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </c:otherwise>
+                                        </c:choose>
                                     </c:when>
                                     <c:otherwise>
                                         <img src="${pageContext.request.contextPath}/static/upload/chatbot/default_office.png"
@@ -497,12 +509,33 @@
             }
         }
 
-        // 지역 선택 기능
+        // 지역 데이터 매핑
         const districtMap = {
-            "서울": ["강남구", "서초구", "종로구", "마포구", "송파구", "영등포구", "성동구"],
-            "인천": ["남동구", "연수구", "부평구", "미추홀구", "서구", "중구", "동구"]
+            <c:forEach var="entry" items="${regionMap}" varStatus="status">
+                "${entry.key}": [
+                    <c:forEach var="dist" items="${entry.value}" varStatus="distStatus">
+                        "${dist}"${!distStatus.last ? ',' : ''}
+                    </c:forEach>
+                ]${!status.last ? ',' : ''}
+            </c:forEach>
         };
 
+        // 시/도, 상세 구 값을 합쳐서 hidden input에 업데이트하는 함수
+        function updateRegionInput() {
+            const city = document.getElementById('citySelect').value;
+            const district = document.getElementById('districtSelect').value;
+            const actualRegion = document.getElementById('actualRegion');
+
+            if (city && district) {
+                actualRegion.value = city + " " + district;
+            } else if (city) {
+                actualRegion.value = city;
+            } else {
+                actualRegion.value = "";
+            }
+        }
+
+        // 시/도 선택 시 상세 지역 목록을 갱신하는 함수
         function updateDistricts() {
             const city = document.getElementById('citySelect').value;
             const districtSelect = document.getElementById('districtSelect');
@@ -520,7 +553,35 @@
             } else {
                 districtSelect.disabled = true;
             }
+
+            // 시/도 값이 바뀔 때마다 hidden input 값 갱신
+            updateRegionInput();
         }
+
+        // 페이지 로드 시 기존에 선택했던 지역 값을 세팅
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedRegion = "${region}";
+
+            if (savedRegion) {
+                const parts = savedRegion.split(' ');
+                const savedCity = parts[0];
+                const savedDistrict = parts.length > 1 ? parts[1] : '';
+
+                const citySelect = document.getElementById('citySelect');
+
+                if (citySelect && [...citySelect.options].some(opt => opt.value === savedCity)) {
+                    citySelect.value = savedCity;
+                    updateDistricts();
+
+                    if (savedDistrict) {
+                        const districtSelect = document.getElementById('districtSelect');
+                        if (districtSelect && [...districtSelect.options].some(opt => opt.value === savedDistrict)) {
+                            districtSelect.value = savedDistrict;
+                        }
+                    }
+                }
+            }
+        });
     </script>
 
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=cd1f0f4ad9dcf4879bee2531dc5a0497&libraries=services&autoload=false"></script>

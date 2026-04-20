@@ -56,4 +56,9 @@ public interface BranchMapper {
             @Param("lat") Double lat,
             @Param("lng") Double lng
     );
+
+    /**
+     * [추가] 지역별 필터 구성을 위해 DB의 중복 없는 모든 주소 목록을 가져옴
+     */
+    List<String> getDistinctAddresses();
 }

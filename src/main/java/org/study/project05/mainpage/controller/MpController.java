@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Map; // [핵심 추가] 지역 상자(Map)를 쓰기 위해 꼭 추가해야 해요!
 
 @Controller
 @RequiredArgsConstructor
@@ -58,6 +59,10 @@ public class MpController {
         NoticeVO eventFilter = new NoticeVO();
         eventFilter.setActiveFilter("1"); // 이벤트 필터 (MOD(n_active,2)=1)
         List<NoticeVO> eventList = noticeService.getNoticeList(5, 0, eventFilter);
+
+        // [핵심 추가] 메인 페이지에서도 지역 정보 상자를 만들어서 화면으로 전달해요!
+        Map<String, List<String>> regionMap = branchService.getRegionMap();
+        model.addAttribute("regionMap", regionMap);
 
         model.addAttribute("branches", list);
         model.addAttribute("topTags", topTags);

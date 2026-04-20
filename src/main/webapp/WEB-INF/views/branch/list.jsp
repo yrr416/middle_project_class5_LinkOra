@@ -200,12 +200,14 @@
                         <label style="display: block; margin-bottom: 10px; font-weight: bold; color: #444;">지역 선택</label>
                         <select id="sidebarCity" onchange="updateSidebarDistricts()" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 8px;">
                             <option value="">시/도 선택</option>
-                            <option value="서울">서울특별시</option>
-                            <option value="인천">인천광역시</option>
+                            <c:forEach var="entry" items="${regionMap}">
+                                <option value="${entry.key}">${entry.key}</option>
+                            </c:forEach>
                         </select>
-                        <select name="region" id="sidebarDistrict" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd;" disabled>
+                        <select id="sidebarDistrict" onchange="updateSidebarRegionInput()" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd;" disabled>
                             <option value="">상세 구 선택</option>
                         </select>
+                        <input type="hidden" name="region" id="actualSidebarRegion" value="${region}">
                     </div>
 
                     <div class="filter-group" style="margin-bottom: 25px;">
@@ -415,7 +417,46 @@
         } else {
             districtSelect.disabled = true;
         }
+        updateSidebarRegionInput();
     }
+
+    function updateSidebarRegionInput() {
+        const city = document.getElementById('sidebarCity').value;
+        const district = document.getElementById('sidebarDistrict').value;
+        const actualInput = document.getElementById('actualSidebarRegion');
+
+        if (city && district) {
+            actualInput.value = city + " " + district;
+        } else if (city) {
+            actualInput.value = city;
+        } else {
+            actualInput.value = "";
+        }
+    }
+
+    // 페이지 로드 시 기존 선택값 복구
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedRegion = "${region}";
+        if (savedRegion) {
+            const parts = savedRegion.split(' ');
+            const savedCity = parts[0];
+            const savedDistrict = parts.length > 1 ? parts[1] : '';
+
+            const citySelect = document.getElementById('sidebarCity');
+            if (citySelect && [...citySelect.options].some(opt => opt.value === savedCity)) {
+                citySelect.value = savedCity;
+                updateSidebarDistricts();
+
+                if (savedDistrict) {
+                    const districtSelect = document.getElementById('sidebarDistrict');
+                    if (districtSelect && [...districtSelect.options].some(opt => opt.value === savedDistrict)) {
+                        districtSelect.value = savedDistrict;
+                        updateSidebarRegionInput();
+                    }
+                }
+            }
+        }
+    });
 </script>
 
-<%@ include file="../layout/footer.jsp" %>
+<jsp:include page="/WEB-INF/views/layout/footer.jsp" />
