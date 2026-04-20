@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.study.project05.common.service.ProfileImageStorageService;
 import org.study.project05.common.util.PasswordPolicy;
+import org.study.project05.common.util.ProfileImageUrls;
 import org.study.project05.common.util.WebAuthUtils;
 import org.study.project05.member.service.UserProfileService;
 import org.study.project05.member.vo.UserProfileVO;
@@ -82,7 +83,7 @@ public class MemberWebController {
                 model.addAttribute("username", exposedUsername);
                 model.addAttribute("email", profile.getEmail());
                 model.addAttribute("joinDate", profile.getCreatedDate());
-                model.addAttribute("profileImage", profile.getProfileImage());
+                model.addAttribute("profileImage", ProfileImageUrls.forRequest(request, profile.getProfileImage()));
                 model.addAttribute("pwdError", pwdError);
                 model.addAttribute("pwdChanged", pwdChanged);
                 model.addAttribute("withdrawError", withdrawError);
@@ -92,7 +93,7 @@ public class MemberWebController {
 
         String kakaoId = (String) session.getAttribute("kakaoId");
         if (kakaoId != null && !kakaoId.isBlank()) {
-            applyKakaoSessionToModel(model, session);
+            applyKakaoSessionToModel(model, session, request);
             model.addAttribute("withdrawError", withdrawError);
             return "member/mypage";
         }
@@ -190,7 +191,7 @@ public class MemberWebController {
         return "redirect:/mypage?withdrawError=method";
     }
 
-    private static void applyKakaoSessionToModel(Model model, HttpSession session) {
+    private static void applyKakaoSessionToModel(Model model, HttpSession session, HttpServletRequest request) {
         String kakaoId = (String) session.getAttribute("kakaoId");
         String nickname = (String) session.getAttribute("kakaoNickname");
         String email = (String) session.getAttribute("kakaoEmail");
@@ -203,7 +204,7 @@ public class MemberWebController {
         model.addAttribute("email", email != null && !email.isBlank() ? email : null);
         model.addAttribute("phone", "—");
         model.addAttribute("address", "—");
-        model.addAttribute("profileImage", image != null && !image.isBlank() ? image : null);
+        model.addAttribute("profileImage", ProfileImageUrls.forRequest(request, image));
         model.addAttribute("pwdError", null);
         model.addAttribute("pwdChanged", null);
     }
