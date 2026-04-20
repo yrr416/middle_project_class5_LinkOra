@@ -1,5 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="java.time.LocalDate" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<% String today = LocalDate.now().toString(); %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -78,6 +80,7 @@
                 <label class="block text-sm font-semibold text-gray-700 mb-2">날짜 선택</label>
                 <input type="date" id="dateInput"
                        class="border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                       min="<%= today %>"
                        onchange="onDateChange(this.value)">
             </div>
 
@@ -284,6 +287,13 @@
     /* ── 날짜 변경 → AJAX ── */
     async function onDateChange(date) {
         if (!date) return;
+        // 과거 날짜 선택 시 경고 후 오늘로 초기화
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (date < todayStr) {
+            alert('오늘 이후 날짜만 예약 가능합니다.');
+            document.getElementById('dateInput').value = todayStr;
+            date = todayStr;
+        }
         showState('loading');
         try {
             const res = await fetch(CTX + '/reservation/slots?spaceIdx=' + spaceIdx + '&date=' + date);
@@ -319,12 +329,21 @@
         const track = document.getElementById('slotTrack');
         track.innerHTML = '';
 
+        // 과거 날짜/시간 슬롯 비활성화 처리
+        const selectedDate = document.getElementById('dateInput').value;
+        const todayStr     = new Date().toISOString().split('T')[0];
+        const isPastDate   = selectedDate < todayStr;  // 선택한 날짜 자체가 과거
+        const isToday      = (selectedDate === todayStr);
+        const currentHour  = new Date().getHours();    // 현재 시각(시 단위)
+
         for (let h = 0; h < 24; h++) {
             const isUnavailable = unavailableSlots.includes(h);
             const isClosed      = (h === 23);
             // 영업시간 외: open~close 범위 밖이거나 휴무(close===0)인 경우
             const isOutOfHours  = (h < BIZ_HOURS.open || h >= BIZ_HOURS.close);
-            const isBlocked     = isUnavailable || isClosed || isOutOfHours;
+            // 과거 날짜 전체 비활성화 OR 오늘이면 현재 시각 이하 슬롯 비활성화
+            const isPast        = isPastDate || (isToday && h <= currentHour);
+            const isBlocked     = isUnavailable || isClosed || isOutOfHours || isPast;
             const isPeak        = (h >= 9 && h <= 18);
             const isSelected    = selStart !== null && h >= selStart && h <= selEnd;
             const isSelStart    = isSelected && h === selStart;
@@ -339,7 +358,7 @@
 
             if (isSelected) {
                 cls += 'bg-indigo-500 border-indigo-400 text-white shadow-inner rounded-none ';
-            } else if (isClosed || isOutOfHours) {
+            } else if (isClosed || isOutOfHours || isPast) {
                 cls += 'bg-gray-50 text-gray-300 cursor-not-allowed ';
             } else if (isUnavailable) {
                 cls += 'bg-gray-200 text-gray-400 cursor-not-allowed ';
@@ -354,9 +373,9 @@
             /* 상단 컬러 바 (피크 표시) */
             const bar = document.createElement('div');
             bar.className = 'absolute top-0 left-0 right-0 h-1 ';
-            if (isSelected)                      bar.className += 'bg-indigo-300';
-            else if (isUnavailable)              bar.className += 'bg-gray-400';
-            else if (isClosed || isOutOfHours)   bar.className += 'bg-gray-200';
+            if (isSelected)                              bar.className += 'bg-indigo-300';
+            else if (isUnavailable)                      bar.className += 'bg-gray-400';
+            else if (isClosed || isOutOfHours || isPast) bar.className += 'bg-gray-200';
             else if (isPeak)                     bar.className += 'bg-orange-400';
             else                                 bar.className += 'bg-slate-300';
             btn.appendChild(bar);
