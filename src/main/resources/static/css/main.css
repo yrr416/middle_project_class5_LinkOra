@@ -20,13 +20,15 @@
 .btn-search-round:hover { background: var(--point-hover); }
 
 /* 광고 슬라이더 설정임. */
-.promo-slider-container { margin-top: 40px; position: relative; width: 100%; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.05); border: 1px solid var(--border); background: var(--white); transition: opacity 0.3s; }
-.promo-track { display: flex; transition: transform 0.5s ease-in-out; width: 100%; flex-wrap: nowrap; }
-.promo-slide { flex: 0 0 100%; min-width: 100%; display: flex; align-items: center; padding: 20px; text-decoration: none; color: inherit; transition: background 0.2s; box-sizing: border-box;}
+.promo-slider-container { margin-top: 40px; position: relative; width: 100%; border-radius: 12px; overflow: hidden; // 넘치는 요소 숨김처리
+box-shadow: 0 8px 25px rgba(0,0,0,0.05); border: 1px solid var(--border); background: var(--white); transition: opacity 0.3s; }
+.promo-track { display: flex; transition: transform 0.5s ease-in-out; width: 100%; flex-wrap: nowrap; // 가로 정렬 고정 }
+.promo-slide { flex: 0 0 100%; min-width: 100%; display: flex; align-items: center; padding: 20px 60px 20px 20px; // 버튼 겹침 방지 여백
+text-decoration: none; color: inherit; transition: background 0.2s; box-sizing: border-box;}
 .promo-slide:hover { background: var(--bg-light); }
 .promo-image { width: 150px; height: 95px; border-radius: 8px; overflow: hidden; flex-shrink: 0; margin-right: 25px; }
 .promo-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
-.promo-text h3 { font-size: 19px; color: var(--text-main); margin-bottom: 8px; font-weight: 700; transition: color 0.2s;}
+.promo-text h3 { font-size: 19px; color: var(--text-main); margin-bottom: 8px; font-weight: 700; transition: color 0.2s; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; // 텍스트 넘침 방지 }
 .close-promo { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.8); border: 1px solid var(--border); width: 32px; height: 32px; border-radius: 50%; font-size: 16px; color: var(--text-muted); cursor: pointer; transition: 0.2s; z-index: 10; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
 .close-promo:hover { color: var(--text-main); background: var(--white); transform: rotate(90deg); }
 .promo-dots { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 10;}
@@ -54,8 +56,8 @@
 .slider-arrows-mini button {
     width: 32px !important;
     height: 32px !important;
-    border-radius: 50% !important; /* 50%를 주어 완벽한 원으로 만듦. */
-    padding: 0 !important;
+    border-radius: 50% !important; // 완전한 원형 제작
+padding: 0 !important;
 
     background: var(--white);
     border: 1px solid var(--border);
@@ -78,9 +80,9 @@
 .review-slider-wrapper-mini {
     width: 100%;
     overflow: hidden;
-    padding-top: 10px;    /* 카드가 위로 뜰 공간임. */
-    padding-bottom: 15px; /* 그림자가 안 잘릴 공간임. */
-    margin-top: -10px;    /* 시각적 위치를 보정함. */
+    padding-top: 10px;    // 카드 상단 여유 공간
+padding-bottom: 15px; // 그림자 영역 확보
+margin-top: -10px;    // 위치 보정
 }
 .review-track-mini { display: flex; width: 100%; transition: transform 0.4s ease-in-out; }
 .review-slide-mini { flex: 0 0 100%; max-width: 100%; padding-right: 5px; box-sizing: border-box; display: flex; }
@@ -93,15 +95,15 @@
     transition: all 0.3s ease; cursor: pointer;
 }
 .review-card-modern:hover {
-    transform: translateY(-5px); /* 공중 부양 효과임. */
-    border-color: var(--point-main);
+    transform: translateY(-5px); // 부유 효과
+border-color: var(--point-main);
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
 /* ★ [DB 연동 대비] 이미지가 없는 버전의 카드 디자인임. */
 .review-card-modern.no-image {
     flex-direction: column;
-    padding: 25px; /* 텍스트 강조를 위해 패딩을 늘림. */
+    padding: 25px; // 텍스트 가독성 확보
 }
 .review-card-modern.no-image .review-content-modern {
     width: 100%;

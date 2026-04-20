@@ -304,6 +304,27 @@ CREATE TABLE IF NOT EXISTS `space_img` (
 
 -- 테이블 team5_db.user 구조 내보내기
 CREATE TABLE IF NOT EXISTS `user` (
+<<<<<<< HEAD
+    u_idx BIGINT AUTO_INCREMENT PRIMARY KEY,
+    u_id VARCHAR(128) NOT NULL UNIQUE,
+    u_name VARCHAR(50) DEFAULT '',
+    u_pwd VARCHAR(255) NOT NULL,
+    u_email VARCHAR(255),
+    u_addr VARCHAR(255),
+    u_phone VARCHAR(255),
+    u_created DATE NOT NULL,
+    u_active INT DEFAULT 0,
+    u_profile TEXT NULL
+);
+
+-- 특정 테이블 전체 조회
+SELECT * FROM team5_db.partner;
+
+-- 어떤 테이블들이 있는지 목록 먼저 확인
+SHOW TABLES FROM team5_db;
+-- 바이너리 로그 활성화 여부 확인
+SHOW VARIABLES LIKE 'log_bin';
+=======
   `u_idx` int NOT NULL AUTO_INCREMENT,
   `u_id` varchar(50) NOT NULL DEFAULT '0',
   `u_name` varchar(50) NOT NULL DEFAULT '',
@@ -328,3 +349,4 @@ CREATE TABLE IF NOT EXISTS `wishlist` (
   PRIMARY KEY (`w_idx`),
   UNIQUE KEY `uk_user_branch` (`u_idx`,`b_idx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+>>>>>>> 232e2b3883b98d8c239dbd1817c6d050bb9cc5a8

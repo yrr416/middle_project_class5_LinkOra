@@ -128,7 +128,7 @@
 
     <!-- 상태별 예약 건수 집계 (통계 카드) -->
     <select id="getStatusSummary" parameterType="map" resultType="map">
-        SELECT r.r_status AS res_status, COUNT(*) AS cnt
+        SELECT r.r_status AS resStatus, COUNT(*) AS cnt
           FROM reservation r
           JOIN user  u ON r.u_idx=u.u_idx
           JOIN space s ON r.s_idx=s.s_idx

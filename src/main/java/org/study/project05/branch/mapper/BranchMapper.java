@@ -17,10 +17,12 @@ public interface BranchMapper {
      * 상세 필터와 키워드로 지점을 검색하는 기능 (페이징 포함)
      * [수정] skip과 size 파라미터를 추가하여 원하는 구간만큼만 가져오게 함
      */
+    // 컨트롤러에서 넘어온 공간 종류(type)를 받기 위해 @Param("type") String type 추가
     List<BranchVO> searchWithFilters(
             @Param("keyword") String keyword,
             @Param("region") String region,
             @Param("capacity") Integer capacity,
+            @Param("type") String type, // [여기 추가!]
             @Param("facParking") Integer facParking,
             @Param("facHours24") Integer facHours24,
             @Param("facPet") Integer facPet,
@@ -38,10 +40,12 @@ public interface BranchMapper {
      * [추가] 필터 조건에 맞는 전체 지점의 개수를 가져옴
      * 페이지 번호(1 2 3...)를 계산하기 위해 반드시 필요함
      */
+    // 개수를 셀 때도 공간 종류(type)를 받기 위해 @Param("type") String type 추가
     int getCountWithFilters(
             @Param("keyword") String keyword,
             @Param("region") String region,
             @Param("capacity") Integer capacity,
+            @Param("type") String type, // [여기 추가!]
             @Param("facParking") Integer facParking,
             @Param("facHours24") Integer facHours24,
             @Param("facPet") Integer facPet,

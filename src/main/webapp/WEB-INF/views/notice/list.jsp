@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>공지 관리 - 오피스 예약 플랫폼</title>
+    <title>공지/이벤트 관리 - 오피스 예약 플랫폼</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -58,7 +58,7 @@
             <a class="nav-link" href="${ctx}/admin/customer/list"><i class="bi bi-people"></i>고객 관리</a>
             <a class="nav-link" href="${ctx}/admin/reservation/list"><i class="bi bi-calendar-check"></i>예약 관리</a>
             <a class="nav-link" href="${ctx}/admin/review/list"><i class="bi bi-star"></i>리뷰 관리</a>
-            <a class="nav-link active" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지 관리</a>
+            <a class="nav-link active" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지/이벤트 관리</a>
             <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
             <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
             <hr class="border-secondary mx-3">
@@ -74,13 +74,20 @@
         <!-- 페이지 헤더 -->
         <div class="page-header d-flex justify-content-between align-items-center">
             <div>
-                <h5 class="mb-1 fw-bold"><i class="bi bi-bell me-2 text-warning"></i>공지 관리</h5>
+                <h5 class="mb-1 fw-bold"><i class="bi bi-bell me-2 text-warning"></i>공지/이벤트 관리</h5>
                 <small class="text-muted">공지사항을 등록·수정·삭제하고 고정 여부를 설정합니다.</small>
             </div>
-            <!-- 공지 등록 버튼 -->
-            <a href="${ctx}/admin/notice/register?nowPage=${nowPage}" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-lg me-1"></i>공지 등록
-            </a>
+            <!-- 공지/이벤트 등록 버튼 -->
+            <div class="d-flex gap-2">
+                <a href="${ctx}/admin/notice/register?nowPage=${nowPage}&type=notice"
+                   class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-lg me-1"></i>공지 등록
+                </a>
+                <a href="${ctx}/admin/notice/register?nowPage=${nowPage}&type=event"
+                   class="btn btn-warning btn-sm">
+                    <i class="bi bi-plus-lg me-1"></i>이벤트 등록
+                </a>
+            </div>
         </div>
 
         <!-- 등록/수정/삭제 완료 메시지 -->
@@ -100,12 +107,12 @@
             <!-- 검색/필터 바 -->
             <div class="filter-bar">
                 <form method="get" action="${ctx}/admin/notice/list" class="row g-2 align-items-end">
-                    <!-- 고정 필터 -->
+                    <!-- 유형 필터 -->
                     <div class="col-auto">
                         <select name="activeFilter" class="form-select form-select-sm" onchange="this.form.submit()">
                             <option value=""  <c:if test="${noticeVO.activeFilter == ''}">selected</c:if>>전체</option>
-                            <option value="1" <c:if test="${noticeVO.activeFilter == '1'}">selected</c:if>>고정 공지</option>
-                            <option value="0" <c:if test="${noticeVO.activeFilter == '0'}">selected</c:if>>일반 공지</option>
+                            <option value="0" <c:if test="${noticeVO.activeFilter == '0'}">selected</c:if>>공지</option>
+                            <option value="1" <c:if test="${noticeVO.activeFilter == '1'}">selected</c:if>>이벤트</option>
                         </select>
                     </div>
                     <!-- 제목 검색 -->
@@ -132,7 +139,7 @@
                         <tr>
                             <th style="width:60px;">번호</th>
                             <th>제목</th>
-                            <th style="width:100px;">고정 여부</th>
+                            <th style="width:100px;">유형</th>
                             <th style="width:150px;">작성일</th>
                             <th style="width:160px;">관리</th>
                         </tr>
@@ -148,46 +155,52 @@
                             </c:when>
                             <c:otherwise>
                                 <c:forEach var="notice" items="${noticeList}">
-                                    <tr class="${notice.ntcActive == '1' ? 'pinned' : ''}">
+                                    <%--
+                                      n_active >= 2 이면 고정 행 강조
+                                      n_active % 2 == 1 이면 이벤트, 0 이면 공지
+                                    --%>
+                                    <tr class="${notice.ntcActive >= 2 ? 'pinned' : ''}"
+                                        onclick="location.href='${ctx}/admin/notice/update?ntcIdx=${notice.ntcIdx}&nowPage=${nowPage}'"
+                                        style="cursor:pointer;">
                                         <td class="text-muted small">${notice.ntcIdx}</td>
                                         <td>
-                                            <!-- 제목 클릭 → 수정 폼 이동 -->
+                                            <!-- 고정 핀 아이콘 (n_active >= 2 일 때만 표시) -->
                                             <a href="${ctx}/admin/notice/update?ntcIdx=${notice.ntcIdx}&nowPage=${nowPage}"
                                                class="text-decoration-none text-dark fw-semibold">
-                                                <c:if test="${notice.ntcActive == '1'}">
+                                                <c:if test="${notice.ntcActive >= 2}">
                                                     <i class="bi bi-pin-angle-fill text-warning me-1"></i>
                                                 </c:if>
                                                 ${notice.ntcTitle}
                                             </a>
                                         </td>
                                         <td>
-                                            <!-- 고정 배지 -->
+                                            <!-- 유형 배지: n_active % 2 == 1 → 이벤트, 0 → 공지 -->
                                             <c:choose>
-                                                <c:when test="${notice.ntcActive == '1'}">
-                                                    <span class="badge badge-pinned">고정</span>
+                                                <c:when test="${notice.ntcActive % 2 == 1}">
+                                                    <span class="badge badge-pinned">이벤트</span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <span class="badge badge-normal">일반</span>
+                                                    <span class="badge badge-normal">공지</span>
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
                                         <td class="text-muted small">${notice.ntcCreated}</td>
-                                        <td>
-                                            <!-- 고정/해제 토글 버튼 -->
+                                        <td onclick="event.stopPropagation()">
+                                            <!-- 고정/해제 토글 버튼 (타입은 유지하고 고정 상태만 변경) -->
                                             <form method="post" action="${ctx}/admin/notice/toggle" class="d-inline">
                                                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                                                <input type="hidden" name="ntcIdx"        value="${notice.ntcIdx}">
+                                                <input type="hidden" name="ntcIdx"       value="${notice.ntcIdx}">
                                                 <input type="hidden" name="nowPage"      value="${nowPage}">
-                                                <input type="hidden" name="searchWord"  value="${noticeVO.searchWord}">
+                                                <input type="hidden" name="searchWord"   value="${noticeVO.searchWord}">
                                                 <input type="hidden" name="activeFilter" value="${noticeVO.activeFilter}">
                                                 <c:choose>
-                                                    <c:when test="${notice.ntcActive == '1'}">
+                                                    <c:when test="${notice.ntcActive >= 2}">
                                                         <button type="submit" class="btn btn-sm btn-warning me-1" title="고정 해제">
                                                             <i class="bi bi-pin-angle"></i> 해제
                                                         </button>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <button type="submit" class="btn btn-sm btn-outline-warning me-1" title="고정 설정">
+                                                        <button type="submit" class="btn btn-sm btn-outline-warning me-1" title="상단 고정">
                                                             <i class="bi bi-pin-angle-fill"></i> 고정
                                                         </button>
                                                     </c:otherwise>
@@ -198,7 +211,7 @@
                                                class="btn btn-sm btn-outline-primary me-1">수정</a>
                                             <!-- 삭제 버튼 -->
                                             <form method="post" action="${ctx}/admin/notice/delete" class="d-inline"
-                                                  onsubmit="return confirm('공지를 삭제하시겠습니까?');">
+                                                  onsubmit="return confirm('삭제하시겠습니까?');">
                                                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                                                 <input type="hidden" name="ntcIdx"   value="${notice.ntcIdx}">
                                                 <input type="hidden" name="nowPage" value="${nowPage}">

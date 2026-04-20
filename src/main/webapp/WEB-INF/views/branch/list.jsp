@@ -292,7 +292,7 @@
                             <a href="${pageContext.request.contextPath}/detail/detail?brnIdx=${branch.brnIdx}" class="btn-reservation"
                                onmouseover="this.style.background='#1e3333'"
                                onmouseout="this.style.background='#2F4F4F'">
-                                 바로 예약하기
+                                 오피스 보러가기
                             </a>
                         </div>
                     </div>
@@ -321,27 +321,37 @@
 </main>
 
 <script>
-    /* [핵심 추가] 페이지가 로드될 때 내 찜 목록을 가져와서 지도와 동일하게 동기화합니다. */
-    document.addEventListener('DOMContentLoaded', () => {
+    /* [핵심 수정] 찜 목록 동기화 함수: 지도가 로드될 때와 동일한 API를 호출하여 화면을 강제로 갱신합니다. */
+    function syncWishlistUI() {
         fetch('/linkora/api/wishlist/my')
             .then(res => res.json())
             .then(wishedList => {
                 if (Array.isArray(wishedList)) {
-                    wishedList.forEach(item => {
-                        // 내 찜 목록에 있는 brnIdx와 화면의 버튼 번호를 대조합니다.
-                        const btn = document.querySelector(`.search-wish-btn[data-brn-idx="${item.brnIdx}"]`);
-                        if (btn) {
-                            btn.style.color = '#ff4757'; // 빨간색 적용
-                            const icon = btn.querySelector('i');
-                            if (icon) {
-                                icon.className = 'fa-solid fa-heart'; // 꽉 찬 하트 적용
-                            }
+                    // API에서 받아온 brnIdx 목록만 추출
+                    const wishedIds = wishedList.map(item => String(item.brnIdx));
+
+                    // 화면에 있는 모든 찜 버튼을 확인하여 동기화
+                    document.querySelectorAll('.search-wish-btn').forEach(btn => {
+                        const brnIdx = btn.getAttribute('data-brn-idx');
+                        const icon = btn.querySelector('i');
+
+                        if (wishedIds.includes(brnIdx)) {
+                            // 찜 목록에 있으면 빨간 하트 활성화
+                            btn.style.color = '#ff4757';
+                            if (icon) icon.className = 'fa-solid fa-heart';
+                        } else {
+                            // 찜 목록에 없으면 회색 하트 비활성화
+                            btn.style.color = '#ccc';
+                            if (icon) icon.className = 'fa-regular fa-heart';
                         }
                     });
                 }
             })
-            .catch(err => console.warn("찜 목록 동기화 중 오류 발생:", err));
-    });
+            .catch(err => console.warn("찜 목록 동기화 실패:", err));
+    }
+
+    /* 페이지 로드 시 즉시 동기화 실행 */
+    document.addEventListener('DOMContentLoaded', syncWishlistUI);
 
     /* 검색 페이지 전용 찜하기(하트) 토글 함수 */
     window.toggleSearchWish = function(target, brnIdx) {
@@ -357,15 +367,16 @@
         .then(data => {
             if (data.status === 'success') {
                 if (data.isAdded) {
-                    // 찜 추가 성공 시
+                    // 찜 추가 성공 시: 하트를 빨갛게 채웁니다.
                     target.style.color = '#ff4757';
-                    icon.className = 'fa-solid fa-heart';
+                    icon.className = 'fa-solid fa-heart'; // 꽉 찬 하트
                 } else {
-                    // 찜 해제 성공 시
+                    // 찜 해제 성공 시: 하트를 다시 회색 테두리로 바꿉니다.
                     target.style.color = '#ccc';
-                    icon.className = 'fa-regular fa-heart';
+                    icon.className = 'fa-regular fa-heart'; // 빈 하트
                 }
             } else if (data.status === 'login_required') {
+                // 비로그인 시 경고창 띄우고 로그인 페이지로 유도합니다.
                 alert("로그인이 필요한 서비스입니다.");
                 location.href = "/linkora/login";
             }
@@ -373,7 +384,6 @@
         .catch(err => console.error("찜하기 통신 중 에러 발생:", err));
     };
 
-    /* 페이지 이동 함수 (필터 유지) */
     function goPage(page) {
         const form = document.getElementById('sidebarFilterForm');
         let pageInput = form.querySelector('input[name="page"]');
@@ -386,13 +396,11 @@
         form.submit();
     }
 
-    /* 시/도에 따른 구 목록 데이터 */
     const districtMap = {
         "서울": ["강남구", "서초구", "종로구", "마포구", "송파구", "영등포구", "성동구"],
         "인천": ["남동구", "연수구", "부평구", "미추홀구", "서구", "중구", "동구"]
     };
 
-    /* 지역 선택 시 상세 구 목록 업데이트 */
     function updateSidebarDistricts() {
         const city = document.getElementById('sidebarCity').value;
         const districtSelect = document.getElementById('sidebarDistrict');

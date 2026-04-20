@@ -52,6 +52,7 @@
         <p class="text-muted small mb-4">지점 및 공간 대표 사진을 등록하세요. 첫 번째 사진이 대표 이미지로 사용됩니다.</p>
 
         <form method="post" action="${ctx}/partner/register/step4" id="step4Form">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
             <input type="hidden" id="branchImgsJson" name="branchImgsJson" value="[]">
             <input type="hidden" id="spaceImgsJson"  name="spaceImgsJson"  value="[]">
 
@@ -114,7 +115,12 @@
             const formData = new FormData();
             formData.append('file', file);
 
-            fetch('${ctx}/partner/register/uploadImg', { method: 'POST', body: formData })
+            // CSRF 토큰을 헤더에 포함 (Spring Security CSRF 보호)
+            fetch('${ctx}/partner/register/uploadImg', {
+                method: 'POST',
+                headers: { '${_csrf.headerName}': '${_csrf.token}' },
+                body: formData
+            })
                 .then(res => res.text())
                 .then(serverUrl => {
                     if (!serverUrl) return;

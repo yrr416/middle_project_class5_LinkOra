@@ -20,11 +20,12 @@ public class NoticeVO {
     private String admIdx;        // 작성 관리자 FK
     private String ntcTitle;      // 제목
     private String ntcContent;    // 본문 (HTML 허용)
-    private String ntcActive;     // 0=일반, 1=고정
+    private String ntcActive;     // 0=공지, 1=이벤트, 2=공지(고정), 3=이벤트(고정)
+    private String ntcImg;        // 대표 이미지 URL (n_img 컬럼)
     private String ntcCreated;    // 작성일(발행일)
     private String ntcUpdated;    // 수정일
 
     // 검색/필터용 (DB 컬럼 아님)
     private String searchWord;    // 제목 검색어
-    private String activeFilter;  // 고정 필터 (""=전체, "1"=고정)
+    private String activeFilter;  // 유형 필터 (""=전체, "0"=공지, "1"=이벤트)
 }

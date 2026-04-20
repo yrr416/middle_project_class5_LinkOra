@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="c"  uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%@ include file="layout/header.jsp" %>
 
@@ -27,24 +28,38 @@
                 .search-item select:disabled { background-color: #f5f5f5 !important; cursor: not-allowed !important; color: #ccc !important; }
                 .search-bar-round { max-width: 1000px !important; }
 
-                /* 광고 슬라이더 비율 및 높이 조정 */
-                .promo-slider-container { position: relative; overflow: hidden; border-radius: 12px; border: 1px solid #eee; background: #fff; margin-top: 30px; height: 180px; }
-                .promo-track { display: flex; transition: transform 0.5s ease-in-out; width: 300%; height: 100%; }
-                .promo-slide { width: 33.333%; flex-shrink: 0; display: flex; align-items: center; text-decoration: none; color: inherit; height: 100%; padding: 15px; box-sizing: border-box; }
+                /* 이벤트 슬라이더 - 고정 높이 제거, 이미지 크기에 맞게 자동 늘어남 */
+                .promo-slider-container { position: relative; overflow-x: hidden; overflow-y: visible; border-radius: 12px; margin-top: 30px; cursor: pointer; }
+                .promo-track { display: flex; transition: transform 0.5s ease-in-out; }
+                /* 슬라이드 내부 여백 조정: 왼쪽 여백을 60px로 늘려 버튼과 겹침 방지 */
+                .promo-slide { display: flex; align-items: center; gap: 20px; text-decoration: none; color: #fff; padding: 24px 36px 24px 60px; box-sizing: border-box; position: relative; border-radius: 12px; }
+                /* 슬라이드 그라데이션 배경 (순서대로 반복) */
+                .promo-slide:nth-child(5n+1) { background: linear-gradient(135deg, #2F4F4F 0%, #007A8A 100%); }
+                .promo-slide:nth-child(5n+2) { background: linear-gradient(135deg, #1a3a5c 0%, #2563eb 100%); }
+                .promo-slide:nth-child(5n+3) { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); }
+                .promo-slide:nth-child(5n+4) { background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%); }
+                .promo-slide:nth-child(5n+5) { background: linear-gradient(135deg, #065f46 0%, #10b981 100%); }
+                .promo-slide::before { content: ''; position: absolute; right: -30px; top: -30px; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,0.07); }
+                .promo-slide-badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 1px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); border-radius: 20px; padding: 3px 10px; margin-bottom: 10px; }
+                .promo-slide-title { font-size: 20px; font-weight: 800; margin: 0 0 8px 0; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 600px; }
+                .promo-slide-date { font-size: 13px; opacity: 0.75; }
+                .promo-slide-arrow { position: absolute; right: 30px; top: 50%; transform: translateY(-50%); font-size: 28px; opacity: 0.5; }
 
-                /* 이미지 크기 축소 */
-                .promo-image { flex: 0 0 250px; height: 100%; border-radius: 8px; overflow: hidden; }
-                .promo-image img { width: 100%; height: 100%; object-fit: cover; }
+                /* 슬라이드 이미지 열: 높이 제한 없음 - 이미지 원본 크기대로 표시 */
+                .promo-slide-text { flex: 1; min-width: 0; }
+                .promo-slide-img-col { flex-shrink: 0; max-width: 300px; display: flex; align-items: center; justify-content: center; }
+                .promo-slide-img { max-width: 300px; width: auto; height: auto; border-radius: 6px; display: block; }
 
-                /* 텍스트 영역 확장 */
-                .promo-text { flex: 1; padding: 0 25px; display: flex; flex-direction: column; justify-content: center; text-align: left; }
-                .promo-text h3 { font-size: 20px; font-weight: 800; margin: 0 0 8px 0; color: #222; }
-                .promo-text p { font-size: 14px; color: #666; line-height: 1.5; margin: 0; }
+                /* 슬라이더 좌우 화살표 */
+                .promo-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 20; background: rgba(255,255,255,0.2); border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; backdrop-filter: blur(4px); }
+                .promo-nav:hover { background: rgba(255,255,255,0.4); }
+                .promo-nav.prev { left: 14px; }
+                .promo-nav.next { right: 14px; }
 
-                /* 슬라이더 점 디자인 */
-                .promo-dots { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; }
-                .promo-dot { width: 10px; height: 10px; border-radius: 50%; background-color: #e0e0e0; cursor: pointer; transition: 0.3s; border: 1px solid #ddd; }
-                .promo-dot.active { background-color: #007A8A; width: 25px; border-radius: 5px; border-color: #007A8A; }
+                /* 슬라이더 점 디자인 - 슬라이더 아래 별도 행으로 배치 */
+                .promo-dots-bar { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
+                .promo-dot { width: 10px; height: 10px; border-radius: 50%; background-color: rgba(47,79,79,0.35); cursor: pointer; transition: 0.3s; }
+                .promo-dot.active { background-color: #2F4F4F; width: 25px; border-radius: 5px; }
 
                 /* 후기 슬라이더 스타일 수정 */
                 .review-slider-wrapper { position: relative; padding: 10px 0; }
@@ -70,6 +85,10 @@
                 .inline-video-container.playing .inline-video-overlay { display: none; }
                 .play-icon-circle { width: 55px; height: 55px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 12px; backdrop-filter: blur(4px); transition: 0.3s; }
                 .inline-video-container:hover .play-icon-circle { background: #007A8A; border-color: #007A8A; transform: scale(1.1); }
+
+                /* 카테고리 카드 링크 스타일: 텍스트 꾸밈 제거 및 블록화 */
+                .category-link { text-decoration: none; color: inherit; display: block; }
+                .category-link:hover .category-card { border-color: #007A8A; transform: translateY(-3px); transition: 0.3s; }
             </style>
 
             <div class="search-wrapper">
@@ -131,72 +150,115 @@
 
     <div class="container">
         <div class="promo-slider-container" id="promoContainer">
-            <button class="close-promo" id="closePromoBtn" style="position: absolute; top: 12px; right: 15px; z-index: 10; font-size: 16px; color: #bbb; border: none; background: transparent; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
 
             <div class="promo-track" id="promoTrack">
                 <c:choose>
-                    <c:when test="${not empty promos}">
-                        <c:forEach var="p" items="${promos}">
-                            <a href="${p.proLink}" class="promo-slide">
-                                <div class="promo-image"><img src="${p.proImgPath}" alt="${p.proTitle}"></div>
-                                <div class="promo-text">
-                                    <h3>${p.proTitle}</h3>
-                                    <p>클릭하여 상세 정보와 특별한 혜택을 확인해보세요.</p>
+                    <c:when test="${not empty eventList}">
+                        <c:forEach var="ev" items="${eventList}">
+                            <%-- 이벤트 슬라이드 --%>
+                            <a href="${pageContext.request.contextPath}/notice/detail?ntcIdx=${ev.ntcIdx}"
+                               class="promo-slide">
+                                <%-- 이미지가 있으면 먼저 출력하여 왼쪽에 배치 --%>
+                                <c:if test="${not empty ev.ntcImg}">
+                                    <div class="promo-slide-img-col">
+                                        <img src="${ev.ntcImg}" alt="${ev.ntcTitle}" class="promo-slide-img">
+                                    </div>
+                                </c:if>
+
+                                <%-- 텍스트 정보를 이미지 뒤(오른쪽)에 배치 --%>
+                                <div class="promo-slide-text">
+                                    <span class="promo-slide-badge">EVENT</span>
+                                    <h3 class="promo-slide-title">${ev.ntcTitle}</h3>
+                                    <p class="promo-slide-date">
+                                        <c:if test="${not empty ev.ntcCreated and fn:length(ev.ntcCreated) >= 10}">
+                                            ${fn:substring(ev.ntcCreated, 0, 10)}
+                                        </c:if>
+                                    </p>
                                 </div>
+
+                                <%-- 이미지가 없을 경우에만 화살표 아이콘 표시 --%>
+                                <c:if test="${empty ev.ntcImg}">
+                                    <span class="promo-slide-arrow">›</span>
+                                </c:if>
                             </a>
                         </c:forEach>
                     </c:when>
                     <c:otherwise>
-                        <a href="#" class="promo-slide">
-                            <div class="promo-image"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80"></div>
-                            <div class="promo-text">
-                                <h3>1. 신규 하이엔드 라운지 오픈 특가</h3>
-                                <p>강남/송도 신규 지점 오픈 기념, 이번 달 한정 최대 30% 할인 혜택을 드립니다.</p>
+                        <%-- 등록된 이벤트가 없을 때 기본 슬라이드 --%>
+                        <a href="${pageContext.request.contextPath}/notice/list?activeFilter=1"
+                           class="promo-slide">
+                            <div>
+                                <span class="promo-slide-badge">EVENT</span>
+                                <h3 class="promo-slide-title">진행 중인 이벤트를 확인하세요</h3>
+                                <p class="promo-slide-date">Link Ora 공지/이벤트 페이지</p>
                             </div>
-                        </a>
-                        <a href="#" class="promo-slide">
-                            <div class="promo-image"><img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=600&q=80"></div>
-                            <div class="promo-text">
-                                <h3>2. 첫 예약 고객 5,000원 쿠폰 증정</h3>
-                                <p>지금 가입하고 첫 미팅룸 이용 시 즉시 사용 가능한 할인 쿠폰을 받아보세요.</p>
-                            </div>
-                        </a>
-                        <a href="#" class="promo-slide">
-                            <div class="promo-image"><img src="https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?auto=format&fit=crop&w=600&q=80"></div>
-                            <div class="promo-text">
-                                <h3>3. 기업 멤버십 프리미엄 패키지 안내</h3>
-                                <p>우리 팀만의 전용 오피스, 가장 합리적인 조건으로 계약할 수 있는 기회입니다.</p>
-                            </div>
+                            <span class="promo-slide-arrow">›</span>
                         </a>
                     </c:otherwise>
                 </c:choose>
             </div>
-            <div class="promo-dots" id="promoDots">
-                <div class="promo-dot active"></div>
-                <div class="promo-dot"></div>
-                <div class="promo-dot"></div>
-            </div>
+
+            <%-- 좌우 화살표 버튼 --%>
+            <button class="promo-nav prev" id="promoPrev">&#8249;</button>
+            <button class="promo-nav next" id="promoNext">&#8250;</button>
+
         </div>
+
+        <%-- 슬라이더 하단 점 메뉴 --%>
+        <div class="promo-dots-bar" id="promoDots">
+            <c:choose>
+                <c:when test="${not empty eventList}">
+                    <c:forEach var="ev" items="${eventList}" varStatus="st">
+                        <div class="promo-dot ${st.first ? 'active' : ''}"></div>
+                    </c:forEach>
+                </c:when>
+                <c:otherwise>
+                    <div class="promo-dot active"></div>
+                </c:otherwise>
+            </c:choose>
+        </div>
+
+        <script>
+        (function() {
+            var track = document.getElementById('promoTrack');
+            if (!track) return;
+            var slides = track.querySelectorAll('.promo-slide');
+            var n = slides.length;
+            if (n === 0) return;
+            // 트랙 전체 너비 설정
+            track.style.width = (n * 100) + '%';
+            // 각 슬라이드 너비 균등 배분
+            for (var i = 0; i < n; i++) {
+                slides[i].style.width = (100 / n) + '%';
+            }
+        })();
+        </script>
 
         <section class="content-layout">
             <div class="content-left">
                 <div class="section-header"><h2>공간 찾아보기</h2></div>
                 <div class="category-grid">
-                    <div class="category-card">
-                        <i class="fa-solid fa-door-closed"></i>
-                        <div>
-                            <h3>프라이빗 오피스</h3>
-                            <p>개인을 위한 독립된 공간</p>
+                    <%-- 프라이빗 오피스 검색 필터 연결 (type=INDIVIDUAL) --%>
+                    <a href="${pageContext.request.contextPath}/branch/search?type=INDIVIDUAL" class="category-link">
+                        <div class="category-card">
+                            <i class="fa-solid fa-door-closed"></i>
+                            <div>
+                                <h3>프라이빗 오피스</h3>
+                                <p>개인을 위한 독립된 공간</p>
+                            </div>
                         </div>
-                    </div>
+                    </a>
 
-                    <div class="category-card">
-                        <i class="fa-solid fa-laptop"></i>
-                        <div>
-                            <h3>코워킹 스페이스</h3>
-                            <p>자유로운 업무 환경 (회의실/오픈 오피스)</p>
+                    <%-- 코워킹 스페이스 검색 필터 연결 (type=GROUP) --%>
+                    <a href="${pageContext.request.contextPath}/branch/search?type=GROUP" class="category-link">
+                        <div class="category-card">
+                            <i class="fa-solid fa-laptop"></i>
+                            <div>
+                                <h3>코워킹 스페이스</h3>
+                                <p>자유로운 업무 환경 (회의실/오픈 오피스)</p>
+                            </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
 
                 <div class="map-tab-header" style="display: flex !important; justify-content: space-between !important; align-items: center !important; margin-bottom: 20px;">
@@ -219,20 +281,23 @@
                 <div class="section-header"><h2>주요 소식</h2><a href="${pageContext.request.contextPath}/notice/list" class="more-link">자세히 보기</a></div>
                 <ul class="board-list">
                     <c:choose>
-                        <c:when test="${not empty notices}">
-                            <c:forEach var="n" items="${notices}">
+                        <c:when test="${not empty noticeList}">
+                            <c:forEach var="n" items="${noticeList}">
                                 <li>
-                                    <span class="tag ${n.notCategory == 'EVENT' ? 'event' : 'notice'}">${n.notCategory}</span>
-                                    <a href="${pageContext.request.contextPath}/notice/detail?notIdx=${n.notIdx}">${n.notTitle}</a>
+                                    <c:choose>
+                                        <c:when test="${n.ntcActive % 2 == 1}">
+                                            <span class="tag event">이벤트</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="tag notice">공지</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                    <a href="${pageContext.request.contextPath}/notice/detail?ntcIdx=${n.ntcIdx}">${n.ntcTitle}</a>
                                 </li>
                             </c:forEach>
                         </c:when>
                         <c:otherwise>
-                            <li><span class="tag notice">NEW</span> <a href="#">프리미엄 라운지 강남점 오픈</a></li>
-                            <li><span class="tag event">EVENT</span> <a href="#">신규 회원 1일 무료 체험권 증정</a></li>
-                            <li><span class="tag notice">공지</span> <a href="#">2026년 상반기 멤버십 요금 안내</a></li>
-                            <li><span class="tag notice">공지</span> <a href="#">홍대점 시설 점검에 따른 주말 휴관 안내</a></li>
-                            <li><span class="tag event">EVENT</span> <a href="#">지인 추천 시 스타벅스 기프티콘 100% 당첨</a></li>
+                            <li><span class="tag notice">공지</span> <a href="${pageContext.request.contextPath}/notice/list">등록된 공지/이벤트가 없습니다.</a></li>
                         </c:otherwise>
                     </c:choose>
                 </ul>
@@ -242,8 +307,8 @@
 
                     <div class="inline-video-overlay" id="tourVideoOverlay">
                         <div class="play-icon-circle"><i class="fa-solid fa-play" style="margin-left: 4px;"></i></div>
-                        <h4 style="margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 0.5px;">1분 랜선 투어</h4>
-                        <span style="font-size: 13px; opacity: 0.8; margin-top: 6px;">Link Ora 공간 미리보기</span>
+                        <h4 style="margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 0.5px;">1분 랜선 투어 & 소개</h4>
+                        <span style="font-size: 13px; opacity: 0.8; margin-top: 6px;">영상이 끝나면 소개 영상이 이어집니다</span>
                     </div>
                 </div>
             </div>
@@ -398,7 +463,7 @@
     </div>
 
     <script>
-        // 랜선 투어 비디오 재생 처리 함수 (이건 겹치지 않아서 그대로 뒀어!)
+        // 비디오 재생 및 플레이리스트 처리
         function playTourVideo() {
             const video = document.getElementById('tourVideo');
             const container = document.getElementById('tourVideoContainer');
@@ -410,7 +475,19 @@
             }
         }
 
-        // 리뷰 좌우 스크롤 기능 (이것도 HTML 전용 기능이라 그대로 뒀어!)
+        // 첫 번째 영상이 끝나면 두 번째 영상으로 자동 전환
+        document.getElementById('tourVideo').onended = function() {
+            const video = this;
+            const introSrc = "${pageContext.request.contextPath}/static/upload/video/link_ora_소개.mp4";
+
+            /* 현재 재생 중인 영상이 투어 영상이면 소개 영상으로 교체 */
+            if (video.src.includes('office_tour.mp4')) {
+                video.src = introSrc;
+                video.play();
+            }
+        };
+
+        // 리뷰 그리드 스크롤
         function scrollReview(direction) {
             const grid = document.getElementById('reviewGrid');
             const card = grid.querySelector('.review-card');
@@ -420,7 +497,7 @@
             }
         }
 
-        // 지역 선택 기능 (마찬가지로 그대로 유지!)
+        // 지역 선택 기능
         const districtMap = {
             "서울": ["강남구", "서초구", "종로구", "마포구", "송파구", "영등포구", "성동구"],
             "인천": ["남동구", "연수구", "부평구", "미추홀구", "서구", "중구", "동구"]

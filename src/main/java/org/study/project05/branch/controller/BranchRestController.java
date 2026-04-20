@@ -28,13 +28,15 @@ public class BranchRestController {
 
     /**
      * [수정] 지도가 로딩되거나 검색할 때 사용하는 API.
-     * 서비스 인터페이스가 변경됨에 따라 파라미터 개수를 14개로 맞춰줌.
+     * 서비스 인터페이스가 변경됨에 따라 파라미터 개수를 맞춰줌.
      */
     @GetMapping("/branches")
     public List<BranchVO> getBranches(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String region,
             @RequestParam(required = false) Integer capacity,
+            // [추가] 공간 종류(type) 파라미터를 새로 추가함
+            @RequestParam(required = false) String type,
             @RequestParam(required = false) Integer facParking,
             @RequestParam(required = false) Integer facHours24,
             @RequestParam(required = false) Integer facPet,
@@ -45,10 +47,10 @@ public class BranchRestController {
             @RequestParam(required = false) Double lat,
             @RequestParam(required = false) Double lng
     ) {
-        // [중요] 서비스의 searchWithFilters가 이제 14개의 파라미터를 받음.
-        // 지도는 페이징이 필요 없으므로 맨 뒤의 skip, size 자리에 null, null을 넣어줌.
+        // [중요] 서비스의 searchWithFilters 호출 시 type을 포함하여 15개 파라미터를 전달함.
         return branchService.searchWithFilters(
                 keyword, region, capacity,
+                type, // [여기 추가!] 새로 만든 type 구멍에 맞춰서 값을 넣어줌
                 facParking, facHours24, facPet, facWifi, facCoffee, facPrinter, facLocker,
                 lat, lng,
                 null, null // [추가] skip, size는 null로 전달 (LIMIT 무시)

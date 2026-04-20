@@ -137,6 +137,7 @@
                 <i class="bi bi-chevron-left"></i> 이전
             </a>
             <form method="post" action="${ctx}/partner/register/submit" class="d-inline">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                 <button type="submit" class="btn btn-success px-4" onclick="return confirm('오피스 등록 신청을 완료하시겠습니까?')">
                     <i class="bi bi-check-circle me-1"></i>등록 신청 완료
                 </button>
