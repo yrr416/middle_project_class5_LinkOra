@@ -31,9 +31,8 @@ public class NoticeController {
     @Autowired
     private NoticeService noticeService;
 
-    /** application.properties의 app.upload.notice-dir 값 (기본: uploads/notice) */
-    @Value("${app.upload.notice-dir:uploads/notice}")
-    private String noticeUploadDir;
+    /** 공지 이미지 저장 경로: src/main/webapp/static/upload/notice */
+    private static final String noticeUploadDir = "src/main/webapp/static/upload/notice";
 
     /** 페이지당 공지 표시 수 */
     private static final int NUM_PER_PAGE   = 10;
@@ -175,8 +174,8 @@ public class NoticeController {
             String fileName = UUID.randomUUID().toString() + ext;
             file.transferTo(new File(dir, fileName));
 
-            // WebMvcConfig에 등록된 /uploads/notice/** 핸들러로 서빙
-            return request.getContextPath() + "/uploads/notice/" + fileName;
+            // /static/** 핸들러로 서빙
+            return request.getContextPath() + "/static/upload/notice/" + fileName;
         } catch (Exception e) {
             log.error("공지 이미지 저장 실패", e);
             return null;
@@ -236,8 +235,8 @@ public class NoticeController {
             String fileName = UUID.randomUUID().toString() + ext;
             file.transferTo(new File(dir, fileName));
 
-            // 3) 브라우저에서 접근 가능한 URL 반환 (WebMvcConfig의 /uploads/notice/** 핸들러 사용)
-            String url = request.getContextPath() + "/uploads/notice/" + fileName;
+            // 3) 브라우저에서 접근 가능한 URL 반환 (/static/** 핸들러 사용)
+            String url = request.getContextPath() + "/static/upload/notice/" + fileName;
             log.info("이미지 업로드 성공 - 저장경로: {}, URL: {}", dir + "/" + fileName, url);
 
             // Content-Type: application/json 으로 반환해야 CKEditor가 삽입 처리

@@ -34,6 +34,12 @@ public interface CustomerMapper {
     /** 회원 등록 */
     void insertCustomer(CustomerVO vo);
 
+    /** 관리자 등록 */
+    void insertAdmin(CustomerVO vo);
+
+    /** 파트너 등록 (관리자 신규 등록) */
+    void insertPartner(CustomerVO vo);
+
     /** 회원 정보 수정 */
     void updateCustomer(CustomerVO vo);
 

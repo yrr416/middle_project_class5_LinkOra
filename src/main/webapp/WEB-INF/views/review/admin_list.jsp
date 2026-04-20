@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn"  uri="http://java.sun.com/jsp/jstl/functions" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="ko">
@@ -25,6 +26,11 @@
         .search-area { background:#fff; border-radius:10px; padding:16px 20px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
         .report-badge { background:#fee2e2; color:#991b1b; }
         .content-cell { max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .table tbody tr.clickable-row { cursor:pointer; }
+        .review-full-content { white-space:pre-wrap; word-break:break-all; background:#f8f9fa;
+                                border-left:4px solid #0d6efd; border-radius:6px;
+                                padding:14px 18px; font-size:.93rem; line-height:1.8; }
+        .stars-color { color:#f59e0b; }
     </style>
 </head>
 <body>
@@ -43,6 +49,7 @@
             <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지/이벤트 관리</a>
             <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
             <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
+            <a class="nav-link" href="${ctx}/admin/space/list"><i class="bi bi-building me-1"></i>오피스 관리</a>
             <hr class="border-secondary mx-3">
             <a class="nav-link" href="${ctx}/" target="_blank"><i class="bi bi-house"></i>홈페이지 이동</a>
             <a class="nav-link" href="${ctx}/admin/settings"><i class="bi bi-gear"></i>설정</a>
@@ -105,7 +112,16 @@
                         </c:when>
                         <c:otherwise>
                             <c:forEach var="r" items="${reviewList}">
-                                <tr>
+                                <tr class="clickable-row"
+                                    onclick="openDetailModal(this)"
+                                    data-rev-idx="${r.revIdx}"
+                                    data-author="${r.authorName}"
+                                    data-space="${r.spaceName}"
+                                    data-rating="${r.revRating}"
+                                    data-content="${fn:escapeXml(r.revContent)}"
+                                    data-report="${r.reportCount}"
+                                    data-created="<fmt:formatDate value='${r.revCreatedAt}' pattern='yyyy.MM.dd HH:mm'/>"
+                                    data-img="${r.revImg}">
                                     <td class="text-muted small">${r.revIdx}</td>
                                     <td>${r.authorName}</td>
                                     <td class="small">${r.spaceName}</td>
@@ -129,7 +145,7 @@
                                     <td class="small text-muted">
                                         <fmt:formatDate value="${r.revCreatedAt}" pattern="yy.MM.dd HH:mm"/>
                                     </td>
-                                    <td>
+                                    <td onclick="event.stopPropagation()">
                                         <form method="post" action="${ctx}/admin/review/delete"
                                               onsubmit="return confirm('이 리뷰를 삭제하시겠습니까?');">
                                             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
@@ -180,5 +196,120 @@
 </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- 리뷰 상세 모달 -->
+<div class="modal fade" id="reviewDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title fw-bold">
+                    <i class="bi bi-star-fill me-2 text-warning"></i>리뷰 상세
+                    <span class="text-muted small fw-normal ms-1" id="d_revIdx"></span>
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- 기본 정보 -->
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-4">
+                        <div class="text-muted small mb-1">작성자</div>
+                        <div class="fw-semibold" id="d_author"></div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="text-muted small mb-1">공간명</div>
+                        <div class="fw-semibold" id="d_space"></div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="text-muted small mb-1">작성일</div>
+                        <div id="d_created"></div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="text-muted small mb-1">별점</div>
+                        <div class="stars-color fw-bold" id="d_rating"></div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="text-muted small mb-1">신고 횟수</div>
+                        <div id="d_report"></div>
+                    </div>
+                </div>
+                <!-- 리뷰 내용 -->
+                <div class="text-muted small mb-2"><i class="bi bi-chat-square-text me-1"></i>리뷰 내용</div>
+                <div class="review-full-content" id="d_content"></div>
+                <!-- 첨부 이미지 -->
+                <div id="d_imgArea" class="mt-3" style="display:none;">
+                    <div class="text-muted small mb-2"><i class="bi bi-image me-1"></i>첨부 이미지</div>
+                    <img id="d_img" src="" alt="리뷰 이미지"
+                         style="max-width:100%; max-height:300px; border-radius:8px; border:1px solid #e5e7eb;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">닫기</button>
+                <!-- 삭제 버튼 -->
+                <form method="post" action="${ctx}/admin/review/delete" id="modalDeleteForm"
+                      onsubmit="return confirm('이 리뷰를 삭제하시겠습니까?');">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                    <input type="hidden" name="revIdx"     id="d_deleteRevIdx">
+                    <input type="hidden" name="nowPage"    value="${nowPage}">
+                    <input type="hidden" name="searchWord" value="${searchWord}">
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="bi bi-trash me-1"></i>리뷰 삭제
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const CTX = '${ctx}';
+
+    // 별점을 ★ 문자로 변환
+    function starsHtml(rating) {
+        let html = '';
+        for (let i = 1; i <= 5; i++) {
+            html += i <= rating ? '★' : '<span style="color:#d1d5db;">★</span>';
+        }
+        return html + ' (' + rating + '점)';
+    }
+
+    // 행 클릭 → 모달 열기
+    function openDetailModal(row) {
+        const revIdx  = row.dataset.revIdx;
+        const author  = row.dataset.author;
+        const space   = row.dataset.space;
+        const rating  = row.dataset.rating;
+        const content = row.dataset.content;
+        const report  = row.dataset.report;
+        const created = row.dataset.created;
+        const img     = row.dataset.img;
+
+        document.getElementById('d_revIdx').textContent  = '#' + revIdx;
+        document.getElementById('d_author').textContent  = author;
+        document.getElementById('d_space').textContent   = space;
+        document.getElementById('d_rating').innerHTML    = starsHtml(rating);
+        document.getElementById('d_content').textContent = content;
+        document.getElementById('d_created').textContent = created;
+        document.getElementById('d_deleteRevIdx').value  = revIdx;
+
+        // 신고 수 표시
+        const reportEl = document.getElementById('d_report');
+        if (parseInt(report) >= 3) {
+            reportEl.innerHTML = '<span class="text-danger fw-bold">' + report + '회</span>';
+        } else {
+            reportEl.textContent = report > 0 ? report + '회' : '없음';
+        }
+
+        // 이미지 (DB에는 파일명만 저장되어 있으므로 경로 조합)
+        const imgArea = document.getElementById('d_imgArea');
+        if (img && img.trim() !== '') {
+            document.getElementById('d_img').src = CTX + '/static/upload/review/' + img;
+            imgArea.style.display = 'block';
+        } else {
+            imgArea.style.display = 'none';
+        }
+
+        new bootstrap.Modal(document.getElementById('reviewDetailModal')).show();
+    }
+</script>
 </body>
 </html>

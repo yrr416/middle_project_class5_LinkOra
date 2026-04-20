@@ -41,6 +41,7 @@
             <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지/이벤트 관리</a>
             <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
             <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
+            <a class="nav-link" href="${ctx}/admin/space/list"><i class="bi bi-building me-1"></i>오피스 관리</a>
             <hr class="border-secondary mx-3">
             <a class="nav-link" href="${ctx}/" target="_blank"><i class="bi bi-house"></i>홈페이지 이동</a>
             <a class="nav-link" href="${ctx}/admin/settings"><i class="bi bi-gear"></i>설정</a>
@@ -166,12 +167,36 @@
                                    value="${cvo.userPhone}" maxlength="20">
                         </div>
 
-                        <!-- 주소 -->
+                        <!-- 주소 (카카오 우편번호 검색) -->
                         <div class="mb-3">
                             <label class="form-label form-label-sm">주소</label>
-                            <input type="text" name="userAddr"
-                                   class="form-control form-control-sm"
-                                   value="${cvo.userAddr}">
+                            <!-- 현재 주소 표시 -->
+                            <c:if test="${not empty cvo.userAddr}">
+                                <div class="alert alert-light py-1 px-2 mb-1 small text-muted border">
+                                    <i class="bi bi-geo-alt me-1"></i>현재: ${cvo.userAddr}
+                                </div>
+                            </c:if>
+                            <!-- 우편번호 + 검색 버튼 -->
+                            <div class="input-group input-group-sm mb-1">
+                                <input type="text" id="addrPostcode" class="form-control"
+                                       placeholder="우편번호" readonly>
+                                <button type="button" class="btn btn-outline-secondary"
+                                        onclick="execDaumPostcode()">우편번호 찾기</button>
+                            </div>
+                            <!-- 도로명 주소 -->
+                            <input type="text" id="addrRoad" class="form-control form-control-sm mb-1"
+                                   placeholder="도로명 주소" readonly>
+                            <!-- 지번 주소 -->
+                            <input type="text" id="addrJibun" class="form-control form-control-sm mb-1"
+                                   placeholder="지번 주소" readonly>
+                            <!-- 상세 주소 -->
+                            <input type="text" id="addrDetail" class="form-control form-control-sm mb-1"
+                                   placeholder="상세 주소 입력">
+                            <!-- 참고 항목 -->
+                            <input type="text" id="addrExtra" class="form-control form-control-sm"
+                                   placeholder="참고 항목" readonly>
+                            <!-- 서버 전송용 hidden (기존 주소 기본값) -->
+                            <input type="hidden" id="userAddr" name="userAddr" value="${cvo.userAddr}">
                         </div>
                     </div>
                 </div>
@@ -204,7 +229,35 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script>
+    /* ── 카카오 우편번호 검색 ─────────────────────────── */
+    function execDaumPostcode() {
+        new kakao.Postcode({
+            oncomplete: function(data) {
+                var roadAddr = data.roadAddress;
+                var extraRoadAddr = '';
+
+                if (data.bname !== '' && /[동로가]$/.test(data.bname)) {
+                    extraRoadAddr += data.bname;
+                }
+                if (data.buildingName !== '' && data.apartment === 'Y') {
+                    extraRoadAddr += (extraRoadAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+                }
+                if (extraRoadAddr !== '') {
+                    extraRoadAddr = ' (' + extraRoadAddr + ')';
+                }
+
+                document.getElementById('addrPostcode').value = data.zonecode;
+                document.getElementById('addrRoad').value     = roadAddr;
+                document.getElementById('addrJibun').value    = data.jibunAddress;
+                document.getElementById('addrExtra').value    = roadAddr !== '' ? extraRoadAddr : '';
+                document.getElementById('addrDetail').value   = '';
+                document.getElementById('addrDetail').focus();
+            }
+        }).open();
+    }
+
     document.getElementById('uPhone').addEventListener('input', function() {
         let val = this.value.replace(/[^0-9]/g, '');
         if (val.length <= 3)      this.value = val;
@@ -219,6 +272,15 @@
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             alert('올바른 이메일 형식을 입력해주세요.');
             return false;
+        }
+        // 새 주소를 검색한 경우에만 userAddr 갱신 (도로명주소 입력 여부로 판단)
+        var road   = document.getElementById('addrRoad').value;
+        var jibun  = document.getElementById('addrJibun').value;
+        var detail = document.getElementById('addrDetail').value;
+        var extra  = document.getElementById('addrExtra').value;
+        if (road || jibun) {
+            var merged = [road || jibun, detail, extra].filter(Boolean).join(' ');
+            document.getElementById('userAddr').value = merged;
         }
         return true;
     }

@@ -163,7 +163,7 @@
     <!-- 회원 등록 -->
     <insert id="insertCustomer" parameterType="CustomerVO">
         INSERT INTO user (u_id, u_pwd, u_name, u_email, u_phone, u_addr, u_active, u_created)
-        VALUES (0, #{userPwd}, #{userName}, #{userEmail}, #{userPhone}, #{userAddr}, 0, CURDATE())
+        VALUES (#{userId}, #{userPwd}, #{userName}, #{userEmail}, #{userPhone}, #{userAddr}, 0, CURDATE())
     </insert>
 
     <!-- 회원 정보 수정 -->
@@ -191,6 +191,18 @@
     <select id="checkDuplicateEmail" parameterType="String" resultType="int">
         SELECT COUNT(*) FROM user WHERE u_email=#{userEmail}
     </select>
+
+    <!-- 관리자 등록 (관리자 신규 등록) -->
+    <insert id="insertAdmin" parameterType="CustomerVO">
+        INSERT INTO admin (a_id, a_pwd, a_name, a_email, a_phone, a_addr)
+        VALUES (#{userId}, #{userPwd}, #{userName}, #{userEmail}, #{userPhone}, #{userAddr})
+    </insert>
+
+    <!-- 파트너 등록 (관리자 신규 등록) -->
+    <insert id="insertPartner" parameterType="CustomerVO">
+        INSERT INTO partner (p_id, p_pwd, p_name, p_email, p_phone, p_addr, p_number, p_profile, p_active)
+        VALUES (#{userId}, #{userPwd}, #{userName}, #{userEmail}, #{userPhone}, #{userAddr}, #{partnerNumber}, '', 1)
+    </insert>
 
     <!-- ===================== 파트너(partner) CRUD ===================== -->
 

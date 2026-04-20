@@ -99,7 +99,18 @@
       "Bash(cmd /c \"python --version && pip install python-pptx\" 2>&1)",
       "Bash(cmd /c python --version)",
       "Bash(echo \"exit: $?\")",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Read(//c/Users/ict/Desktop/opice.img/**)",
+      "Read(//mnt/c/Users/ict/Desktop/**)",
+      "Bash(find D:/dev/springmvc/test/project05/src -path */admin*review* -o -path */review*admin*)",
+      "Bash(grep -rn 'INSERT INTO partner' D:/dev/springmvc/test/project05/src --include=*.xml)",
+      "Bash(grep -rn \"INSERT INTO partner\\\\|p_pwd\" D:/dev/springmvc/test/project05/src --include=*.java --include=*.xml)",
+      "Bash(grep -rn \"admin\\\\|CREATE TABLE\" D:/dev/springmvc/test/project05/src/main/resources/ --include=*.sql)",
+      "Bash(grep -rn \"INSERT INTO admin\\\\|FROM admin\\\\|JOIN admin\\\\|admin.*table\\\\|table.*admin\" D:/dev/springmvc/test/project05/src --include=*.xml --include=*.java --include=*.sql)",
+      "Bash(head -20 grep -n \"uploads/profiles\\\\|profile\\\\|p_profile\" \"D:/dev/springmvc/test/project05/src/main/webapp/WEB-INF/views/partner/mypage.jsp\")",
+      "Bash(grep -r \"space\\\\|Space\\\\|오피스\\\\|공간\" D:/dev/springmvc/test/project05/src/main/java/org/study/project05 --include=*.java -l)",
+      "Bash(grep -i \"admin\\\\|Admin\" grep -r \"admin.*space\\\\|space.*admin\\\\|/admin/space\\\\|/admin/office\\\\|/admin/branch\" D:/dev/springmvc/test/project05/src --include=*.java --include=*.jsp --include=*.xml -l)",
+      "Bash(head -20 grep -n \"nav-link\\\\|reservation\" \"D:/dev/springmvc/test/project05/src/main/webapp/WEB-INF/views/space/form.jsp\")"
     ]
   }
 }

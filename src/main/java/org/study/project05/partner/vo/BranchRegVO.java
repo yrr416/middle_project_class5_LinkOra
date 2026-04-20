@@ -27,4 +27,8 @@ public class BranchRegVO {
     // 주소 분리 필드
     private String roadAddress;     // 도로명 주소
     private String detailAddress;   // 상세 주소
+
+    // 관리 페이지용 (DB 저장 안 함)
+    private int spaceCount;                     // 소속 공간 수
+    private java.util.List<SpaceRegVO> spaces;  // 소속 공간 목록
 }

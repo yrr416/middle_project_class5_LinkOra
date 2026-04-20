@@ -86,4 +86,39 @@ public class PartnerRegServiceImpl implements PartnerRegService {
     public List<SpaceRegVO> getSpacesByBranchId(int brnIdx) {
         return partnerRegMapper.selectSpacesByBranchId(brnIdx);
     }
+
+    /** 내 매물 관리 · 파트너 소유 지점 목록 (공간 포함) */
+    @Override
+    public List<BranchRegVO> getMyBranches(int partnerIdx) {
+        List<BranchRegVO> branches = partnerRegMapper.selectMyBranches(partnerIdx);
+        for (BranchRegVO b : branches) {
+            b.setSpaces(partnerRegMapper.selectSpacesByBranchId(b.getBrnIdx()));
+        }
+        return branches;
+    }
+
+    /** 내 매물 관리 · 지점 활성/비활성 토글 (소속 공간 전체 연동) */
+    @Override
+    public boolean toggleBranchActive(int brnIdx, int partnerIdx) {
+        // 현재 상태를 먼저 파악 (토글 전)
+        BranchRegVO branch = partnerRegMapper.selectBranchById(brnIdx);
+        if (branch == null) return false;
+
+        int affected = partnerRegMapper.toggleBranchActive(brnIdx, partnerIdx);
+        if (affected == 0) return false;
+
+        // 지점 비활성화 → 공간 전체 비활성화, 지점 활성화 → 공간 전체 활성화
+        if (branch.getBrnActive() == 1) {
+            partnerRegMapper.deactivateAllSpacesByBranch(brnIdx, partnerIdx);
+        } else {
+            partnerRegMapper.activateAllSpacesByBranch(brnIdx, partnerIdx);
+        }
+        return true;
+    }
+
+    /** 내 매물 관리 · 공간 활성/비활성 토글 */
+    @Override
+    public boolean toggleSpaceActive(int spcIdx, int partnerIdx) {
+        return partnerRegMapper.toggleSpaceActiveByPartner(spcIdx, partnerIdx) > 0;
+    }
 }

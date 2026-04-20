@@ -55,7 +55,7 @@ public class ProfileImageStorageImpl implements ProfileImageStorageService {
         try (InputStream in = file.getInputStream()) {
             Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
         }
-        return "/uploads/profiles/" + filename;
+        return "/static/uploads/profiles/" + filename;
     }
 
     private static String extensionOf(String original) {

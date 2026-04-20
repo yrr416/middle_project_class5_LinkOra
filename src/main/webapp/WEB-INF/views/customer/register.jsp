@@ -41,6 +41,7 @@
             <a class="nav-link" href="${ctx}/admin/notice/list"><i class="bi bi-bell"></i>공지/이벤트 관리</a>
             <a class="nav-link" href="${ctx}/admin/inquiry/list"><i class="bi bi-chat-left-text"></i>문의 내역</a>
             <a class="nav-link" href="${ctx}/admin/chatbot/list"><i class="bi bi-robot me-1"></i>챗봇상담내역</a>
+            <a class="nav-link" href="${ctx}/admin/space/list"><i class="bi bi-building me-1"></i>오피스 관리</a>
             <hr class="border-secondary mx-3">
                         <a class="nav-link" href="${ctx}/" target="_blank"><i class="bi bi-house"></i>홈페이지 이동</a>
             <a class="nav-link" href="${ctx}/admin/settings"><i class="bi bi-gear"></i>설정</a>
@@ -75,7 +76,7 @@
         </c:if>
 
         <!-- 등록 폼 -->
-        <form method="post" action="${ctx}/admin/customer/registerok" id="registerForm" onsubmit="return validateForm()">
+        <form method="post" action="${ctx}/admin/customer/register" id="registerForm" onsubmit="return validateForm()">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
             <div class="row g-3">
 
@@ -86,6 +87,21 @@
                             <i class="bi bi-shield-lock me-2 text-primary"></i>계정 정보
                         </div>
 
+                        <!-- 아이디 -->
+                        <div class="mb-3">
+                            <label class="form-label form-label-sm">
+                                아이디 <span class="required-mark">*</span>
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" name="userId" id="uId"
+                                       class="form-control" placeholder="아이디를 입력하세요"
+                                       maxlength="50" required>
+                                <button type="button" class="btn btn-outline-secondary"
+                                        onclick="checkDuplicateId()">중복확인</button>
+                            </div>
+                            <div id="idCheckMsg" class="mt-1"></div>
+                        </div>
+
                         <!-- 비밀번호 -->
                         <div class="mb-3">
                             <label class="form-label form-label-sm">
@@ -93,7 +109,12 @@
                             </label>
                             <input type="password" name="userPwd" id="uPwd"
                                    class="form-control form-control-sm"
-                                   placeholder="비밀번호를 입력하세요" required>
+                                   placeholder="비밀번호를 입력하세요"
+                                   minlength="8" required>
+                            <div class="form-text text-muted" style="font-size:.75rem;">
+                                영문 대·소문자, 숫자, 특수문자를 각각 1개 이상 포함, 8자 이상
+                            </div>
+                            <div id="pwdPolicyMsg" class="mt-1"></div>
                         </div>
 
                         <!-- 비밀번호 확인 -->
@@ -103,7 +124,8 @@
                             </label>
                             <input type="password" id="uPwdConfirm"
                                    class="form-control form-control-sm"
-                                   placeholder="비밀번호를 다시 입력하세요" required>
+                                   placeholder="비밀번호를 다시 입력하세요"
+                                   minlength="8" required>
                             <div id="pwdCheckMsg" class="mt-1"></div>
                         </div>
 
@@ -124,11 +146,22 @@
                         <!-- 역할 -->
                         <div class="mb-3">
                             <label class="form-label form-label-sm">역할</label>
-                            <select name="userRole" class="form-select form-select-sm">
+                            <select name="userRole" id="userRole" class="form-select form-select-sm"
+                                    onchange="togglePartnerFields()">
                                 <option value="user">user</option>
                                 <option value="admin">admin</option>
-                                <option value="vip">vip</option>
+                                <option value="partner">partner</option>
                             </select>
+                        </div>
+
+                        <!-- 사업자번호 (partner 선택 시에만 표시) -->
+                        <div class="mb-3" id="partnerNumberArea" style="display:none;">
+                            <label class="form-label form-label-sm">
+                                사업자번호 <span class="required-mark">*</span>
+                            </label>
+                            <input type="text" name="partnerNumber" id="partnerNumber"
+                                   class="form-control form-control-sm"
+                                   placeholder="000-00-00000" maxlength="12">
                         </div>
                     </div>
                 </div>
@@ -157,11 +190,30 @@
                                    placeholder="010-0000-0000" maxlength="20">
                         </div>
 
-                        <!-- 주소 -->
+                        <!-- 주소 (카카오 우편번호 검색) -->
                         <div class="mb-3">
                             <label class="form-label form-label-sm">주소</label>
-                            <input type="text" name="userAddr" class="form-control form-control-sm"
-                                   placeholder="주소를 입력하세요">
+                            <!-- 우편번호 + 검색 버튼 -->
+                            <div class="input-group input-group-sm mb-1">
+                                <input type="text" id="addrPostcode" class="form-control"
+                                       placeholder="우편번호" readonly>
+                                <button type="button" class="btn btn-outline-secondary"
+                                        onclick="execDaumPostcode()">우편번호 찾기</button>
+                            </div>
+                            <!-- 도로명 주소 -->
+                            <input type="text" id="addrRoad" class="form-control form-control-sm mb-1"
+                                   placeholder="도로명 주소" readonly>
+                            <!-- 지번 주소 -->
+                            <input type="text" id="addrJibun" class="form-control form-control-sm mb-1"
+                                   placeholder="지번 주소" readonly>
+                            <!-- 상세 주소 -->
+                            <input type="text" id="addrDetail" class="form-control form-control-sm mb-1"
+                                   placeholder="상세 주소 입력">
+                            <!-- 참고 항목 -->
+                            <input type="text" id="addrExtra" class="form-control form-control-sm"
+                                   placeholder="참고 항목" readonly>
+                            <!-- 최종 합산 주소 (서버 전송용) -->
+                            <input type="hidden" id="userAddr" name="userAddr">
                         </div>
                     </div>
                 </div>
@@ -187,9 +239,67 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script>
-    // 이메일 중복 확인 여부 플래그
+    /* ── 카카오 우편번호 검색 ─────────────────────────── */
+    function execDaumPostcode() {
+        new kakao.Postcode({
+            oncomplete: function(data) {
+                var roadAddr = data.roadAddress;
+                var extraRoadAddr = '';
+
+                if (data.bname !== '' && /[동로가]$/.test(data.bname)) {
+                    extraRoadAddr += data.bname;
+                }
+                if (data.buildingName !== '' && data.apartment === 'Y') {
+                    extraRoadAddr += (extraRoadAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+                }
+                if (extraRoadAddr !== '') {
+                    extraRoadAddr = ' (' + extraRoadAddr + ')';
+                }
+
+                document.getElementById('addrPostcode').value = data.zonecode;
+                document.getElementById('addrRoad').value     = roadAddr;
+                document.getElementById('addrJibun').value    = data.jibunAddress;
+                document.getElementById('addrExtra').value    = roadAddr !== '' ? extraRoadAddr : '';
+                document.getElementById('addrDetail').value   = '';
+                document.getElementById('addrDetail').focus();
+            }
+        }).open();
+    }
+
+    // 중복 확인 여부 플래그
+    let idChecked    = false;
     let emailChecked = false;
+
+    /**
+     * 아이디 중복 확인 (AJAX)
+     */
+    function checkDuplicateId() {
+        const uId = document.getElementById('uId').value.trim();
+        if (!uId) { alert('아이디를 입력해주세요.'); return; }
+
+        const ctx = '${pageContext.request.contextPath}';
+        fetch(ctx + '/admin/customer/checkId?uId=' + encodeURIComponent(uId))
+            .then(res => res.text())
+            .then(result => {
+                const msg = document.getElementById('idCheckMsg');
+                if (result === '0') {
+                    msg.innerHTML = '<span class="msg-ok"><i class="bi bi-check-circle me-1"></i>사용 가능한 아이디입니다.</span>';
+                    idChecked = true;
+                } else {
+                    msg.innerHTML = '<span class="msg-err"><i class="bi bi-x-circle me-1"></i>이미 사용 중인 아이디입니다.</span>';
+                    idChecked = false;
+                }
+            })
+            .catch(() => alert('중복 확인 중 오류가 발생했습니다.'));
+    }
+
+    // 아이디 변경 시 중복 확인 초기화
+    document.getElementById('uId').addEventListener('input', function() {
+        idChecked = false;
+        document.getElementById('idCheckMsg').innerHTML = '';
+    });
 
     /**
      * 이메일 중복 확인 (AJAX)
@@ -215,7 +325,37 @@
     }
 
     /**
-     * 비밀번호 일치 여부 실시간 확인
+     * 비밀번호 정책 검사 (대·소문자·숫자·특수문자 각 1개 이상, 8자 이상)
+     */
+    function passwordMeetsPolicy(pw) {
+        if (!pw || pw.length < 8) return false;
+        return /[A-Z]/.test(pw) && /[a-z]/.test(pw) && /[0-9]/.test(pw)
+            && /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(pw);
+    }
+
+    /**
+     * 비밀번호 정책 실시간 표시
+     */
+    document.getElementById('uPwd').addEventListener('input', function() {
+        const msg = document.getElementById('pwdPolicyMsg');
+        const confirmMsg = document.getElementById('pwdCheckMsg');
+        if (!this.value) { msg.innerHTML = ''; confirmMsg.innerHTML = ''; return; }
+        if (passwordMeetsPolicy(this.value)) {
+            msg.innerHTML = '<span class="msg-ok"><i class="bi bi-check-circle me-1"></i>사용 가능한 비밀번호입니다.</span>';
+        } else {
+            msg.innerHTML = '<span class="msg-err"><i class="bi bi-x-circle me-1"></i>대·소문자·숫자·특수문자 각 1개 이상, 8자 이상 필요합니다.</span>';
+        }
+        // 비밀번호 변경 시 확인란 재검사
+        const confirm = document.getElementById('uPwdConfirm').value;
+        if (confirm) {
+            confirmMsg.innerHTML = this.value === confirm
+                ? '<span class="msg-ok"><i class="bi bi-check-circle me-1"></i>비밀번호가 일치합니다.</span>'
+                : '<span class="msg-err"><i class="bi bi-x-circle me-1"></i>비밀번호가 일치하지 않습니다.</span>';
+        }
+    });
+
+    /**
+     * 비밀번호 확인 일치 여부 실시간 확인
      */
     document.getElementById('uPwdConfirm').addEventListener('input', function() {
         const pwd = document.getElementById('uPwd').value;
@@ -240,15 +380,43 @@
      * 폼 최종 유효성 검사
      */
     function validateForm() {
-        if (!emailChecked) {
-            alert('이메일 중복 확인을 해주세요.');
-            document.getElementById('u_email').focus();
+        if (!idChecked) {
+            alert('아이디 중복 확인을 해주세요.');
+            document.getElementById('uId').focus();
             return false;
         }
-        if (document.getElementById('uPwd').value !== document.getElementById('uPwdConfirm').value) {
+        if (!emailChecked) {
+            alert('이메일 중복 확인을 해주세요.');
+            document.getElementById('uEmail').focus();
+            return false;
+        }
+        const pwd = document.getElementById('uPwd').value;
+        if (!passwordMeetsPolicy(pwd)) {
+            alert('비밀번호는 영문 대·소문자, 숫자, 특수문자를 각각 1개 이상 포함하고 8자 이상이어야 합니다.');
+            document.getElementById('uPwd').focus();
+            return false;
+        }
+        if (pwd !== document.getElementById('uPwdConfirm').value) {
             alert('비밀번호가 일치하지 않습니다.');
             return false;
         }
+        // partner 선택 시 사업자번호 필수 확인
+        if (document.getElementById('userRole').value === 'partner') {
+            const bizNo = document.getElementById('partnerNumber').value.trim();
+            if (!bizNo) {
+                alert('사업자번호를 입력해주세요.');
+                document.getElementById('partnerNumber').focus();
+                return false;
+            }
+        }
+
+        // 주소 합산 → hidden userAddr 에 저장
+        var road   = document.getElementById('addrRoad').value;
+        var jibun  = document.getElementById('addrJibun').value;
+        var detail = document.getElementById('addrDetail').value;
+        var extra  = document.getElementById('addrExtra').value;
+        var merged = [road || jibun, detail, extra].filter(Boolean).join(' ');
+        document.getElementById('userAddr').value = merged;
         return true;
     }
 
@@ -257,6 +425,23 @@
         emailChecked = false;
         document.getElementById('emailCheckMsg').innerHTML = '';
     });
+
+    /**
+     * 역할 선택에 따라 사업자번호 필드 표시/숨김
+     */
+    function togglePartnerFields() {
+        const role = document.getElementById('userRole').value;
+        const area = document.getElementById('partnerNumberArea');
+        const input = document.getElementById('partnerNumber');
+        if (role === 'partner') {
+            area.style.display = 'block';
+            input.required = true;
+        } else {
+            area.style.display = 'none';
+            input.required = false;
+            input.value = '';
+        }
+    }
 </script>
 </body>
 </html>

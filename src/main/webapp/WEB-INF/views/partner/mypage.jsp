@@ -61,6 +61,7 @@
             <span class="nav-link text-white-50 small px-3 pt-2 pb-1">파트너 메뉴</span>
             <a class="nav-link" href="${ctx}/partner/reservation/list"><i class="bi bi-calendar-check"></i>파트너 예약관리</a>
             <a class="nav-link" href="${ctx}/partner/register/step1"><i class="bi bi-person-badge"></i>매물 등록</a>
+            <a class="nav-link" href="${ctx}/partner/manage"><i class="bi bi-building-gear"></i>내 매물 관리</a>
             <hr class="border-secondary mx-3">
             <a class="nav-link" href="${ctx}/partner/mypage"><i class="bi bi-person-circle"></i>마이페이지</a>
             <a class="nav-link" href="${ctx}/" target="_blank"><i class="bi bi-house"></i>홈페이지 이동</a>

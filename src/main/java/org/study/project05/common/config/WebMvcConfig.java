@@ -24,9 +24,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Value("${app.upload.profiles-dir:uploads/profiles}")
     private String profilesDir;
 
-    @Value("${app.upload.notice-dir:uploads/notice}")
-    private String noticeDir;
-
     private final SessionSyncInterceptor sessionSyncInterceptor;
 
     @Autowired
@@ -48,17 +45,18 @@ public class WebMvcConfig implements WebMvcConfigurer {
         if (!location.endsWith("/")) {
             location += "/";
         }
+        // 기존 DB에 /uploads/profiles/** 경로로 저장된 이미지 호환 서빙
         registry.addResourceHandler("/uploads/profiles/**")
                 .addResourceLocations(location);
 
-        // 공지/이벤트 대표 이미지 서빙
-        Path noticeImgDir = Paths.get(noticeDir).toAbsolutePath().normalize();
+        // 기존 DB에 /uploads/notice/** 경로로 저장된 이미지 호환 서빙
+        Path noticeImgDir = Paths.get("src", "main", "webapp", "static", "upload", "notice").toAbsolutePath().normalize();
         String noticeLocation = noticeImgDir.toUri().toString();
         if (!noticeLocation.endsWith("/")) noticeLocation += "/";
         registry.addResourceHandler("/uploads/notice/**")
                 .addResourceLocations(noticeLocation);
 
-        // webapp/static/ 하위 업로드 이미지 서빙 (branch, review, video 등)
+        // webapp/static/ 하위 업로드 이미지 서빙 (branch, review, notice, video 등)
         Path staticDir = Paths.get("src", "main", "webapp", "static").toAbsolutePath().normalize();
         String staticLocation = staticDir.toUri().toString();
         if (!staticLocation.endsWith("/")) staticLocation += "/";

@@ -1,6 +1,7 @@
 package org.study.project05.customer.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.study.project05.customer.mapper.CustomerMapper;
 import org.study.project05.customer.vo.CustomerVO;
@@ -14,6 +15,9 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Autowired
     private CustomerMapper customerMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private Map<String, Object> buildParams(int numPerPage, int offset, CustomerVO vo) {
         Map<String, Object> params = new HashMap<>();
@@ -32,7 +36,14 @@ public class CustomerServiceImpl implements CustomerService {
     @Override public CustomerVO getCustomerDetail(String u_idx)               { return customerMapper.getCustomerDetail(u_idx); }
     @Override public CustomerVO getPartnerDetail(String p_idx)                { return customerMapper.getPartnerDetail(p_idx); }
 
-    @Override public void insertCustomer(CustomerVO vo)                       { customerMapper.insertCustomer(vo); }
+    @Override public void insertCustomer(CustomerVO vo) {
+        vo.setUserPwd(passwordEncoder.encode(vo.getUserPwd()));
+        switch (vo.getUserRole() != null ? vo.getUserRole() : "user") {
+            case "partner": customerMapper.insertPartner(vo); break;
+            case "admin":   customerMapper.insertAdmin(vo);   break;
+            default:        customerMapper.insertCustomer(vo);
+        }
+    }
 
     @Override public void updateCustomer(CustomerVO vo)                       { customerMapper.updateCustomer(vo); }
     @Override public void updatePartner(CustomerVO vo)                        { customerMapper.updatePartner(vo); }

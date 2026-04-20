@@ -15,7 +15,7 @@
              JOIN branch b ON s.b_idx = b.b_idx
              WHERE b.p_idx = #{partnerIdx}
                AND DATE(r.r_created) = CURDATE()
-            ) AS today_cnt,
+            ) AS todayCnt,
 
             (SELECT COUNT(*)
              FROM reservation r
@@ -23,7 +23,7 @@
              JOIN branch b ON s.b_idx = b.b_idx
              WHERE b.p_idx = #{partnerIdx}
                AND DATE_FORMAT(r.r_created, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')
-            ) AS month_cnt,
+            ) AS monthCnt,
 
             (SELECT IFNULL(SUM(r.r_total_price), 0)
              FROM reservation r
@@ -32,7 +32,7 @@
              WHERE b.p_idx = #{partnerIdx}
                AND DATE_FORMAT(r.r_created, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')
                AND r.r_status != 'CANCELLED'
-            ) AS month_revenue,
+            ) AS monthRevenue,
 
             (SELECT COUNT(*)
              FROM reservation r
@@ -41,7 +41,7 @@
              WHERE b.p_idx = #{partnerIdx}
                AND r.r_status = 'CANCELLED'
                AND DATE_FORMAT(r.r_created, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')
-            ) AS cancel_cnt
+            ) AS cancelCnt
     </select>
 
     <!-- ══════════════════════════════════════════════════════════
@@ -55,6 +55,7 @@
         JOIN branch  b ON s.b_idx = b.b_idx
         JOIN user    u ON r.u_idx = u.u_idx
         WHERE b.p_idx = #{partnerIdx}
+          AND r.r_status != 'PENDING'
         <if test="vo.startDate != null and vo.startDate != ''">
             AND DATE(r.r_start_time) &gt;= #{vo.startDate}
         </if>
@@ -98,6 +99,7 @@
         JOIN branch b ON s.b_idx = b.b_idx
         JOIN user   u ON r.u_idx = u.u_idx
         WHERE b.p_idx = #{partnerIdx}
+          AND r.r_status != 'PENDING'
         <if test="vo.startDate != null and vo.startDate != ''">
             AND DATE(r.r_start_time) &gt;= #{vo.startDate}
         </if>
@@ -178,31 +180,30 @@
     </select>
 
     <!-- ══════════════════════════════════════════════════════════
-         getCalendarEvents - 캘린더용 날짜×공간별 예약 건수
-         공간별 색상 구분을 위해 s_idx, s_name 포함
+         getCalendarEvents - 캘린더용 날짜×상태별 예약 건수
          params: partnerIdx, year, month
          ══════════════════════════════════════════════════════════ -->
     <select id="getCalendarEvents" parameterType="map" resultType="map">
         SELECT
-            DATE_FORMAT(r.r_start_time, '%Y-%m-%d') AS event_date,
-            s.s_idx  AS spc_idx,
-            s.s_name AS spc_name,
-            COUNT(*) AS event_cnt
+            DATE_FORMAT(r.r_start_time, '%Y-%m-%d') AS eventDate,
+            r.r_status AS resStatus,
+            COUNT(*) AS eventCnt
         FROM reservation r
         JOIN space  s ON r.s_idx = s.s_idx
         JOIN branch b ON s.b_idx = b.b_idx
         WHERE b.p_idx = #{partnerIdx}
           AND YEAR(r.r_start_time)  = #{year}
           AND MONTH(r.r_start_time) = #{month}
-        GROUP BY DATE_FORMAT(r.r_start_time, '%Y-%m-%d'), s.s_idx, s.s_name
-        ORDER BY event_date, s.s_name
+          AND r.r_status != 'PENDING'
+        GROUP BY DATE_FORMAT(r.r_start_time, '%Y-%m-%d'), r.r_status
+        ORDER BY eventDate, r.r_status
     </select>
 
     <!-- ══════════════════════════════════════════════════════════
          getRevenueByDay - 일별 매출 집계
          ══════════════════════════════════════════════════════════ -->
     <select id="getRevenueByDay" parameterType="map" resultType="map">
-        SELECT DATE_FORMAT(r.r_created, '%Y-%m-%d') AS period_label,
+        SELECT DATE_FORMAT(r.r_created, '%Y-%m-%d') AS periodLabel,
                COUNT(*)              AS cnt,
                SUM(r.r_total_price)  AS revenue
           FROM reservation r
@@ -217,7 +218,7 @@
            AND r.r_created &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
         </if>
          GROUP BY DATE_FORMAT(r.r_created, '%Y-%m-%d')
-         ORDER BY period_label
+         ORDER BY periodLabel
     </select>
 
     <!-- ══════════════════════════════════════════════════════════
@@ -229,7 +230,7 @@
             GROUP BY/ORDER BY 는 숫자형 YEARWEEK() 로 처리하고,
             SELECT 표시용 period_label 은 MIN() 집계로 감싸 충돌 방지
         -->
-        SELECT DATE_FORMAT(MIN(r.r_created), '%x-%v주') AS period_label,
+        SELECT DATE_FORMAT(MIN(r.r_created), '%x-%v주') AS periodLabel,
                COUNT(*)              AS cnt,
                SUM(r.r_total_price)  AS revenue
           FROM reservation r
@@ -251,7 +252,7 @@
          getRevenueByMonth - 월별 매출 집계
          ══════════════════════════════════════════════════════════ -->
     <select id="getRevenueByMonth" parameterType="map" resultType="map">
-        SELECT DATE_FORMAT(r.r_created, '%Y-%m') AS period_label,
+        SELECT DATE_FORMAT(r.r_created, '%Y-%m') AS periodLabel,
                COUNT(*)              AS cnt,
                SUM(r.r_total_price)  AS revenue
           FROM reservation r
@@ -266,17 +267,17 @@
            AND r.r_created &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
         </if>
          GROUP BY DATE_FORMAT(r.r_created, '%Y-%m')
-         ORDER BY period_label
+         ORDER BY periodLabel
     </select>
 
     <!-- ══════════════════════════════════════════════════════════
          getRevenueBySpace - 공간별 매출 집계
          ══════════════════════════════════════════════════════════ -->
     <select id="getRevenueBySpace" parameterType="map" resultType="map">
-        SELECT s.s_name AS spc_name,
+        SELECT s.s_name AS spcName,
                COUNT(*) AS cnt,
                SUM(r.r_total_price) AS revenue,
-               s.s_type AS spc_type
+               s.s_type AS spcType
           FROM reservation r
           JOIN space  s ON r.s_idx = s.s_idx
           JOIN branch b ON s.b_idx = b.b_idx
