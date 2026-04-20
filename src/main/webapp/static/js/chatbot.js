@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (position === 'prepend') cardDiv.classList.add('history-msg');
                 
                 const imgPath = `${contextPath}/static/upload/branch/${spcImg}`;
-                const fallbackImg = `${contextPath}/static/images/default_office.png`;
+                const fallbackImg = `${contextPath}/static/upload/chatbot/default_office.png`;
                 
                 cardDiv.innerHTML = `
                     <div class="action-thumb" style="background-image: url('${imgPath}'), url('${fallbackImg}')">

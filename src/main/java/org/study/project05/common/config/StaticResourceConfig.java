@@ -25,7 +25,7 @@ public class StaticResourceConfig implements WebMvcConfigurer {
         Path dir = Paths.get(assetsDir).toAbsolutePath().normalize();
         this.assetsLocation = dir.toUri().toString();
 
-        // [수정] uploads 폴더의 절대 경로를 가져와서 file: 프로토콜을 명확히 붙여줍니다.
+        // [수정] 웹앱 내부 경로 src/main/webapp/uploads 등을 정확히 시스템 절대 경로로 변환
         Path upDir = Paths.get(uploadsDir).toAbsolutePath().normalize();
         String upLoc = upDir.toUri().toString();
         // 경로가 반드시 /로 끝나도록 설정하여 하위 파일을 잘 찾게 함
@@ -38,8 +38,8 @@ public class StaticResourceConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/assets/**")
                 .addResourceLocations(assetsLocation);
 
-        // /uploads/** 요청 처리 (실제 외부 폴더 연결)
-        registry.addResourceHandler("/uploads/**")
+        // /static/upload/** 요청 처리
+        registry.addResourceHandler("/static/upload/**")
                 .addResourceLocations(uploadsLocation);
 
         // 브라우저 favicon 404 에러 방지

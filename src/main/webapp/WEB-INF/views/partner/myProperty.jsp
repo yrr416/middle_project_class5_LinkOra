@@ -259,6 +259,7 @@ function showAlert(msg, type) {
     const box = document.getElementById('alertBox');
     box.className = 'alert alert-' + type + ' alert-dismissible fade show mb-3';
     document.getElementById('alertMsg').textContent = msg;
+    box.classList.remove('d-none');
     setTimeout(() => box.classList.add('d-none'), 4000);
 }
 function hideAlert() {
@@ -266,6 +267,8 @@ function hideAlert() {
 }
 
 function toggleBranch(brnIdx, btn) {
+    if(!confirm('지점 상태를 변경하시겠습니까? (소속 공간이 함께 일괄 변경됩니다.)')) return;
+
     fetch(ctx + '/partner/manage/toggleBranch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

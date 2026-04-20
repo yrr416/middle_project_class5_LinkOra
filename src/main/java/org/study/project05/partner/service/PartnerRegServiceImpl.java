@@ -99,6 +99,7 @@ public class PartnerRegServiceImpl implements PartnerRegService {
 
     /** 내 매물 관리 · 지점 활성/비활성 토글 (소속 공간 전체 연동) */
     @Override
+    @Transactional
     public boolean toggleBranchActive(int brnIdx, int partnerIdx) {
         // 현재 상태를 먼저 파악 (토글 전)
         BranchRegVO branch = partnerRegMapper.selectBranchById(brnIdx);
@@ -107,7 +108,7 @@ public class PartnerRegServiceImpl implements PartnerRegService {
         int affected = partnerRegMapper.toggleBranchActive(brnIdx, partnerIdx);
         if (affected == 0) return false;
 
-        // 지점 비활성화 → 공간 전체 비활성화, 지점 활성화 → 공간 전체 활성화
+        // 지점 비활성화(brnActive==1) → 공간 전체 비활성화, 지점 활성화 → 공간 전체 활성화
         if (branch.getBrnActive() == 1) {
             partnerRegMapper.deactivateAllSpacesByBranch(brnIdx, partnerIdx);
         } else {
@@ -118,6 +119,7 @@ public class PartnerRegServiceImpl implements PartnerRegService {
 
     /** 내 매물 관리 · 공간 활성/비활성 토글 */
     @Override
+    @Transactional
     public boolean toggleSpaceActive(int spcIdx, int partnerIdx) {
         return partnerRegMapper.toggleSpaceActiveByPartner(spcIdx, partnerIdx) > 0;
     }

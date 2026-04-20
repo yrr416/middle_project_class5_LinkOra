@@ -52,6 +52,7 @@ public class ProfileImageStorageImpl implements ProfileImageStorageService {
         Files.createDirectories(profilesDirectory);
         String filename = UUID.randomUUID() + ext;
         Path target = profilesDirectory.resolve(filename);
+        // 파일 시스템 저장 (예: webapp/static/upload/profiles/uuid.png)
         try (InputStream in = file.getInputStream()) {
             Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
         }

@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%-- [Link Ora] 표준 레이아웃 적용 --%>
 <%@ include file="../layout/header.jsp" %>
@@ -27,7 +28,12 @@
     .sec-title { font-size: 15px; font-weight: 800; color: #888; text-transform: uppercase; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
     .sec-title::before { content: ''; width: 4px; height: 16px; background: #2F4F4F; border-radius: 2px; }
     
-    .text-content-box { padding: 35px; background: #fafafa; border-radius: 12px; border: 1px solid #f0f0f0; min-height: 180px; white-space: pre-wrap; font-size: 16px; color: #444; line-height: 1.8; margin-bottom: 50px; }
+    .text-content-box { padding: 35px; background: #fafafa; border-radius: 12px; border: 1px solid #f0f0f0; min-height: 180px; white-space: pre-wrap; font-size: 16px; color: #444; line-height: 1.8; margin-bottom: 30px; }
+    
+    .file-attachment-box { padding: 25px; background: #fff; border: 1px solid #eef0f2; border-radius: 12px; margin-bottom: 50px; }
+    .file-attachment-box .file-link { display: inline-flex; align-items: center; gap: 8px; color: #2F4F4F; text-decoration: none; font-weight: 700; font-size: 14px; padding: 8px 15px; background: #f0f4f4; border-radius: 8px; transition: 0.2s; }
+    .file-attachment-box .file-link:hover { background: #e0ecec; }
+    .img-preview { max-width: 100%; border-radius: 10px; margin-top: 15px; border: 1px solid #eee; }
     
     .ans-container { padding: 40px; background: #f0f8f8; border-radius: 16px; border: 1px solid rgba(47, 79, 79, 0.08); position: relative; }
     .ans-container h3 { font-size: 19px; color: #2F4F4F; margin-bottom: 20px; font-weight: 800; display: flex; align-items: center; gap: 12px; }
@@ -88,6 +94,23 @@
             
             <div class="sec-title">문의 내용</div>
             <div class="text-content-box">${inquiry.inqContent}</div>
+
+            <c:if test="${not empty inquiry.inqFileUrl}">
+                <div class="sec-title">첨부파일</div>
+                <div class="file-attachment-box">
+                    <a href="${pageContext.request.contextPath}${inquiry.inqFileUrl}" target="_blank" class="file-link">
+                        <i class="fa-solid fa-file-arrow-down"></i> 첨부파일 다운로드 / 크게보기
+                    </a>
+                    
+                    <%-- 이미지일 경우 바로 보여주기 --%>
+                    <c:set var="fileUrl" value="${inquiry.inqFileUrl.toLowerCase()}"/>
+                    <c:if test="${fn:endsWith(fileUrl, '.jpg') || fn:endsWith(fileUrl, '.jpeg') || fn:endsWith(fileUrl, '.png') || fn:endsWith(fileUrl, '.gif') || fn:endsWith(fileUrl, '.webp')}">
+                        <div style="margin-top: 20px;">
+                            <img src="${pageContext.request.contextPath}${inquiry.inqFileUrl}" class="img-preview" alt="첨부 이미지">
+                        </div>
+                    </c:if>
+                </div>
+            </c:if>
             
             <div class="sec-title">관리자 답변</div>
             <c:choose>

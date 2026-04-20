@@ -174,8 +174,9 @@
                         <input type="hidden" name="region" id="actualRegion" value="${region}">
                         <select id="citySelect" onchange="updateDistricts()">
                             <option value="">지역 전체</option>
-                            <c:forEach var="city" items="${regionMap.keySet()}">
-                                <option value="${city}">${city}</option>
+                            <c:forEach var="entry" items="${regionMap}">
+                                <option value="${entry.key}">${entry.key}</option>
+
                             </c:forEach>
                         </select>
                     </div>
@@ -186,6 +187,8 @@
                         <select id="districtSelect" onchange="updateRegionInput()" disabled>
                             <option value="">상세 지역</option>
                         </select>
+                        <%-- 실제 서버로 전송될 지역 데이터 (시/도 + 구/군) --%>
+                        <input type="hidden" name="region" id="actualRegion" value="${region}">
                     </div>
 
                     <div class="search-divider"></div>
@@ -263,10 +266,16 @@
                                         </c:if>
                                     </p>
                                 </div>
+
+                                <%-- 이미지가 없을 경우에만 화살표 아이콘 표시 --%>
+                                <c:if test="${empty ev.ntcImg}">
+                                    <span class="promo-slide-arrow">›</span>
+                                </c:if>
                             </a>
                         </c:forEach>
                     </c:when>
                     <c:otherwise>
+                        <%-- 등록된 이벤트가 없을 때 기본 슬라이드 --%>
                         <a href="${pageContext.request.contextPath}/notice/list?activeFilter=1" class="promo-slide">
                             <div>
                                 <span class="promo-slide-badge">EVENT</span>
@@ -278,11 +287,13 @@
                 </c:choose>
             </div>
 
+            <%-- 좌우 화살표 버튼 --%>
             <button class="promo-nav prev" id="promoPrev">&#8249;</button>
             <button class="promo-nav next" id="promoNext">&#8250;</button>
 
         </div>
 
+        <%-- 슬라이더 하단 점 메뉴 --%>
         <div class="promo-dots-bar" id="promoDots">
             <c:choose>
                 <c:when test="${not empty eventList}">
@@ -308,7 +319,9 @@
             var slides = track.querySelectorAll('.promo-slide');
             var n = slides.length;
             if (n === 0) return;
+            // 트랙 전체 너비 설정
             track.style.width = (n * 100) + '%';
+            // 각 슬라이드 너비 균등 배분
             for (var i = 0; i < n; i++) {
                 slides[i].style.width = (100 / n) + '%';
             }
@@ -319,6 +332,7 @@
             <div class="content-left">
                 <div class="section-header"><h2>공간 찾아보기</h2></div>
                 <div class="category-grid">
+                    <%-- 프라이빗 오피스 검색 필터 연결 (type=INDIVIDUAL) --%>
                     <a href="${pageContext.request.contextPath}/branch/search?type=INDIVIDUAL" class="category-link">
                         <div class="category-card">
                             <i class="fa-solid fa-door-closed"></i>
@@ -329,6 +343,7 @@
                         </div>
                     </a>
 
+                    <%-- 코워킹 스페이스 검색 필터 연결 (type=GROUP) --%>
                     <a href="${pageContext.request.contextPath}/branch/search?type=GROUP" class="category-link">
                         <div class="category-card">
                             <i class="fa-solid fa-laptop"></i>

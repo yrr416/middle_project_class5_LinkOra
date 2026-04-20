@@ -194,6 +194,7 @@ public class MemberWebController {
     }
 
     private static void applyKakaoSessionToModel(Model model, HttpSession session, HttpServletRequest request) {
+
         String kakaoId = (String) session.getAttribute("kakaoId");
         String nickname = (String) session.getAttribute("kakaoNickname");
         String email = (String) session.getAttribute("kakaoEmail");

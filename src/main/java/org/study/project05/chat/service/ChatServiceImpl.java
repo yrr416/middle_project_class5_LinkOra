@@ -39,12 +39,12 @@ public class ChatServiceImpl implements ChatService {
         // --- 시나리오 분기: 초기 진입([OPEN_CHAT]) 시 맞춤 인사 ---
         if ("[OPEN_CHAT]".equals(userMessage)) {
             String welcomeMenu = "[[WELCOME_MENU:공간 추천 및 안내|🏢 공간 추천 및 안내|🏢, 예약 안내|📅 예약 안내|📅, 자주 묻는 질문|❓ 자주 묻는 질문|❓]]";
-            String welcomeMsg = "안녕하세요! 공유 오피스의 친절한 안내원 오피(Offy)입니다. 무엇을 도와드릴까요? " + welcomeMenu;
+            String welcomeMsg = "안녕하세요! 공유 오피스의 친절한 안내원 오라(Ora)입니다. 무엇을 도와드릴까요? " + welcomeMenu;
 
             if (currentPage.contains("reservation")) {
-                welcomeMsg = "예약을 고민 중이신가요? 저 오피가 날짜나 인원수에 맞는 최적의 공간을 추천해 드릴게요! 📅 " + welcomeMenu;
+                welcomeMsg = "예약을 고민 중이신가요? 저 오라가 날짜나 인원수에 맞는 최적의 공간을 추천해 드릴게요! 📅 " + welcomeMenu;
             } else if (currentPage.contains("list") || currentPage.contains("search")) {
-                welcomeMsg = "원하시는 지역이나 오피스 스타일이 있으신가요? 저 오피가 맞춤형 공간을 찾아드릴게요! 🏢 " + welcomeMenu;
+                welcomeMsg = "원하시는 지역이나 오피스 스타일이 있으신가요? 저 오라가 맞춤형 공간을 찾아드릴게요! 🏢 " + welcomeMenu;
             }
 
             chatVO.setChatResponse(welcomeMsg);
@@ -76,13 +76,14 @@ public class ChatServiceImpl implements ChatService {
         String today = java.time.LocalDate.now().toString();
 
         systemMsg.put("content",
-                "너는 공유 오피스의 인공지능 예약 에이전트 '오피(Offy)'야. 아래 [기능별 준수 지침]을 최우선으로 따라줘:\n" +
+                "너는 공유 오피스의 인공지능 예약 에이전트 '오라(Ora)'야. 아래 [기능별 준수 지침]을 최우선으로 따라줘:\n" +
+
                         "[강력 준수 지침 - 예약 및 취소]\n" +
                         "1. **회원 전용 기능**: 예약(`COMMIT_BOOKING`) 및 취소(`CANCEL_BOOKING`)는 로그인한 회원만 가능해. 만약 사용자 ID가 0(Guest)이라면 \"회원 전용 기능입니다. 로그인 후 이용해 주세요\"라고 안내하고 로그인을 유도해.\n" +
                         "2. **실시간 정보 동기화 (Smart Prefill)**: 대화 도중 날짜, 시간, 인원수가 언급되면 즉시 `[[PREFILL:yyyy-MM-dd|시작|종료]]` 태그를 답변 끝에 포함해. 이건 비회원에게도 보여줘.\n" +
-                        "3. **명령 실행 필수 (중요)**: 예약을 최종 확정할 때는 `[[COMMIT_BOOKING:공간ID|시작T시각|종료T시각|인원]]`를, 취소할 때는 `[[CANCEL_BOOKING:예약ID]]` 태그를 답변에 **반드시** 포함해야 시스템에 반영돼. 태그 없이 말로만 성공했다고 하지 마.\n" +
+                        "3. **명령 실행 필수 (중요)**: 예약을 신청할 때는 `[[COMMIT_BOOKING:공간ID|시작T시각|종료T시각|인원]]`를, 취소할 때는 `[[CANCEL_BOOKING:예약ID]]` 태그를 답변에 **반드시** 포함해야 시스템에 반영돼. 태그 없이 말로만 성공했다고 하지 마.\n" +
                         "4. **취소 권한 관련 (필독)**: 사용자가 자신의 예약을 취소해달라고 하면, 해당 예약의 상태가 **'대기중(신청 완료)'** 또는 **'확정됨(이용 가능)'**인 경우 아무런 제약 없이 즉시 `[[CANCEL_BOOKING:예약ID]]` 태그를 생성하여 취소를 진행해줘.\n" +
-                        "5. **확정 유도**: 텍스트 확정보다는 카드 UI의 **'바로예약' -> '공간 예약하기'** 순서로 유도해.\n" +
+                        "5. **신청 유도**: 텍스트 신청보다는 카드 UI의 **'바로예약' -> '공간 예약하기'** 순서로 유도해.\n" +
                         "\n[새로운 추천 시나리오 - 공간 추천]\n" +
                         "1. **위치 기반 추천**: 사용자가 '공간 추천'을 요청하면 [공간 정보 컨텍스트]에서 **가장 상단에 있는(가까운) 3개의 공간**을 `[[ACTIONS:공간ID|공간명|지점명|이미지|시설요약|가격|공간타입|지점ID]]` 태그로 보여줘. '지점ID'는 컨텍스트의 BrnID 값을 사용해.\n" +
                         "2. **후속 대화 유도**: 추천 카드를 보여준 직후에는 반드시 \"몇 분이서 이용하시나요?\", \"주차나 24시간 이용 등 특별히 필요한 시설이 있으신가요?\"라고 질문하여 필터링을 구체화해.\n" +
@@ -132,7 +133,7 @@ public class ChatServiceImpl implements ChatService {
         // 예약 결과가 있다면 시스템 피드백으로 추가 (AI가 답변 시 참고하도록)
         if (executionResult != null) {
             messages.add(createMsg("developer", "[시스템 메시지] 예약 처리 결과: " + executionResult +
-                    "\n위의 정보를 바탕으로 사용자에게 예약 확정 안내를 해주세요. 예약 번호와 가격을 반드시 명시하세요."));
+                    "\n위의 정보를 바탕으로 사용자에게 '예약 신청이 접수되었음'을 안내해 주세요. 관리자 확인 후에 최종 확정된다는 점을 반드시 명시하고 예약 번호를 알려주세요."));
         }
         String botResponse;
         try {

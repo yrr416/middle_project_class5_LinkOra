@@ -3,6 +3,7 @@
  */
 package org.study.project05.login.config;
 
+
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -57,6 +58,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         UserProfileVO user = userProfileService.getByUserId(key);
         String userEncoded = user != null && user.getPassword() != null ? user.getPassword().strip() : "";
         if (user != null && !userEncoded.isEmpty()) {
+
             if (Integer.valueOf(0).equals(user.getActive())) {
                 throw new DisabledException("탈퇴 처리된 회원 계정입니다.");
             }

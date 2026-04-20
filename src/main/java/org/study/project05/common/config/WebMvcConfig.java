@@ -24,7 +24,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Value("${app.upload.profiles-dir:src/main/webapp/static/upload/profiles}")
     private String profilesDir;
 
-    @Value("${app.upload.notice-dir:uploads/notice}")
+    @Value("${app.upload.notice-dir:src/main/webapp/static/upload/notice}")
     private String noticeDir;
 
     private final SessionSyncInterceptor sessionSyncInterceptor;
@@ -38,7 +38,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(sessionSyncInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/static/**", "/assets/**", "/uploads/**", "/error", "/favicon.ico");
+                .excludePathPatterns("/static/**", "/assets/**", "/error", "/favicon.ico");
     }
 
     @Override
@@ -59,7 +59,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         Path noticeImgDir = Paths.get(noticeDir).toAbsolutePath().normalize();
         String noticeLocation = noticeImgDir.toUri().toString();
         if (!noticeLocation.endsWith("/")) noticeLocation += "/";
-        registry.addResourceHandler("/uploads/notice/**")
+        registry.addResourceHandler("/static/upload/notice/**")
                 .addResourceLocations(noticeLocation);
 
         // webapp/static/ 하위 업로드 이미지 서빙 (branch, review, video 등)
@@ -68,6 +68,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         if (!staticLocation.endsWith("/")) staticLocation += "/";
         registry.addResourceHandler("/static/**")
                 .addResourceLocations(staticLocation);
+
     }
 
     @Bean
