@@ -39,7 +39,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // [전체 업로드 디렉터리] /static/upload/** → webapp/static/upload/ 파일시스템 절대 경로
         // toUri().toString() 사용으로 Windows에서 올바른 file:///D:/... 형식 생성
         Path uploadsDir = Paths.get("src/main/webapp/static/upload").toAbsolutePath().normalize();
-        String uploadsLocation = uploadsDir.toUri().toString();
+        // toUri()는 디렉터리에 trailing slash를 붙이지 않으므로 수동으로 추가
+        String uploadsLocation = uploadsDir.toUri().toString() + "/";
 
         registry.addResourceHandler("/static/upload/**")
                 .addResourceLocations(uploadsLocation);
@@ -47,7 +48,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // [프로필 이미지] /uploads/profiles/** 별칭 유지 (하위 호환)
         Path profilesPath = Paths.get(profilesDir).toAbsolutePath().normalize();
         registry.addResourceHandler("/uploads/profiles/**")
-                .addResourceLocations(profilesPath.toUri().toString());
+                .addResourceLocations(profilesPath.toUri().toString() + "/");
 
         // webapp/static/ 하위 정적 리소스 서빙 (css, js, img 등)
         registry.addResourceHandler("/static/**")
