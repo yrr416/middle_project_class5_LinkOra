@@ -384,12 +384,22 @@ public class ChatServiceImpl implements ChatService {
 
                     // [이미지 처리] 공간 이미지가 없으면 지점의 대표 이미지를 가져옴
                     String spcImg = s.getSpcImg();
-                    if (spcImg != null) spcImg = spcImg.trim(); // DB 공백 제거
+                    if (spcImg != null) {
+                        spcImg = spcImg.trim();
+                        // 경로가 포함되어 있을 경우 파일명만 추출
+                        if (spcImg.contains("/")) {
+                            spcImg = spcImg.substring(spcImg.lastIndexOf("/") + 1);
+                        }
+                    }
 
                     if (spcImg == null || spcImg.isEmpty()) {
                         org.study.project05.branch.vo.BranchImgVO mainImg = branchImgMapper.selectMainByBranch(b.getBrnIdx());
                         if (mainImg != null && mainImg.getBiUrl() != null) {
-                            spcImg = mainImg.getBiUrl().trim();
+                            String biUrl = mainImg.getBiUrl().trim();
+                            if (biUrl.contains("/")) {
+                                biUrl = biUrl.substring(biUrl.lastIndexOf("/") + 1);
+                            }
+                            spcImg = biUrl;
                         }
                     }
                     if (spcImg == null || spcImg.isEmpty()) {
