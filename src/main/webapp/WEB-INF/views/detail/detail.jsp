@@ -1170,14 +1170,23 @@
     function deleteReview(revIdx, btn) {
       if (!confirm('리뷰를 삭제하시겠습니까?')) return;
 
-      $.post(CTX + '/review/delete', { revIdx: revIdx }, function(res) {
-        if (res.success) {
-          // 버튼의 가장 가까운 리뷰 카드(bg-white rounded-2xl)를 찾아서 제거
-          const card = btn.closest('.bg-white.rounded-2xl');
-          if (card) card.remove();
-        } else {
-          alert(res.message || '삭제에 실패했습니다.');
-        }
+      const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+      $.ajax({
+        type: 'POST',
+        url:  CTX + '/review/delete',
+        data: { revIdx: revIdx },
+        beforeSend: function(xhr) { xhr.setRequestHeader(csrfHeader, csrfToken); },
+        success: function(res) {
+          if (res.success) {
+            const card = btn.closest('.bg-white.rounded-2xl');
+            if (card) card.remove();
+          } else {
+            alert(res.message || '삭제에 실패했습니다.');
+          }
+        },
+        error: function() { alert('삭제 요청 중 오류가 발생했습니다.'); }
       });
     }
 
