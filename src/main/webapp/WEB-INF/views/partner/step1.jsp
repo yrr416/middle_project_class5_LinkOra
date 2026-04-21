@@ -131,7 +131,16 @@
     // CKEditor 초기화
     let editorInstance;
     ClassicEditor.create(document.querySelector('#brnDescription'), {
-        extraPlugins: [CKUploadPlugin]
+        extraPlugins: [CKUploadPlugin],
+        toolbar: {
+            items: [
+                'heading', '|',
+                'bold', 'italic', 'underline', 'strikethrough', '|',
+                'bulletedList', 'numberedList', '|',
+                'link', 'uploadImage', 'blockQuote', 'insertTable', '|',
+                'undo', 'redo'
+            ]
+        }
     })
         .then(editor => { editorInstance = editor; })
         .catch(console.error);

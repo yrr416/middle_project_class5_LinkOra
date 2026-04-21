@@ -12,7 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; }
-        .sidebar { min-height:100vh; background:linear-gradient(180deg,#1a3a5c 0%,#0d2137 100%); }
+        .sidebar { height:100vh; background:linear-gradient(180deg,#1a3a5c 0%,#0d2137 100%); position:sticky; top:0; align-self:flex-start; overflow-y:auto; }
         .sidebar .nav-link { color:rgba(255,255,255,.75); padding:10px 20px; border-radius:6px; margin:2px 8px; }
         .sidebar .nav-link:hover,.sidebar .nav-link.active { color:#fff; background:rgba(255,255,255,.15); }
         .sidebar .nav-link i { margin-right:8px; }
@@ -81,19 +81,9 @@
     <div class="col main-content">
 
         <!-- 페이지 헤더 -->
-        <div class="page-header d-flex justify-content-between align-items-center">
-            <div>
-                <h5 class="mb-1 fw-bold"><i class="bi bi-building me-2 text-primary"></i>오피스 관리</h5>
-                <small class="text-muted">등록된 공간을 조회하고 관리합니다.</small>
-            </div>
-            <div class="d-flex gap-2">
-                <a href="${ctx}/admin/space/register" class="btn btn-primary btn-sm">
-                    <i class="bi bi-plus-circle me-1"></i>공간 등록
-                </a>
-                <a href="${ctx}/partner/register/step1" class="btn btn-success btn-sm">
-                    <i class="bi bi-plus-circle me-1"></i>오피스 등록 신청
-                </a>
-            </div>
+        <div class="page-header">
+            <h5 class="mb-1 fw-bold"><i class="bi bi-building me-2 text-primary"></i>오피스 관리</h5>
+            <small class="text-muted">등록된 공간을 조회하고 관리합니다.</small>
         </div>
 
         <!-- 통계 카드 -->
@@ -136,9 +126,8 @@
                     <label class="form-label small mb-1">공간 타입</label>
                     <select name="typeFilter" class="form-select form-select-sm">
                         <option value="">전체</option>
-                        <option value="CONFERENCE" ${spaceVO.typeFilter == 'CONFERENCE' ? 'selected':''}>회의실</option>
-                        <option value="INDIVIDUAL"  ${spaceVO.typeFilter == 'INDIVIDUAL'  ? 'selected':''}>집중석</option>
-                        <option value="LOUNGE"      ${spaceVO.typeFilter == 'LOUNGE'      ? 'selected':''}>라운지</option>
+                        <option value="INDIVIDUAL" ${spaceVO.typeFilter == 'INDIVIDUAL' ? 'selected':''}>개인 공간</option>
+                        <option value="GROUP"      ${spaceVO.typeFilter == 'GROUP'      ? 'selected':''}>그룹 공간</option>
                     </select>
                 </div>
                 <!-- 활성 상태 필터 -->
@@ -191,7 +180,8 @@
                                 <!-- 썸네일 -->
                                 <c:choose>
                                     <c:when test="${not empty s.spcImg}">
-                                        <img src="${s.spcImg}" alt="${s.spcName}" class="thumbnail">
+                                        <img src="${ctx}${s.spcImg}" alt="${s.spcName}" class="thumbnail"
+                                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                                     </c:when>
                                     <c:otherwise>
                                         <div class="thumbnail-placeholder">
@@ -205,14 +195,11 @@
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <!-- 타입 배지 -->
                                         <c:choose>
-                                            <c:when test="${s.spcType == 'CONFERENCE'}">
-                                                <span class="badge badge-conference rounded-pill">회의실</span>
-                                            </c:when>
                                             <c:when test="${s.spcType == 'INDIVIDUAL'}">
-                                                <span class="badge badge-individual rounded-pill">집중석</span>
+                                                <span class="badge badge-individual rounded-pill">개인 공간</span>
                                             </c:when>
-                                            <c:when test="${s.spcType == 'LOUNGE'}">
-                                                <span class="badge badge-lounge rounded-pill">라운지</span>
+                                            <c:when test="${s.spcType == 'GROUP'}">
+                                                <span class="badge badge-conference rounded-pill">그룹 공간</span>
                                             </c:when>
                                             <c:otherwise>
                                                 <span class="badge bg-secondary rounded-pill">${s.spcType}</span>
@@ -364,8 +351,9 @@
                                         <td>
                                             <c:choose>
                                                 <c:when test="${not empty p.spcImg}">
-                                                    <img src="${p.spcImg}" alt="썸네일"
-                                                         style="width:56px;height:40px;object-fit:cover;border-radius:4px;">
+                                                    <img src="${ctx}${p.spcImg}" alt="썸네일"
+                                                         style="width:56px;height:40px;object-fit:cover;border-radius:4px;"
+                                                         onerror="this.style.display='none'">
                                                 </c:when>
                                                 <c:otherwise>
                                                     <div style="width:56px;height:40px;background:#e9ecef;border-radius:4px;display:flex;align-items:center;justify-content:center;">
@@ -385,9 +373,8 @@
                                         </td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${p.spcType == 'CONFERENCE'}"><span class="badge badge-conference rounded-pill">회의실</span></c:when>
-                                                <c:when test="${p.spcType == 'INDIVIDUAL'}"><span class="badge badge-individual rounded-pill">집중석</span></c:when>
-                                                <c:when test="${p.spcType == 'LOUNGE'}"><span class="badge badge-lounge rounded-pill">라운지</span></c:when>
+                                                <c:when test="${p.spcType == 'INDIVIDUAL'}"><span class="badge badge-individual rounded-pill">개인 공간</span></c:when>
+                                                <c:when test="${p.spcType == 'GROUP'}"><span class="badge badge-conference rounded-pill">그룹 공간</span></c:when>
                                                 <c:otherwise><span class="badge bg-secondary rounded-pill">${p.spcType}</span></c:otherwise>
                                             </c:choose>
                                         </td>
