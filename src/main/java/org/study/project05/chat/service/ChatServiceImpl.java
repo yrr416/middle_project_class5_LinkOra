@@ -386,8 +386,8 @@ public class ChatServiceImpl implements ChatService {
                     String spcImg = s.getSpcImg();
                     if (spcImg != null) {
                         spcImg = spcImg.trim();
-                        // 경로가 포함되어 있을 경우 파일명만 추출
-                        if (spcImg.contains("/")) {
+                        // [수정] 이미 /static으로 시작하는 정식 경로라면 자르지 않고 그대로 사용함 (DB 최신화 대응)
+                        if (spcImg.contains("/") && !spcImg.startsWith("/static")) {
                             spcImg = spcImg.substring(spcImg.lastIndexOf("/") + 1);
                         }
                     }
@@ -396,7 +396,7 @@ public class ChatServiceImpl implements ChatService {
                         org.study.project05.branch.vo.BranchImgVO mainImg = branchImgMapper.selectMainByBranch(b.getBrnIdx());
                         if (mainImg != null && mainImg.getBiUrl() != null) {
                             String biUrl = mainImg.getBiUrl().trim();
-                            if (biUrl.contains("/")) {
+                            if (biUrl.contains("/") && !biUrl.startsWith("/static")) {
                                 biUrl = biUrl.substring(biUrl.lastIndexOf("/") + 1);
                             }
                             spcImg = biUrl;

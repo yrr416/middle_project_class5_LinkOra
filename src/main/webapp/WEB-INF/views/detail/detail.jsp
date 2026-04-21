@@ -82,9 +82,18 @@
           <div class="flex transition-transform duration-300 ease-in-out" id="imgTrack">
             <c:forEach var="img" items="${branch.images}">
               <div class="min-w-full h-96 flex-shrink-0">
-                <img src="${pageContext.request.contextPath}${img.biUrl}"
-                     alt="${branch.brnName}"
-                     class="w-full h-full object-cover">
+                <c:choose>
+                  <c:when test="${fn:startsWith(img.biUrl, '/static')}">
+                    <img src="${pageContext.request.contextPath}${img.biUrl}"
+                         alt="${branch.brnName}"
+                         class="w-full h-full object-cover">
+                  </c:when>
+                  <c:otherwise>
+                    <img src="${pageContext.request.contextPath}/static/upload/partner/${img.biUrl}"
+                         alt="${branch.brnName}"
+                         class="w-full h-full object-cover">
+                  </c:otherwise>
+                </c:choose>
               </div>
             </c:forEach>
           </div>
@@ -339,9 +348,18 @@
                 <%-- 공간 이미지 --%>
                 <c:choose>
                   <c:when test="${not empty space.spcImg}">
-                    <img src="${pageContext.request.contextPath}${space.spcImg}"
-                         alt="${space.spcName}"
-                         class="w-full h-44 object-cover">
+                    <c:choose>
+                      <c:when test="${fn:startsWith(space.spcImg, '/static')}">
+                        <img src="${pageContext.request.contextPath}${space.spcImg}"
+                             alt="${space.spcName}"
+                             class="w-full h-44 object-cover">
+                      </c:when>
+                      <c:otherwise>
+                        <img src="${pageContext.request.contextPath}/static/upload/partner/${space.spcImg}"
+                             alt="${space.spcName}"
+                             class="w-full h-44 object-cover">
+                      </c:otherwise>
+                    </c:choose>
                   </c:when>
                   <c:otherwise>
                     <div class="w-full h-44 bg-gradient-to-br from-indigo-50 to-indigo-100
