@@ -369,18 +369,18 @@
                   <%-- 시설 아이콘 (DB 값 1 = 제공) --%>
                 <c:if test="${not empty space.facilities}">
                   <div class="flex flex-wrap gap-1.5">
-                    <c:if test="${space.facilities.facCafe     == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">☕ 카페</span></c:if>
-                    <c:if test="${space.facilities.facDesk     == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">🖥️ 데스크</span></c:if>
-                    <c:if test="${space.facilities.facDelivery == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">📦 택배</span></c:if>
-                    <c:if test="${space.facilities.facWater    == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">💧 정수기</span></c:if>
-                    <c:if test="${space.facilities.facHours24  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">🕐 24시간</span></c:if>
-                    <c:if test="${space.facilities.facKitchen  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">🍳 주방</span></c:if>
-                    <c:if test="${space.facilities.facDisplay  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">📺 디스플레이</span></c:if>
-                    <c:if test="${space.facilities.facStorage  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">🗄️ 보관함</span></c:if>
-                    <c:if test="${space.facilities.facParking  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">🅿️ 주차</span></c:if>
-                    <c:if test="${space.facilities.facFax      == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">📠 팩스</span></c:if>
-                    <c:if test="${space.facilities.facPet      == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">🐾 반려동물</span></c:if>
-                    <c:if test="${space.facilities.facLounge   == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">🛋️ 라운지</span></c:if>
+                    <c:if test="${space.facilities.facCafe     == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-utensils mr-1"></i>카페</span></c:if>
+                    <c:if test="${space.facilities.facDesk     == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-desktop mr-1"></i>데스크</span></c:if>
+                    <c:if test="${space.facilities.facDelivery == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-box mr-1"></i>택배</span></c:if>
+                    <c:if test="${space.facilities.facWater    == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-bottle-water mr-1"></i>정수기</span></c:if>
+                    <c:if test="${space.facilities.facHours24  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-clock mr-1"></i>24시간</span></c:if>
+                    <c:if test="${space.facilities.facKitchen  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-kitchen-set mr-1"></i>주방</span></c:if>
+                    <c:if test="${space.facilities.facDisplay  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-tv mr-1"></i>디스플레이</span></c:if>
+                    <c:if test="${space.facilities.facStorage  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-vault mr-1"></i>보관함</span></c:if>
+                    <c:if test="${space.facilities.facParking  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-car mr-1"></i>주차</span></c:if>
+                    <c:if test="${space.facilities.facFax      == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-fax mr-1"></i>팩스</span></c:if>
+                    <c:if test="${space.facilities.facPet      == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-paw mr-1"></i>반려동물</span></c:if>
+                    <c:if test="${space.facilities.facLounge   == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-couch mr-1"></i>라운지</span></c:if>
                   </div>
                 </c:if>
 

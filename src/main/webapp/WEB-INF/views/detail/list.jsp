@@ -41,7 +41,13 @@
           <c:when test="${not empty branch.images}">
             <img src="${pageContext.request.contextPath}${branch.images[0].biUrl}"
                  alt="${branch.brnName}"
-                 class="w-full h-44 object-cover">
+                 class="w-full h-44 object-cover"
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="w-full h-44 bg-gradient-to-br from-indigo-50 to-indigo-100
+                        flex items-center justify-center text-indigo-300 text-4xl font-bold select-none"
+                 style="display:none;">
+              WS
+            </div>
           </c:when>
           <c:otherwise>
             <div class="w-full h-44 bg-gradient-to-br from-indigo-50 to-indigo-100
@@ -59,12 +65,10 @@
 
           <h2 class="text-base font-bold text-gray-800 mt-2 mb-1">${branch.brnName}</h2>
 
-          <c:if test="${not empty branch.brnDescription}">
-            <p class="text-sm text-gray-500 mb-3 line-clamp-2">${branch.brnDescription}</p>
-          </c:if>
-
           <c:if test="${not empty branch.brnAddress}">
-            <p class="text-xs text-gray-400 mb-3">📍 ${branch.brnAddress}</p>
+            <p class="text-xs text-gray-400 mb-3">
+              <i class="fa-solid fa-location-dot mr-1" style="color:#2F4F4F;"></i>${branch.brnAddress}
+            </p>
           </c:if>
 
           <a href="${pageContext.request.contextPath}/detail/detail?brnIdx=${branch.brnIdx}"

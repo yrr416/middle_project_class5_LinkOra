@@ -427,7 +427,11 @@
                                                 <img src="${pageContext.request.contextPath}/static/upload/review/${revImgOnly}" style="width: 100%; height: 100%; object-fit: cover;">
                                             </c:when>
                                             <c:otherwise>
-                                                <img src="${pageContext.request.contextPath}/static/images/default_office.png" style="width: 100%; height: 100%; object-fit: cover;">
+                                                <div style="width:100%; height:100%; background:linear-gradient(135deg,#e8f0ef,#d1e1e1);
+                                                            display:flex; align-items:center; justify-content:center;
+                                                            color:#a3b8b8; font-size:2rem; font-weight:700; letter-spacing:2px; user-select:none;">
+                                                    WS
+                                                </div>
                                             </c:otherwise>
                                         </c:choose>
                                     </div>
