@@ -6,7 +6,9 @@ package org.study.project05.login.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Controller
+@Slf4j
 public class NaverAuthController {
 
     private static final String SESSION_NAVER_STATE = "NAVER_OAUTH_STATE";
@@ -123,7 +126,20 @@ public class NaverAuthController {
 
             return "redirect:/mypage";
         } catch (Exception e) {
+            if (containsInChain(e, DisabledException.class)) {
+                return "redirect:/loginPage?error=inactive";
+            }
+            log.warn("네이버 로그인 처리 중 예외 발생", e);
             return "redirect:/loginPage?error=naver_fail";
         }
+    }
+
+    private static boolean containsInChain(Throwable throwable, Class<? extends Throwable> type) {
+        for (Throwable t = throwable; t != null; t = t.getCause()) {
+            if (type.isInstance(t)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
