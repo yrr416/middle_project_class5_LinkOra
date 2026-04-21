@@ -615,6 +615,34 @@
     </div>
   </div>
 
+  <%-- ── 답글 수정 모달 (관리자 전용) ── --%>
+  <div id="editReplyModal"
+       class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+       onclick="closeEditReplyModal(event)">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl" onclick="event.stopPropagation()">
+      <h3 class="font-bold text-gray-800 mb-1">답글 수정</h3>
+      <p class="text-xs text-gray-400 mb-4">수정할 내용을 입력하세요.</p>
+
+      <textarea id="editReplyContent" rows="4"
+                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3
+                       focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none"
+                placeholder="답글 내용을 입력해주세요."></textarea>
+
+      <p id="editReplyMsg" class="text-xs text-red-400 mb-3 hidden"></p>
+
+      <div class="flex gap-2">
+        <button onclick="submitEditReply()"
+                class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-2 rounded-xl transition">
+          수정하기
+        </button>
+        <button onclick="closeEditReplyModal()"
+                class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-semibold py-2 rounded-xl transition">
+          취소
+        </button>
+      </div>
+    </div>
+  </div>
+
   <%-- ── 하단 고정 예약 바 ── --%>
   <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
     <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -957,12 +985,28 @@
       if (r.replies && r.replies.length > 0) {
         r.replies.forEach(reply => {
           const rDate = reply.revCreatedAt ? reply.revCreatedAt.substring(0, 10) : '';
+          // 관리자가 작성한 답글(u_idx IS NULL → userIdx === null)에만 삭제/수정 버튼 표시
+          const isAdminReply = reply.userIdx === null || reply.userIdx === undefined;
+          const replyDeleteBtn = (IS_ADMIN && isAdminReply)
+                  ? `<button onclick="deleteAdminReply(\${reply.revIdx})"
+                             class="text-xs text-gray-300 hover:text-red-500 transition ml-auto"
+                             title="답글 삭제">삭제</button>`
+                  : '';
+          const replyEditBtn = (IS_ADMIN && isAdminReply)
+                  ? `<button onclick="openEditReplyModal(this)"
+                             data-rev-idx="\${reply.revIdx}"
+                             data-content="\${esc(reply.revContent)}"
+                             class="text-xs text-gray-300 hover:text-indigo-500 transition"
+                             title="답글 수정">수정</button>`
+                  : '';
           html += `
             <div class="mt-3 ml-4 pl-4 border-l-2 border-indigo-100 bg-indigo-50 rounded-xl p-3">
-                <div class="flex items-center gap-2 mb-1">
+                <div class="flex items-center gap-2 mb-1 flex-wrap">
                     <span class="text-xs font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full">파트너</span>
-                    <span class="text-xs font-semibold text-gray-700">\${esc(reply.authorName)}</span>
+                    <span class="text-xs font-semibold text-gray-700">\${esc(reply.authorName || '관리자')}</span>
                     <span class="text-xs text-gray-400">\${rDate}</span>
+                    \${replyEditBtn}
+                    \${replyDeleteBtn}
                 </div>
                 <p class="text-xs text-gray-600">\${censorContent(reply.revContent)}</p>
             </div>`;
@@ -1214,6 +1258,88 @@
             loadReviews(1);
           } else {
             msgEl.textContent = res.message || '등록에 실패했습니다.';
+            msgEl.classList.remove('hidden');
+          }
+        },
+        error: function() {
+          msgEl.textContent = '서버 오류가 발생했습니다.';
+          msgEl.classList.remove('hidden');
+        }
+      });
+    }
+
+    /* ──────────────────────────────────────────
+       관리자 답글 삭제 / 수정 기능
+    ────────────────────────────────────────── */
+    function deleteAdminReply(revIdx) {
+      if (!confirm('이 답글을 삭제하시겠습니까?')) return;
+
+      const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+      $.ajax({
+        url:      CTX + '/review/replyDelete',
+        type:     'POST',
+        data:     { revIdx: revIdx },
+        dataType: 'json',
+        beforeSend: function(xhr) {
+          xhr.setRequestHeader(csrfHeader, csrfToken);
+        },
+        success: function(res) {
+          if (res.success) {
+            loadReviews(1);
+          } else {
+            alert(res.message || '삭제에 실패했습니다.');
+          }
+        },
+        error: function() {
+          alert('서버 오류가 발생했습니다.');
+        }
+      });
+    }
+
+    let editReplyTargetIdx = 0;
+
+    function openEditReplyModal(btn) {
+      editReplyTargetIdx = parseInt(btn.dataset.revIdx);
+      const content = (btn.dataset.content || '')
+              .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"');
+      document.getElementById('editReplyContent').value = content;
+      document.getElementById('editReplyMsg').classList.add('hidden');
+      document.getElementById('editReplyModal').classList.remove('hidden');
+    }
+
+    function closeEditReplyModal(event) {
+      document.getElementById('editReplyModal').classList.add('hidden');
+      editReplyTargetIdx = 0;
+    }
+
+    function submitEditReply() {
+      const content = document.getElementById('editReplyContent').value.trim();
+      const msgEl   = document.getElementById('editReplyMsg');
+      if (!content) {
+        msgEl.textContent = '답글 내용을 입력해주세요.';
+        msgEl.classList.remove('hidden');
+        return;
+      }
+
+      const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+      $.ajax({
+        url:      CTX + '/review/replyUpdate',
+        type:     'POST',
+        data:     { revIdx: editReplyTargetIdx, content: content },
+        dataType: 'json',
+        beforeSend: function(xhr) {
+          xhr.setRequestHeader(csrfHeader, csrfToken);
+        },
+        success: function(res) {
+          if (res.success) {
+            document.getElementById('editReplyModal').classList.add('hidden');
+            loadReviews(1);
+          } else {
+            msgEl.textContent = res.message || '수정에 실패했습니다.';
             msgEl.classList.remove('hidden');
           }
         },

@@ -29,10 +29,16 @@
             </div>
         </c:if>
 
-        <a href="${pageContext.request.contextPath}/detail/list"
-           class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-3 rounded-xl transition">
-            공간 목록으로
-        </a>
+        <div class="flex gap-3 justify-center flex-wrap">
+            <a href="${pageContext.request.contextPath}/detail/list"
+               class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-3 rounded-xl transition">
+                공간 목록으로
+            </a>
+            <a href="${pageContext.request.contextPath}/reservation/mylist"
+               class="inline-block bg-white border border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-semibold px-8 py-3 rounded-xl transition">
+                내 예약 확인
+            </a>
+        </div>
     </div>
 </div>
 

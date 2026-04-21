@@ -66,7 +66,8 @@
                r.v_parent_idx,
                r.v_content,
                r.v_rating,
-               IFNULL(u.u_name, '탈퇴한 유저')                 AS u_name,
+               CASE WHEN r.u_idx IS NULL THEN '관리자'
+                    ELSE IFNULL(u.u_name, '탈퇴한 유저') END AS u_name,
                s.s_name,
                r.v_created_at
         FROM review r
@@ -267,12 +268,22 @@
           AND r.v_rating     > 0
     </select>
 
+    <!-- 관리자 답글 내용 수정 (u_idx IS NULL인 답글만) -->
+    <update id="updateAdminReply">
+        UPDATE review
+        SET v_content    = #{content},
+            v_updated_at = NOW()
+        WHERE v_idx      = #{revIdx}
+          AND u_idx      IS NULL
+          AND v_parent_idx > 0
+    </update>
+
     <!-- 후기/답글 등록 -->
     <insert id="insert" parameterType="ReviewVO">
         INSERT INTO review (s_idx, u_idx, v_parent_idx, v_content, v_rating, v_img, v_active, v_time, v_created_at, v_updated_at)
         VALUES (
                    #{spcIdx},
-                   #{userIdx},
+                   #{userIdx, jdbcType=INTEGER},
                    #{revParentIdx},
                    #{revContent},
                    #{revRating, jdbcType=TINYINT},
