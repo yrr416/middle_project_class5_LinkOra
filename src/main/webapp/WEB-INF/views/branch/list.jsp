@@ -233,7 +233,7 @@
  padding: 10px; border-radius: 6px; border: 1px solid #ddd;" disabled>
                             <option value="">상세 구 선택</option>
                         </select>
-                        <input type="hidden" name="region" id="actualSidebarRegion" value="${region}">
+                        <input type="hidden" name="region" id="actualRegion" value="${region}">
                     </div>
 
 
