@@ -5,16 +5,12 @@ package org.study.project05.common.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.server.WebServerFactoryCustomizer;
-import org.springframework.boot.web.server.servlet.ConfigurableServletWebServerFactory;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.study.project05.common.interceptor.SessionSyncInterceptor;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -53,12 +49,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/uploads/profiles/**")
                 .addResourceLocations(location);
 
-        // [공지사항 이미지]
+        // [공지사항 이미지] 파일시스템(런타임 업로드) 먼저 탐색, 없으면 WAR 내부로 폴백
+        // WAR 배포 시 커밋된 이미지는 파일시스템에 없으므로 /static/ 폴백이 필수
         Path noticeImgDir = Paths.get(noticeDir).toAbsolutePath().normalize();
         String noticeLocation = "file:" + noticeImgDir.toString().replace("\\", "/") + "/";
-        
+
         registry.addResourceHandler("/static/upload/notice/**")
-                .addResourceLocations(noticeLocation);
+                .addResourceLocations(noticeLocation, "/static/upload/notice/");
 
         // webapp/static/ 하위 이미지 서빙 (branch, review 등) - WAR 내부 웹루트 경로 사용
         registry.addResourceHandler("/static/**")
@@ -75,13 +72,4 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addResourceLocations("classpath:/static/");
     }
 
-    @Bean
-    public WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> webappDocumentRootCustomizer() {
-        return factory -> {
-            File webapp = Paths.get("src", "main", "webapp").toFile();
-            if (webapp.isDirectory()) {
-                factory.setDocumentRoot(webapp);
-            }
-        };
-    }
 }
