@@ -68,4 +68,5 @@ public interface ReviewMapper {
 
     /** 리뷰 단건 조회 (삭제 전 이미지 파일명 확인용) */
     ReviewVO selectOne(@Param("revIdx") int revIdx);
+
 }

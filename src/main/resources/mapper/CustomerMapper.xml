@@ -142,7 +142,7 @@
         LIMIT #{numPerPage} OFFSET #{offset}
     </select>
 
-    <!-- ===================== 회원(user) CRUD ===================== -->
+    <!-- 회원(user) CRUD -->
 
     <!-- 회원 단건 상세 조회 -->
     <select id="getCustomerDetail" parameterType="String" resultType="CustomerVO">
@@ -160,7 +160,7 @@
           FROM user u WHERE u.u_idx = #{userIdx}
     </select>
 
-    <!-- 회원 등록 -->
+    <!-- 회원 등록 (아이디 하드코딩 수정) -->
     <insert id="insertCustomer" parameterType="CustomerVO">
         INSERT INTO user (u_id, u_pwd, u_name, u_email, u_phone, u_addr, u_active, u_created)
         VALUES (#{userId}, #{userPwd}, #{userName}, #{userEmail}, #{userPhone}, #{userAddr}, 0, CURDATE())

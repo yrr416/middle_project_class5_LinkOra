@@ -178,7 +178,7 @@ public class SpaceController {
      */
     private String saveImage(MultipartFile file, HttpServletRequest request) {
         try {
-            String uploadDir = request.getServletContext().getRealPath("/") + "static" + File.separator + "img" + File.separator + "spaces";
+            String uploadDir = request.getServletContext().getRealPath("/") + "static" + File.separator + "upload" + File.separator + "space";
             File dir = new File(uploadDir);
             if (!dir.exists()) dir.mkdirs();
 
@@ -189,7 +189,7 @@ public class SpaceController {
             String fileName = UUID.randomUUID().toString().replace("-", "") + ext;
 
             file.transferTo(new File(dir, fileName));
-            return "/static/img/spaces/" + fileName;
+            return "/static/upload/space/" + fileName;
         } catch (Exception e) {
             log.error("이미지 저장 실패: {}", e.getMessage());
             return null;

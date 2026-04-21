@@ -8,8 +8,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.study.project05.inquiry.service.InquiryService;
 import org.study.project05.inquiry.vo.InquiryVO;
-
+import org.springframework.web.multipart.MultipartFile;
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
+import org.springframework.util.StringUtils;
 
 @Controller
 @RequestMapping("/inquiry")
@@ -37,7 +42,9 @@ public class InquiryController {
 
     // 2. 문의 등록 처리
     @PostMapping("/submit")
-    public String submitInquiry(HttpSession session, InquiryVO vo, Model model) {
+    public String submitInquiry(@RequestParam(value = "inqFile", required = false) MultipartFile inqFile,
+                                HttpSession session, HttpServletRequest request,
+                                InquiryVO vo, Model model) {
         Integer userIdx = SessionUtil.getUserIdx(session);
         if (userIdx == null) {
             model.addAttribute("msg", "로그인 세션이 만료되었습니다. 다시 로그인해 주세요.");
@@ -45,8 +52,19 @@ public class InquiryController {
             return "common/alert";
         }
 
-        vo.setUserIdx(userIdx);
-        inquiryService.registerInquiry(vo);
+        try {
+            if (inqFile != null && !inqFile.isEmpty()) {
+                String fileUrl = saveInquiryFile(inqFile, request);
+                vo.setInqFileUrl(fileUrl);
+            }
+            vo.setUserIdx(userIdx);
+            inquiryService.registerInquiry(vo);
+        } catch (IOException e) {
+            model.addAttribute("msg", "파일 업로드 중 오류가 발생했습니다.");
+            model.addAttribute("url", "/inquiry");
+            return "common/alert";
+        }
+
         return "redirect:/inquiry/mylist";
     }
 
@@ -117,7 +135,9 @@ public class InquiryController {
 
     // 6. 문의 수정 처리
     @PostMapping("/update")
-    public String updateInquiry(InquiryVO vo, HttpSession session, Model model) {
+    public String updateInquiry(@RequestParam(value = "inqFile", required = false) MultipartFile inqFile,
+                                @RequestParam(value = "removeFile", defaultValue = "false") boolean removeFile,
+                                InquiryVO vo, HttpSession session, HttpServletRequest request, Model model) {
         Integer userIdx = SessionUtil.getUserIdx(session);
         if (userIdx == null) {
             model.addAttribute("msg", "로그인 세션이 만료되었습니다.");
@@ -125,14 +145,50 @@ public class InquiryController {
             return "common/alert";
         }
 
-        String result = inquiryService.updateInquiry(vo, userIdx);
-        if ("success".equals(result)) {
-            return "redirect:/inquiry/detail/" + vo.getInqIdx();
-        } else {
-            model.addAttribute("msg", result);
+        try {
+            if (inqFile != null && !inqFile.isEmpty()) {
+                String fileUrl = saveInquiryFile(inqFile, request);
+                vo.setInqFileUrl(fileUrl);
+            } else if (removeFile) {
+                vo.setInqFileUrl(""); // 파일 삭제 시 빈 문자열
+            } else {
+                // 기존 파일 유지 (DB 조회를 통해 기존 값을 가져와야 함)
+                InquiryVO ex = inquiryService.getInquiryDetail(vo.getInqIdx());
+                if (ex != null) vo.setInqFileUrl(ex.getInqFileUrl());
+            }
+
+            String result = inquiryService.updateInquiry(vo, userIdx);
+            if ("success".equals(result)) {
+                return "redirect:/inquiry/detail/" + vo.getInqIdx();
+            } else {
+                model.addAttribute("msg", result);
+                model.addAttribute("url", "/inquiry/edit/" + vo.getInqIdx());
+                return "common/alert";
+            }
+        } catch (IOException e) {
+            model.addAttribute("msg", "파일 수정 중 오류가 발생했습니다.");
             model.addAttribute("url", "/inquiry/edit/" + vo.getInqIdx());
             return "common/alert";
         }
+    }
+
+    /**
+     * 파일을 /static/upload/inquiry/ 에 저장하고 접근 가능한 웹 경로를 반환합니다.
+     */
+    private String saveInquiryFile(MultipartFile file, HttpServletRequest request) throws IOException {
+        String ext = StringUtils.getFilenameExtension(file.getOriginalFilename());
+        String fileName = UUID.randomUUID().toString() + (ext != null ? "." + ext : "");
+        
+        // 프로젝트 내부 webapp/static/upload/inquiry 물리 경로 획득
+        String uploadDir = request.getServletContext().getRealPath("/static/upload/inquiry/");
+        File dir = new File(uploadDir);
+        if (!dir.exists()) dir.mkdirs();
+
+        File target = new File(dir, fileName);
+        file.transferTo(target);
+
+        // 브라우저에서 접근 가능한 URL 반환 (ContextPath 자동 포함을 위해 /static/upload/...으로 반환)
+        return "/static/upload/inquiry/" + fileName;
     }
 
     // 7. 문의 삭제 처리

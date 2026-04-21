@@ -31,8 +31,9 @@ public class NoticeController {
     @Autowired
     private NoticeService noticeService;
 
-    /** 공지 이미지 저장 경로: src/main/webapp/static/upload/notice */
-    private static final String noticeUploadDir = "src/main/webapp/static/upload/notice";
+    /** application.properties의 app.upload.notice-dir 값 (기본: uploads/notice) */
+    @Value("${app.upload.notice-dir:uploads/notice}")
+    private String noticeUploadDir;
 
     /** 페이지당 공지 표시 수 */
     private static final int NUM_PER_PAGE   = 10;
