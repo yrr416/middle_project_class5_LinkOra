@@ -42,7 +42,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // [프로필 이미지] file: 접두사 사용하여 절대 경로 매핑 (Windows 환경 안정성 확보)
         Path dir = Paths.get(profilesDir).toAbsolutePath().normalize();
         String location = "file:" + dir.toString().replace("\\", "/") + "/";
-        
+
         registry.addResourceHandler("/static/upload/profiles/**")
                 .addResourceLocations(location);
 
@@ -50,13 +50,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addResourceLocations(location);
 
         // [공지사항 이미지] 파일시스템(런타임 업로드) 먼저 탐색, 없으면 WAR 내부로 폴백
-        // WAR 배포 시 커밋된 이미지는 파일시스템에 없으므로 /static/ 폴백이 필수
         Path noticeImgDir = Paths.get(noticeDir).toAbsolutePath().normalize();
         String noticeLocation = "file:" + noticeImgDir.toString().replace("\\", "/") + "/";
-
+ 
         registry.addResourceHandler("/static/upload/notice/**")
                 .addResourceLocations(noticeLocation, "/static/upload/notice/");
-
+ 
         // webapp/static/ 하위 이미지 서빙 (branch, review 등) - WAR 내부 웹루트 경로 사용
         registry.addResourceHandler("/static/**")
                 .addResourceLocations("/static/");
