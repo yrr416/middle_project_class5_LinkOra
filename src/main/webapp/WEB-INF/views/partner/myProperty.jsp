@@ -278,7 +278,50 @@ function toggleBranch(brnIdx, btn) {
     .then(data => {
         if (data.success) {
             showAlert(data.message, 'success');
-            location.reload(); // 복잡한 UI 업데이트 대신 새로고침으로 정확한 상태 반영
+            const icon = btn.querySelector('i');
+            const label = btn.querySelector('span');
+            const wasActive = icon.classList.contains('bi-pause-circle'); // true=비활성화 클릭
+
+            // 지점 버튼 갱신
+            icon.className = 'bi me-1 ' + (wasActive ? 'bi-play-circle' : 'bi-pause-circle');
+            label.textContent = wasActive ? '활성화' : '비활성화';
+
+            // 지점 상태 배지 갱신
+            const card = document.getElementById('branch-' + brnIdx);
+            const branchBadge = card.querySelector('.branch-name').nextElementSibling;
+            if (wasActive) {
+                branchBadge.className = 'badge badge-inactive'; branchBadge.textContent = '비활성';
+            } else {
+                branchBadge.className = 'badge badge-approved'; branchBadge.textContent = '승인완료';
+            }
+
+            // 소속 공간 배지·버튼 전체 갱신 (심사중 제외)
+            card.querySelectorAll('[id^="space-"]').forEach(function(row) {
+                const spaceBadge = row.querySelector('.badge');
+                if (!spaceBadge || spaceBadge.textContent.trim() === '심사중') return;
+
+                const spaceToggleBtn = row.querySelector('.space-actions button');
+
+                if (wasActive) {
+                    // 비활성화
+                    spaceBadge.className = 'badge badge-inactive'; spaceBadge.textContent = '비활성';
+                    if (spaceToggleBtn) {
+                        const si = spaceToggleBtn.querySelector('i');
+                        const sl = spaceToggleBtn.querySelector('span');
+                        si.className = 'bi me-1 bi-play';
+                        sl.textContent = '활성화';
+                    }
+                } else {
+                    // 활성화
+                    spaceBadge.className = 'badge badge-approved'; spaceBadge.textContent = '활성';
+                    if (spaceToggleBtn) {
+                        const si = spaceToggleBtn.querySelector('i');
+                        const sl = spaceToggleBtn.querySelector('span');
+                        si.className = 'bi me-1 bi-pause';
+                        sl.textContent = '비활성화';
+                    }
+                }
+            });
         } else {
             showAlert(data.message, 'warning');
         }

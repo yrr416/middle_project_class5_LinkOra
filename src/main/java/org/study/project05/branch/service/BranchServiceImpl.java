@@ -29,15 +29,15 @@ public class BranchServiceImpl implements BranchService {
     @Override
     public List<BranchVO> searchWithFilters(
             String keyword, String region, Integer capacity,
-            // [수정] 인터페이스 약속에 맞춰 type 파라미터 추가
+            // 인터페이스 약속에 맞춰 type 파라미터 유지
             String type,
             Integer facParking, Integer facHours24, Integer facPet,
             Integer facWifi, Integer facCoffee, Integer facPrinter, Integer facLocker,
-            // [추가] 신규 시설 필터 4종
+            // 새로 추가된 편의시설 받기
             Integer facCafe, Integer facKitchen, Integer facWater, Integer facLounge,
             Double lat, Double lng, Integer skip, Integer size
     ) {
-        // [작동] 매퍼(DB)로 모든 필터 값을 포함해서 전달함
+        // 매퍼(DB)로 새로운 편의시설 정보까지 모두 전달함
         return branchMapper.searchWithFilters(
                 keyword, region, capacity, type, facParking, facHours24, facPet,
                 facWifi, facCoffee, facPrinter, facLocker,
@@ -46,19 +46,19 @@ public class BranchServiceImpl implements BranchService {
         );
     }
 
-    /* [빨간 줄 해결 포인트] 메서드 이름과 파라미터를 인터페이스/매퍼와 완벽히 일치시킴 */
+    /* 메서드 이름과 파라미터를 인터페이스/매퍼와 완벽히 일치시킴 */
     @Override
     public int getCountWithFilters(
             String keyword, String region, Integer capacity,
-            // [수정] 개수 세는 기능에서도 type 파라미터 추가
+            // 개수 세는 기능에서도 type 파라미터 유지
             String type,
             Integer facParking, Integer facHours24, Integer facPet,
             Integer facWifi, Integer facCoffee, Integer facPrinter, Integer facLocker,
-            // [추가] 신규 시설 필터 4종
+            // 개수 셀 때도 새로 추가된 편의시설 받기
             Integer facCafe, Integer facKitchen, Integer facWater, Integer facLounge,
             Double lat, Double lng
     ) {
-        // [작동] 매퍼의 getCountWithFilters를 부르면서 모든 필터를 던져줌!
+        // 매퍼의 getCountWithFilters를 부르면서 새로운 정보도 같이 던져줌!
         return branchMapper.getCountWithFilters(
                 keyword, region, capacity, type, facParking, facHours24, facPet,
                 facWifi, facCoffee, facPrinter, facLocker,
@@ -80,7 +80,7 @@ public class BranchServiceImpl implements BranchService {
 
             String cleanAddress = address.trim();
 
-            // [핵심 수정] 주소가 "서울 특별시", "서울시", "서울" 로 시작하면 모두 "서울특별시 "로 묶어줘요!
+            // 주소가 "서울 특별시", "서울시", "서울" 로 시작하면 모두 "서울특별시 "로 묶어줘요!
             if (cleanAddress.startsWith("서울 특별시 ")) {
                 cleanAddress = cleanAddress.replaceFirst("서울 특별시 ", "서울특별시 ");
             } else if (cleanAddress.startsWith("서울시 ")) {

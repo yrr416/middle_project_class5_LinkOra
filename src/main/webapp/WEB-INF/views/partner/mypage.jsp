@@ -49,7 +49,7 @@
         <div class="text-center px-3 pb-2">
             <div class="sidebar-avatar mx-auto">
                 <% if (request.getAttribute("profileImage") != null && !((String) request.getAttribute("profileImage")).isBlank()) { %>
-                <img src="${ctx}${profileImage}" alt="프로필">
+                <img src="${profileImage}" alt="프로필">
                 <% } else { %>
                 🏪
                 <% } %>
@@ -61,6 +61,7 @@
             <span class="nav-link text-white-50 small px-3 pt-2 pb-1">파트너 메뉴</span>
             <a class="nav-link" href="${ctx}/partner/reservation/list"><i class="bi bi-calendar-check"></i>파트너 예약관리</a>
             <a class="nav-link" href="${ctx}/partner/register/step1"><i class="bi bi-person-badge"></i>매물 등록</a>
+            <a class="nav-link" href="${ctx}/partner/manage"><i class="bi bi-building-gear"></i>내 매물 관리</a>
             <hr class="border-secondary mx-3">
             <a class="nav-link" href="${ctx}/partner/mypage"><i class="bi bi-person-circle"></i>마이페이지</a>
             <a class="nav-link" href="${ctx}/" target="_blank"><i class="bi bi-house"></i>홈페이지 이동</a>
@@ -82,7 +83,7 @@
             <div class="d-flex align-items-center gap-3 mb-4">
                 <div style="width:56px;height:56px;border-radius:50%;background:#3730a3;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;border:2px solid #e6e8ec;">
                     <% if (request.getAttribute("profileImage") != null && !((String) request.getAttribute("profileImage")).isBlank()) { %>
-                    <img src="${ctx}${profileImage}" alt="프로필" style="width:100%;height:100%;object-fit:cover;">
+                    <img src="${profileImage}" alt="프로필" style="width:100%;height:100%;object-fit:cover;">
                     <% } else { %>
                     🏪
                     <% } %>
@@ -236,7 +237,7 @@
                 <div id="modalProfilePreview"
                      style="width:52px;height:52px;border-radius:50%;background:#3730a3;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;flex-shrink:0;">
                     <% if (request.getAttribute("profileImage") != null && !((String) request.getAttribute("profileImage")).isBlank()) { %>
-                    <img id="modalProfileImg" src="${ctx}${profileImage}" alt="프로필" style="width:100%;height:100%;object-fit:cover;">
+                    <img id="modalProfileImg" src="${profileImage}" alt="프로필" style="width:100%;height:100%;object-fit:cover;">
                     <% } else { %>
                     <span id="modalProfileEmoji">🏪</span>
                     <% } %>

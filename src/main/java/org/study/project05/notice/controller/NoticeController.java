@@ -32,7 +32,7 @@ public class NoticeController {
     private NoticeService noticeService;
 
     /** application.properties의 app.upload.notice-dir 값 (기본: uploads/notice) */
-    @Value("${app.upload.notice-dir:static/upload/notice}")
+    @Value("${app.upload.notice-dir:uploads/notice}")
     private String noticeUploadDir;
 
     /** 페이지당 공지 표시 수 */
@@ -175,7 +175,7 @@ public class NoticeController {
             String fileName = UUID.randomUUID().toString() + ext;
             file.transferTo(new File(dir, fileName));
 
-            // WebMvcConfig에 등록된 /static/upload/notice/** 핸들러로 서빙
+            // /static/** 핸들러로 서빙
             return request.getContextPath() + "/static/upload/notice/" + fileName;
         } catch (Exception e) {
             log.error("공지 이미지 저장 실패", e);
@@ -236,7 +236,7 @@ public class NoticeController {
             String fileName = UUID.randomUUID().toString() + ext;
             file.transferTo(new File(dir, fileName));
 
-            // 3) 브라우저에서 접근 가능한 URL 반환 (WebMvcConfig의 /static/upload/notice/** 핸들러 사용)
+            // 3) 브라우저에서 접근 가능한 URL 반환 (/static/** 핸들러 사용)
             String url = request.getContextPath() + "/static/upload/notice/" + fileName;
             log.info("이미지 업로드 성공 - 저장경로: {}, URL: {}", dir + "/" + fileName, url);
 

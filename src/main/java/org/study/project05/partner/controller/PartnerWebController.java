@@ -150,7 +150,7 @@ public class PartnerWebController {
             return "redirect:/partner/mypage?profileError=empty";
         }
         try {
-            // 브라우저에서 접근 가능한 URL 반환 (ContextPath 자동 포함을 위해 /static/upload/...으로 반환)
+            // 서버 디스크에 저장 후 웹 경로(예: /static/upload/profiles/uuid.jpg) 반환
             String path = profileImageStorage.storeIfValid(profileImage);
             if (path == null) {
                 // 허용되지 않는 확장자이거나 content-type 거부

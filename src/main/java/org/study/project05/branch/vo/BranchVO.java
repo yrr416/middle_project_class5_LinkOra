@@ -47,6 +47,7 @@ public class BranchVO {
     private int facPrinter;
     private int facLocker;
 
+    // 새로 추가된 편의시설 필터 변수 추가 (JSP 에러 방지용)
     private int facCafe;
     private int facKitchen;
     private int facWater;

@@ -105,9 +105,34 @@
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // CKEditor 초기화 (인스턴스 저장)
+    // CKEditor 5 커스텀 업로드 어댑터 (이미지 삽입용)
+    class CKUploadAdapter {
+        constructor(loader) { this.loader = loader; }
+        upload() {
+            return this.loader.file.then(file => new Promise((resolve, reject) => {
+                const data = new FormData();
+                data.append('file', file);
+                data.append('${_csrf.parameterName}', '${_csrf.token}');
+                fetch('${ctx}/partner/register/uploadImg', { method: 'POST', body: data })
+                    .then(r => r.text())
+                    .then(url => {
+                        if (url) resolve({ default: '${ctx}' + url });
+                        else reject('이미지 업로드 실패');
+                    })
+                    .catch(reject);
+            }));
+        }
+        abort() {}
+    }
+    function CKUploadPlugin(editor) {
+        editor.plugins.get('FileRepository').createUploadAdapter = loader => new CKUploadAdapter(loader);
+    }
+
+    // CKEditor 초기화
     let editorInstance;
-    ClassicEditor.create(document.querySelector('#brnDescription'))
+    ClassicEditor.create(document.querySelector('#brnDescription'), {
+        extraPlugins: [CKUploadPlugin]
+    })
         .then(editor => { editorInstance = editor; })
         .catch(console.error);
 

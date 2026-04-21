@@ -22,6 +22,7 @@ public class ChatServiceImpl implements ChatService {
     private final org.study.project05.branch.mapper.BranchMapper branchMapper;
     private final org.study.project05.branch.mapper.BranchDetailSpaceMapper spaceMapper;
     private final org.study.project05.branch.mapper.FacilityMapper facilityMapper;
+    private final org.study.project05.branch.mapper.BranchImgMapper branchImgMapper;
 
     @Override
     public ChatVO processMessage(ChatVO chatVO) {
@@ -255,7 +256,7 @@ public class ChatServiceImpl implements ChatService {
             int endIdx = botResponse.indexOf("]]", startIdx);
             String tag = botResponse.substring(startIdx, endIdx + 2);
 
-            // [정책 추가] 예약은 회원만 가능함
+            // 예약은 회원만 가능함
             if (userIdx == null || userIdx <= 0L) {
                 return botResponse.replace(tag, "\n\n⚠️ 예약은 회원 서비스입니다. 로그인 후 이용해 주시면 즉시 예약을 도와드릴게요! 😊");
             }
@@ -295,7 +296,7 @@ public class ChatServiceImpl implements ChatService {
             int endIdx = botResponse.indexOf("]]", startIdx);
             String tag = botResponse.substring(startIdx, endIdx + 2);
 
-            // [정책 추가] 취소는 회원만 가능함
+            // 취소는 회원만 가능함
             if (userIdx == null || userIdx <= 0L) {
                 return botResponse.replace(tag, "\n\n⚠️ 예약 취소는 로그인 후 본인 확인을 거쳐야 가능합니다.");
             }
@@ -357,11 +358,15 @@ public class ChatServiceImpl implements ChatService {
         try {
             String today = java.time.LocalDate.now().toString();
 
-            // 위치 정보가 있으면 필터 검색(거리순 상위 3개), 없으면 전체 목록 사용
             List<org.study.project05.branch.vo.BranchVO> branches;
             if (lat != null && lng != null) {
-                // 파라미터 개수를 19개로 수정 전수 동기화 (신규 시설 필터 4개 자리에 null 추가)
-                branches = branchMapper.searchWithFilters(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, lat, lng, 0, 3);
+                // 파라미터 개수를 19개로 수정함 (새로운 편의시설 4개 자리에도 null 추가)
+                branches = branchMapper.searchWithFilters(
+                        null, null, null, null, // 기본 검색
+                        null, null, null, null, null, null, null, // 기존 시설 필터 7개
+                        null, null, null, null, // 새로 추가된 시설 필터 4개 (카페, 주방, 정수기, 라운지)
+                        lat, lng, 0, 3 // 위경도 및 페이징 설정
+                );
             } else {
                 branches = branchMapper.getAllBranches();
             }
@@ -377,6 +382,30 @@ public class ChatServiceImpl implements ChatService {
                     org.study.project05.branch.vo.FacilityVO f = facilityMapper.selectBySpaceIdx(s.getSpcIdx());
                     String facInfos = (f != null) ? getFacilitySummary(f) : "기본 시설";
 
+                    // [이미지 처리] 공간 이미지가 없으면 지점의 대표 이미지를 가져옴
+                    String spcImg = s.getSpcImg();
+                    if (spcImg != null) {
+                        spcImg = spcImg.trim();
+                        // 경로가 포함되어 있을 경우 파일명만 추출
+                        if (spcImg.contains("/")) {
+                            spcImg = spcImg.substring(spcImg.lastIndexOf("/") + 1);
+                        }
+                    }
+
+                    if (spcImg == null || spcImg.isEmpty()) {
+                        org.study.project05.branch.vo.BranchImgVO mainImg = branchImgMapper.selectMainByBranch(b.getBrnIdx());
+                        if (mainImg != null && mainImg.getBiUrl() != null) {
+                            String biUrl = mainImg.getBiUrl().trim();
+                            if (biUrl.contains("/")) {
+                                biUrl = biUrl.substring(biUrl.lastIndexOf("/") + 1);
+                            }
+                            spcImg = biUrl;
+                        }
+                    }
+                    if (spcImg == null || spcImg.isEmpty()) {
+                        spcImg = "default_office.png";
+                    }
+
                     // 가용성 체크 (단순화: 오늘 14시 기준 좌석 유무)
                     int maxCap = s.getSpcMaxCapacity();
                     java.util.Map<Integer, Integer> seats = reservationService.getRemainingSeats(s.getSpcIdx(), today, maxCap);
@@ -386,7 +415,7 @@ public class ChatServiceImpl implements ChatService {
                             .append(" (ID:").append(s.getSpcIdx())
                             .append(", 시설:").append(facInfos)
                             .append(", 상태:").append(currentSeats > 0 ? "예약가능" : "매진")
-                            .append(", 이미지:").append(s.getSpcImg() != null ? s.getSpcImg() : "default_office.png")
+                            .append(", 이미지:").append(spcImg)
                             .append(", 가격:").append(s.getSpcPrice())
                             .append(", 타입:").append(s.getSpcType())
                             .append(", BrnID:").append(b.getBrnIdx())
@@ -402,14 +431,16 @@ public class ChatServiceImpl implements ChatService {
 
     private String getFacilitySummary(org.study.project05.branch.vo.FacilityVO f) {
         StringBuilder fs = new StringBuilder();
-        // 0/1(Integer) 기반 체크로 수정 및 7종 시설 지원
+
+        // 추가된 시설 정보까지 챗봇이 알 수 있도록 설정
         if (Integer.valueOf(1).equals(f.getFacParking())) fs.append("주차,");
         if (Integer.valueOf(1).equals(f.getFacHours24())) fs.append("24H,");
         if (Integer.valueOf(1).equals(f.getFacPet())) fs.append("펫동반,");
         if (Integer.valueOf(1).equals(f.getFacCafe())) fs.append("카페,");
+        if (Integer.valueOf(1).equals(f.getFacKitchen())) fs.append("주방,");
+        if (Integer.valueOf(1).equals(f.getFacWater())) fs.append("정수기,");
         if (Integer.valueOf(1).equals(f.getFacLounge())) fs.append("라운지,");
 
-        // 추가 시설 필터
         if (Integer.valueOf(1).equals(f.getFacDisplay())) fs.append("모니터,");
         if (Integer.valueOf(1).equals(f.getFacStorage())) fs.append("사물함,");
 
@@ -417,9 +448,8 @@ public class ChatServiceImpl implements ChatService {
         return fs.toString();
     }
 
-
     private String getUserReservationsContext(Long userIdx) {
-        if (userIdx == null || userIdx <= 0L) return "가입 후 첫 예약을 진행해 보세요!"; // 게스트인 경우 내역 조회 스킵
+        if (userIdx == null || userIdx <= 0L) return "가입 후 첫 예약을 진행해 보세요!";
 
         try {
             List<org.study.project05.reservation.user.vo.UserReservationVO> list = reservationService.getMyReservations(userIdx.intValue());

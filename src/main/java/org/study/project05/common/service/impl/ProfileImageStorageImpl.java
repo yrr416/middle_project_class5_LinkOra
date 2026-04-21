@@ -1,5 +1,5 @@
 /**
- * 로컬 파일 시스템에 이미지를 저장하고 /static/upload/profiles/... 웹 경로를 반환하는 구현체.
+ * 프로필 이미지를 디스크에 저장하고 /static/upload/profiles/… URL을 반환하는 구현체.
  */
 package org.study.project05.common.service.impl;
 
@@ -25,7 +25,7 @@ public class ProfileImageStorageImpl implements ProfileImageStorageService {
 
     private final Path profilesDirectory;
 
-    public ProfileImageStorageImpl(@Value("${app.upload.profiles-dir:uploads/profiles}") String profilesDir) {
+    public ProfileImageStorageImpl(@Value("${app.upload.profiles-dir:src/main/webapp/static/upload/profiles}") String profilesDir) {
         this.profilesDirectory = Paths.get(profilesDir).toAbsolutePath().normalize();
     }
 

@@ -42,6 +42,20 @@ public class PartnerRegController {
         return "partner/step1";
     }
 
+    /**
+     * 내 매물 관리 → 공간 추가: 기존 지점을 세션에 주입 후 step3으로 이동
+     * @SessionAttributes 컨트롤러에서 model.addAttribute하면 자동으로 세션에 저장됨
+     */
+    @GetMapping("/initForBranch")
+    public String initForBranch(@RequestParam int brnIdx, Model model) {
+        BranchRegVO branch = partnerRegService.getBranchById(brnIdx);
+        if (branch == null) {
+            return "redirect:/partner/manage";
+        }
+        model.addAttribute("branchVO", branch);
+        return "redirect:/partner/register/step3";
+    }
+
     @PostMapping("/step1")
     public String step1Post(@ModelAttribute("branchVO") BranchRegVO branchVO,
                             @RequestParam String brnName,

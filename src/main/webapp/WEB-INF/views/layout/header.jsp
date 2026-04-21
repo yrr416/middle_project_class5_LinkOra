@@ -97,6 +97,14 @@
             </ul>
         </li>
 
+        <% if (loggedIn) { %>
+        <li>
+            <a href="${pageContext.request.contextPath}/reservation/mylist">
+                <div class="acc-left"><i class="fa-regular fa-calendar-check"></i> 내 예약</div>
+
+        </a>
+        </li>
+        <% } %>
 
         <li class="accordion-item">
             <a href="#" class="accordion-toggle">
@@ -119,14 +127,6 @@
             </ul>
         </li>
 
-        <% if (loggedIn) { %>
-        <li>
-            <a href="${pageContext.request.contextPath}/reservation/mylist">
-                <div class="acc-left"><i class="fa-regular fa-calendar-check"></i> 내 예약</div>
-
-        </a>
-        </li>
-        <% } %>
 
         <li class="accordion-item">
             <a href="#" class="accordion-toggle">
@@ -135,9 +135,8 @@
 
         </a>
             <ul class="accordion-content">
-                <li><a href="${pageContext.request.contextPath}/notice/list">공지사항</a></li>
+                <li><a href="${pageContext.request.contextPath}/notice/list">주요소식</a></li>
                 <li><a href="${pageContext.request.contextPath}/inquiry">1:1 문의</a></li>
-                <li><a href="#">이벤트</a></li>
             </ul>
         </li>
 

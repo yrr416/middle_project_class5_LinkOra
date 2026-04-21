@@ -42,18 +42,18 @@ public interface PartnerRegMapper {
     // Step5 · 지점에 속한 공간 목록 조회
     List<SpaceRegVO> selectSpacesByBranchId(@Param("brnIdx") int brnIdx);
 
-    // 내 매물(지점) 목록 조회
+    // 내 매물 관리 · 파트너 소유 지점 전체 조회
     List<BranchRegVO> selectMyBranches(@Param("partnerIdx") int partnerIdx);
 
-    // 지점 활성/비활성 토글
+    // 내 매물 관리 · 지점 활성/비활성 토글
     int toggleBranchActive(@Param("brnIdx") int brnIdx, @Param("partnerIdx") int partnerIdx);
 
-    // 지점 내 공간 일괄 활성화
+    // 내 매물 관리 · 지점 소속 공간 전체 활성화
     int activateAllSpacesByBranch(@Param("brnIdx") int brnIdx, @Param("partnerIdx") int partnerIdx);
 
-    // 지점 내 공간 일괄 비활성화
+    // 내 매물 관리 · 지점 소속 공간 전체 비활성화
     int deactivateAllSpacesByBranch(@Param("brnIdx") int brnIdx, @Param("partnerIdx") int partnerIdx);
 
-    // 공간 개별 활성/비활성 토글
+    // 내 매물 관리 · 공간 활성/비활성 토글
     int toggleSpaceActiveByPartner(@Param("spcIdx") int spcIdx, @Param("partnerIdx") int partnerIdx);
 }

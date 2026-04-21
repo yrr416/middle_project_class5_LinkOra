@@ -192,19 +192,19 @@
         SELECT COUNT(*) FROM user WHERE u_email=#{userEmail}
     </select>
 
-    <!-- 관리자 등록 (신규 추가) -->
+    <!-- 관리자 등록 (관리자 신규 등록) -->
     <insert id="insertAdmin" parameterType="CustomerVO">
         INSERT INTO admin (a_id, a_pwd, a_name, a_email, a_phone, a_addr)
         VALUES (#{userId}, #{userPwd}, #{userName}, #{userEmail}, #{userPhone}, #{userAddr})
     </insert>
 
-    <!-- 파트너 등록 (신규 추가) -->
+    <!-- 파트너 등록 (관리자 신규 등록) -->
     <insert id="insertPartner" parameterType="CustomerVO">
         INSERT INTO partner (p_id, p_pwd, p_name, p_email, p_phone, p_addr, p_number, p_profile, p_active)
         VALUES (#{userId}, #{userPwd}, #{userName}, #{userEmail}, #{userPhone}, #{userAddr}, #{partnerNumber}, '', 1)
     </insert>
 
-    <!-- 파트너(partner) CRUD -->
+    <!-- ===================== 파트너(partner) CRUD ===================== -->
 
     <!-- 파트너 단건 상세 조회 -->
     <select id="getPartnerDetail" parameterType="String" resultType="CustomerVO">

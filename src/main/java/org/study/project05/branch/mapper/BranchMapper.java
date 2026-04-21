@@ -15,7 +15,7 @@ public interface BranchMapper {
 
     /**
      * 상세 필터와 키워드로 지점을 검색하는 기능 (페이징 포함)
-     * [수정] skip과 size 파라미터를 추가하여 원하는 구간만큼만 가져오게 함
+     * [수정] skip과 size 파라터를 추가하여 원하는 구간만큼만 가져오게 함
      */
     // 컨트롤러에서 넘어온 공간 종류(type)를 받기 위해 @Param("type") String type 추가
     List<BranchVO> searchWithFilters(
@@ -30,7 +30,7 @@ public interface BranchMapper {
             @Param("facCoffee") Integer facCoffee,
             @Param("facPrinter") Integer facPrinter,
             @Param("facLocker") Integer facLocker,
-            // [추가] 신규 시설 필터 4종
+            // 신규 편의시설 파라미터 4종 추가
             @Param("facCafe") Integer facCafe,
             @Param("facKitchen") Integer facKitchen,
             @Param("facWater") Integer facWater,
@@ -58,7 +58,7 @@ public interface BranchMapper {
             @Param("facCoffee") Integer facCoffee,
             @Param("facPrinter") Integer facPrinter,
             @Param("facLocker") Integer facLocker,
-            // [추가] 신규 시설 필터 4종
+            // 페이징 카운트 조회용 신규 편의시설 파라미터 4종 추가
             @Param("facCafe") Integer facCafe,
             @Param("facKitchen") Integer facKitchen,
             @Param("facWater") Integer facWater,
@@ -67,9 +67,6 @@ public interface BranchMapper {
             @Param("lng") Double lng
     );
 
-    /**
-     * [추가] 지역별 필터 구성을 위해 DB에 등록된 지점의 모든 주소 목록을 중복 없이 가져옵니다.
-     */
-
+    // [여기 추가!] DB에 등록된 모든 지점의 진짜 주소들만 중복 없이 가져오는 마법의 명령어예요!
     List<String> getDistinctAddresses();
 }

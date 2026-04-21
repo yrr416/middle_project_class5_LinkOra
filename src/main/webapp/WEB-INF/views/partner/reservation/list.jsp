@@ -94,6 +94,9 @@
             <a class="nav-link" href="${ctx}/partner/register/step1">
                 <i class="bi bi-building-add"></i>매물 등록
             </a>
+            <a class="nav-link" href="${ctx}/partner/manage">
+                <i class="bi bi-building-gear"></i>내 매물 관리
+            </a>
             <hr class="border-secondary mx-3">
             <a class="nav-link" href="${ctx}/partner/mypage">
                 <i class="bi bi-person-circle"></i>마이페이지
@@ -199,7 +202,6 @@
                         <label class="form-label small mb-1">예약 상태</label>
                         <select name="statusFilter" class="form-select form-select-sm">
                             <option value="">전체</option>
-                            <option value="PENDING"   ${searchVO.statusFilter == 'PENDING'   ? 'selected':''}>대기중</option>
                             <option value="CONFIRMED" ${searchVO.statusFilter == 'CONFIRMED' ? 'selected':''}>확정</option>
                             <option value="USING"     ${searchVO.statusFilter == 'USING'     ? 'selected':''}>이용중</option>
                             <option value="COMPLETED" ${searchVO.statusFilter == 'COMPLETED' ? 'selected':''}>완료</option>
@@ -770,38 +772,44 @@ function showTab(tab) {
 })();
 
 /* ──────────────────────────────────────
-   FullCalendar  (공간별 색상 구분)
+   FullCalendar  (상태별 색상 구분)
 ────────────────────────────────────── */
+/* 공간별 차트용 팔레트 */
 const SPACE_PALETTE = [
-    '#0d6efd','#198754','#dc3545','#fd7e14',
+    '#0d6efd','#198754','#ffc107','#fd7e14',
     '#6f42c1','#20c997','#e83e8c','#0dcaf0'
 ];
+
+const STATUS_COLOR = {
+    CONFIRMED:  '#0d6efd',
+    USING:      '#198754',
+    COMPLETED:  '#6c757d',
+    CANCELLED:  '#dc3545'
+};
+const STATUS_LABEL = {
+    CONFIRMED:  '확정',
+    USING:      '이용중',
+    COMPLETED:  '완료',
+    CANCELLED:  '취소'
+};
 
 let calendarInitialized = false;
 let fcInstance          = null;
 
-/* 공간 idx → 색상 매핑 (월이 바뀌어도 같은 공간은 같은 색 유지) */
-var spaceColorMap = {};
-var spaceColorIdx = 0;
-
-function getSpaceColor(spcIdx) {
-    if (spaceColorMap[spcIdx] === undefined) {
-        spaceColorMap[spcIdx] = SPACE_PALETTE[spaceColorIdx % SPACE_PALETTE.length];
-        spaceColorIdx++;
-    }
-    return spaceColorMap[spcIdx];
+function getStatusColor(status) {
+    return STATUS_COLOR[status] || '#adb5bd';
 }
 
-function updateCalendarLegend(spaceNames) {
+function updateCalendarLegend() {
     var legend = document.getElementById('calendarLegend');
     legend.innerHTML = '';
-    Object.keys(spaceNames).forEach(function(spcIdx) {
+    Object.keys(STATUS_LABEL).forEach(function(status) {
         var dot = document.createElement('div');
         dot.className = 'd-flex align-items-center gap-1 small';
         dot.innerHTML =
             '<span style="width:11px;height:11px;border-radius:3px;display:inline-block;background:'
-            + getSpaceColor(spcIdx) + '"></span>'
-            + '<span>' + spaceNames[spcIdx] + '</span>';
+            + STATUS_COLOR[status] + '"></span>'
+            + '<span>' + STATUS_LABEL[status] + '</span>';
         legend.appendChild(dot);
     });
 }
@@ -831,16 +839,15 @@ function initCalendar() {
                     return r.json();
                 })
                 .then(function(rows) {
-                    /* 공간명 수집 → 범례 업데이트 */
-                    var spaceNames = {};
-                    rows.forEach(function(row) { spaceNames[row.spcIdx] = row.spcName; });
-                    updateCalendarLegend(spaceNames);
+                    /* 범례 업데이트 */
+                    updateCalendarLegend();
 
                     /* FullCalendar 이벤트 배열 생성 */
                     var events = rows.map(function(row) {
-                        var color = getSpaceColor(row.spcIdx);
+                        var color = getStatusColor(row.resStatus);
+                        var label = STATUS_LABEL[row.resStatus] || row.resStatus;
                         return {
-                            title:           row.spcName + ' ' + row.eventCnt + '건',
+                            title:           label + ' ' + row.eventCnt + '건',
                             start:           row.eventDate,
                             backgroundColor: color,
                             borderColor:     color,

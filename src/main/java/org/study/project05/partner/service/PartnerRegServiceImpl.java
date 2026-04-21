@@ -87,42 +87,40 @@ public class PartnerRegServiceImpl implements PartnerRegService {
         return partnerRegMapper.selectSpacesByBranchId(brnIdx);
     }
 
-    /** 내 매물 관리 - 파트너 소유 지점 목록 */
+    /** 내 매물 관리 · 파트너 소유 지점 목록 (공간 포함) */
     @Override
     public List<BranchRegVO> getMyBranches(int partnerIdx) {
         List<BranchRegVO> branches = partnerRegMapper.selectMyBranches(partnerIdx);
         for (BranchRegVO b : branches) {
-            // 지점별 소속 공간 목록도 바인딩 (UI 출력용)
             b.setSpaces(partnerRegMapper.selectSpacesByBranchId(b.getBrnIdx()));
         }
         return branches;
     }
 
-    /** 지점 상태 토글 (활성 <-> 비활성) */
+    /** 내 매물 관리 · 지점 활성/비활성 토글 (소속 공간 전체 연동) */
     @Override
     @Transactional
     public boolean toggleBranchActive(int brnIdx, int partnerIdx) {
-        // 1. 지점 상태 토글
-        int row = partnerRegMapper.toggleBranchActive(brnIdx, partnerIdx);
-        if (row <= 0) return false;
+        // 현재 상태를 먼저 파악 (토글 전)
+        BranchRegVO branch = partnerRegMapper.selectBranchById(brnIdx);
+        if (branch == null) return false;
 
-        // 2. 바뀐 상태 확인 후 소속 공간 일괄 처리
-        BranchRegVO updated = partnerRegMapper.selectBranchById(brnIdx);
-        if (updated.getBrnActive() == 1) {
-            // 활성화된 경우 -> 모든 공간 활성화
-            partnerRegMapper.activateAllSpacesByBranch(brnIdx, partnerIdx);
-        } else if (updated.getBrnActive() == 2) {
-            // 비활성화된 경우 -> 모든 공간 비활성화
+        int affected = partnerRegMapper.toggleBranchActive(brnIdx, partnerIdx);
+        if (affected == 0) return false;
+
+        // 지점 비활성화(brnActive==1) → 공간 전체 비활성화, 지점 활성화 → 공간 전체 활성화
+        if (branch.getBrnActive() == 1) {
             partnerRegMapper.deactivateAllSpacesByBranch(brnIdx, partnerIdx);
+        } else {
+            partnerRegMapper.activateAllSpacesByBranch(brnIdx, partnerIdx);
         }
         return true;
     }
 
-    /** 개별 공간 상태 토글 */
+    /** 내 매물 관리 · 공간 활성/비활성 토글 */
     @Override
     @Transactional
     public boolean toggleSpaceActive(int spcIdx, int partnerIdx) {
-        int row = partnerRegMapper.toggleSpaceActiveByPartner(spcIdx, partnerIdx);
-        return row > 0;
+        return partnerRegMapper.toggleSpaceActiveByPartner(spcIdx, partnerIdx) > 0;
     }
 }

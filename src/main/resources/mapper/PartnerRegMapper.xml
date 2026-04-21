@@ -71,22 +71,6 @@
         WHERE b_idx = #{brnIdx}
     </select>
 
-    <!-- 지점 소속 공간 목록 조회 -->
-    <select id="selectSpacesByBranchId" resultType="org.study.project05.partner.vo.SpaceRegVO">
-        SELECT s_idx          AS spc_idx,
-               b_idx          AS brn_idx,
-               s_type         AS spc_type,
-               s_name         AS spc_name,
-               s_price        AS spc_price,
-               s_max_capacity AS spc_max_capacity,
-               s_description  AS spc_description,
-               s_img          AS spc_img,
-               s_active       AS spc_active
-        FROM space
-        WHERE b_idx = #{brnIdx}
-        ORDER BY s_idx
-    </select>
-
     <!-- 내 매물(지점) 목록 조회 (파트너 소유 전체) -->
     <select id="selectMyBranches" parameterType="int" resultType="org.study.project05.partner.vo.BranchRegVO">
         SELECT b.b_idx     AS brn_idx,
@@ -132,5 +116,22 @@
         SET s.s_active = CASE WHEN s.s_active = 1 THEN 2 ELSE 1 END
         WHERE s.s_idx = #{spcIdx} AND b.p_idx = #{partnerIdx} AND s.s_active IN (1, 2)
     </update>
+
+    <!-- 지점 소속 공간 목록 조회 -->
+    <select id="selectSpacesByBranchId" resultType="org.study.project05.partner.vo.SpaceRegVO">
+        SELECT s_idx          AS spc_idx,
+               b_idx          AS brn_idx,
+               s_type         AS spc_type,
+               s_name         AS spc_name,
+               s_price        AS spc_price,
+               s_max_capacity AS spc_max_capacity,
+               s_description  AS spc_description,
+               s_img          AS spc_img,
+               s_active       AS spc_active
+        FROM space
+        WHERE b_idx = #{brnIdx}
+        ORDER BY s_idx
+    </select>
+
 
 </mapper>

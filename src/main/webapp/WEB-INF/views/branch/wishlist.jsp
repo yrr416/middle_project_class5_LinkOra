@@ -121,8 +121,10 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateY(10px);
+      }
+      to { opacity: 1; transform: translateY(0);
+      }
     }
 
     /* 카드 그리드 설정 */
@@ -134,10 +136,12 @@
     }
 
     @media (max-width: 1024px) {
-      .wish-grid, .recent-grid { grid-template-columns: repeat(2, 1fr); }
+      .wish-grid, .recent-grid { grid-template-columns: repeat(2, 1fr);
+      }
     }
     @media (max-width: 768px) {
-      .wish-grid, .recent-grid { grid-template-columns: 1fr; }
+      .wish-grid, .recent-grid { grid-template-columns: 1fr;
+      }
     }
 
     /* 지점 카드 세부 디자인 */
@@ -158,6 +162,7 @@
       box-shadow: 0 10px 20px rgba(47, 79, 79, 0.08);
     }
 
+    /* [수정] WS 박스 폰트 크기를 키워서 더 잘 보이게 했어요 */
     .no-img-box {
       width: 100%;
       height: 100%;
@@ -166,12 +171,14 @@
       align-items: center;
       justify-content: center;
       color: #a3b8b8;
-      /* WS 글씨 작아지게 만들었던 font-size: 24px; 삭제함 */
+      font-size: 40px;
       font-weight: 800;
     }
 
-    .branch-info h3 { color: #2F4F4F; font-weight: 700; }
-    .facility-icons i { color: #a3b8b8 !important; }
+    .branch-info h3 { color: #2F4F4F; font-weight: 700;
+    }
+    .facility-icons i { color: #a3b8b8 !important;
+    }
 
     .btn-reservation {
       display: block;
@@ -237,8 +244,10 @@
       opacity: 0.5;
     }
 
-    .empty-state h3 { font-size: 22px; color: #2F4F4F; margin-bottom: 10px; }
-    .empty-state p { color: #7a9e9e; margin-bottom: 25px; }
+    .empty-state h3 { font-size: 22px; color: #2F4F4F; margin-bottom: 10px;
+    }
+    .empty-state p { color: #7a9e9e; margin-bottom: 25px;
+    }
 
     .btn-go-search {
       display: inline-block;
@@ -250,7 +259,41 @@
       font-weight: 700;
       transition: transform 0.2s;
     }
-    .btn-go-search:hover { transform: scale(1.05); }
+    .btn-go-search:hover { transform: scale(1.05);
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-top: 30px;
+      margin-bottom: 50px;
+    }
+    .page-btn {
+      padding: 8px 14px;
+      border: 1px solid #ddd;
+      background: #fff;
+      color: #555;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+    .page-btn:hover { background: #f0f0f0; }
+    .page-btn.active {
+      background: #2F4F4F !important;
+      border-color: #2F4F4F !important;
+      color: #fff !important;
+    }
+    .page-arrow {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      background: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #555;
+    }
   </style>
 </head>
 <body>
@@ -273,6 +316,7 @@
 
     <div id="content-wish" class="tab-content active">
       <c:if test="${empty wishList}">
+
         <div class="empty-state">
           <div class="empty-icon"><i class="fa-regular fa-heart"></i></div>
           <h3>아직 찜한 공간이 없어요</h3>
@@ -283,16 +327,23 @@
 
       <c:if test="${not empty wishList}">
         <div class="wish-grid">
+
           <c:forEach var="branch" items="${wishList}">
             <div class="branch-card" id="wish-card-${branch.brnIdx}">
               <div class="branch-img" style="height: 180px;"> <c:choose>
                 <c:when test="${not empty branch.mainImgUrl}">
                   <c:choose>
                     <c:when test="${fn:startsWith(branch.mainImgUrl, '/')}">
-                      <img src="${pageContext.request.contextPath}${branch.mainImgUrl}" alt="${branch.brnName}" style="width:100%; height:100%; object-fit:cover;">
+                      <img src="${pageContext.request.contextPath}${branch.mainImgUrl}"
+                           alt="${branch.brnName}"
+                           style="width:100%; height:100%; object-fit:cover;"
+                           onerror="this.parentElement.innerHTML='<div class=\'no-img-box\'>WS</div>'">
                     </c:when>
                     <c:otherwise>
-                      <img src="${pageContext.request.contextPath}/static/upload/branch/${branch.mainImgUrl}" alt="${branch.brnName}" style="width:100%; height:100%; object-fit:cover;">
+                      <img src="${pageContext.request.contextPath}/static/upload/branch/${branch.mainImgUrl}"
+                           alt="${branch.brnName}"
+                           style="width:100%; height:100%; object-fit:cover;"
+                           onerror="this.parentElement.innerHTML='<div class=\'no-img-box\'>WS</div>'">
                     </c:otherwise>
                   </c:choose>
                 </c:when>
@@ -302,28 +353,60 @@
               </c:choose>
               </div>
 
-              <div class="branch-info" style="padding: 20px; flex-grow: 1; display: flex; flex-direction: column;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                  <h3 style="margin: 0; font-size: 20px;">${branch.brnName}</h3>
+              <div class="branch-info" style="padding: 20px;
+ flex-grow: 1; display: flex; flex-direction: column;">
+                <div style="display: flex;
+ justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                  <h3 style="margin: 0;
+ font-size: 20px;">${branch.brnName}</h3>
                   <button class="search-wish-btn" onclick="removeWish('${branch.brnIdx}')">
                     <i class="fa-solid fa-heart"></i>
                   </button>
                 </div>
-                <p class="location-text" style="margin-bottom: 15px; font-size: 13px; color: #666;">
-                  <i class="fa-solid fa-location-dot" style="color: #2F4F4F; margin-right: 5px;"></i> ${branch.brnAddress}
+                <p class="location-text" style="margin-bottom: 15px;
+ font-size: 13px; color: #666;">
+                  <i class="fa-solid fa-location-dot" style="color: #2F4F4F;
+ margin-right: 5px;"></i> ${branch.brnAddress}
                 </p>
-                <div class="facility-icons" style="display: flex; gap: 12px; margin-bottom: 20px; font-size: 16px;">
-                  <c:if test="${branch.facWifi == 1}"><i class="fa-solid fa-wifi"></i></c:if>
-                  <c:if test="${branch.facParking == 1}"><i class="fa-solid fa-car"></i></c:if>
-                  <c:if test="${branch.facCoffee == 1}"><i class="fa-solid fa-mug-hot"></i></c:if>
-                  <c:if test="${branch.facHours24 == 1}"><i class="fa-solid fa-clock"></i></c:if>
-                  <c:if test="${branch.facPet == 1}"><i class="fa-solid fa-paw"></i></c:if>
+                <div class="facility-icons" style="display: flex; flex-wrap: wrap;
+ gap: 12px; margin-bottom: 20px; font-size: 16px;">
+                  <c:if test="${branch.facWifi != null and branch.facWifi == 1}"><i class="fa-solid fa-wifi" title="와이파이"></i></c:if>
+                  <c:if test="${branch.facParking != null and branch.facParking == 1}"><i class="fa-solid fa-car" title="주차"></i></c:if>
+                  <c:if test="${branch.facCoffee != null and branch.facCoffee == 1}"><i class="fa-solid fa-mug-hot" title="무료커피"></i></c:if>
+                  <c:if test="${branch.facHours24 != null and branch.facHours24 == 1}"><i class="fa-solid fa-clock" title="24시간"></i></c:if>
+                  <c:if test="${branch.facPet != null and branch.facPet == 1}"><i class="fa-solid fa-paw" title="반려동물"></i></c:if>
+
+                  <c:if test="${branch.facCafe != null and branch.facCafe == 1}"><i class="fa-solid fa-utensils" title="카페테리아"></i></c:if>
+                  <c:if test="${branch.facKitchen != null and branch.facKitchen == 1}"><i class="fa-solid fa-kitchen-set" title="공용주방"></i></c:if>
+                  <c:if test="${branch.facWater != null and branch.facWater == 1}"><i class="fa-solid fa-bottle-water" title="정수기"></i></c:if>
+                  <c:if test="${branch.facPrinter != null and branch.facPrinter == 1}"><i class="fa-solid fa-print" title="프린터/복사기"></i></c:if>
+                  <c:if test="${branch.facLounge != null and branch.facLounge == 1}"><i class="fa-solid fa-couch" title="휴식 라운지"></i></c:if>
                 </div>
                 <a href="${pageContext.request.contextPath}/detail/detail?brnIdx=${branch.brnIdx}" class="btn-reservation">상세보기</a>
               </div>
             </div>
           </c:forEach>
         </div>
+
+        <c:if test="${totalPages > 1}">
+          <div class="pagination">
+            <c:if test="${currentPage > 1}">
+              <button type="button" onclick="goPage(${currentPage - 1})" class="page-arrow">&lt;</button>
+            </c:if>
+
+            <c:forEach begin="1" end="${totalPages}" var="i">
+              <button type="button" onclick="goPage(${i})"
+                      class="page-btn ${i == currentPage ? 'active' : ''}">
+                  ${i}
+              </button>
+            </c:forEach>
+
+            <c:if test="${currentPage < totalPages}">
+              <button type="button" onclick="goPage(${currentPage + 1})" class="page-arrow">&gt;</button>
+            </c:if>
+          </div>
+        </c:if>
+
       </c:if>
     </div>
 
@@ -343,6 +426,10 @@
 
 <script>
   const ctxPath = '${pageContext.request.contextPath}';
+
+  function goPage(page) {
+    location.href = ctxPath + '/branch/wishlist?page=' + page;
+  }
 
   function switchTab(tabName) {
     document.getElementById('btn-wish').classList.remove('active');
@@ -370,6 +457,7 @@
               if (data.status === 'success') {
                 const card = document.getElementById('wish-card-' + brnIdx);
                 if(card) card.style.display = 'none';
+                setTimeout(() => location.reload(), 300);
               } else if (data.status === 'login_required') {
                 alert("로그인이 필요한 서비스입니다.");
                 location.href = ctxPath + "/login";
@@ -381,7 +469,6 @@
   function loadRecentBranches() {
     const recent = JSON.parse(localStorage.getItem('recentBranches')) || [];
     const grid = document.getElementById('recent-grid');
-
     if (recent.length === 0) {
       grid.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fa-regular fa-clock"></i></div><h3>최근 본 공간이 없어요</h3><p>다양한 프리미엄 오피스를 먼저 둘러보세요.</p><a href="' + ctxPath + '/branch/search" class="btn-go-search">지점 둘러보기</a></div>';
       return;
@@ -394,23 +481,26 @@
         imgSrc = b.mainImgUrl.startsWith('/') ? ctxPath + b.mainImgUrl : ctxPath + '/static/upload/branch/' + b.mainImgUrl;
       }
 
-      /* [수정] WS 글씨 작게 나오던 속성을 제거했어 */
-      let imgTag = imgSrc ? '<img src="' + imgSrc + '" style="width:100%; height:100%; object-fit:cover;">' : '<div class="no-img-box">WS</div>';
+      /* [핵심 수정] 최근 본 지점에서도 onerror 처리를 해서 사진이 깨지면 WS 박스가 나오게 했어요 */
+      let imgTag = imgSrc ? '<img src="' + imgSrc + '" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.innerHTML=\'<div class=\\\'no-img-box\\\'>WS</div>\'">' : '<div class="no-img-box">WS</div>';
 
       html += '<div class="branch-card">';
       html += '<div class="branch-img" style="height: 180px;">' + imgTag + '</div>';
       html += '<div class="branch-info" style="padding: 20px; flex-grow: 1; display: flex; flex-direction: column;">';
-
       html += '<h3 style="margin:0 0 10px 0; font-size:20px;">' + b.brnName + '</h3>';
       html += '<p class="location-text" style="margin-bottom: 15px; font-size: 13px; color:#666;"><i class="fa-solid fa-location-dot" style="color: #2F4F4F; margin-right: 5px;"></i> ' + b.brnAddress + '</p>';
 
-      /* [추가] 관심 지점과 똑같이 와이파이, 주차장 등 시설 아이콘을 보여주는 코드를 추가했어! */
-      html += '<div class="facility-icons" style="display: flex; gap: 12px; margin-bottom: 20px; font-size: 16px;">';
-      if(b.facWifi == 1 || b.facWifi == '1') html += '<i class="fa-solid fa-wifi"></i>';
-      if(b.facParking == 1 || b.facParking == '1') html += '<i class="fa-solid fa-car"></i>';
-      if(b.facCoffee == 1 || b.facCoffee == '1') html += '<i class="fa-solid fa-mug-hot"></i>';
-      if(b.facHours24 == 1 || b.facHours24 == '1') html += '<i class="fa-solid fa-clock"></i>';
-      if(b.facPet == 1 || b.facPet == '1') html += '<i class="fa-solid fa-paw"></i>';
+      html += '<div class="facility-icons" style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; font-size: 16px;">';
+      if(b.facWifi == 1 || b.facWifi == '1') html += '<i class="fa-solid fa-wifi" title="와이파이"></i>';
+      if(b.facParking == 1 || b.facParking == '1') html += '<i class="fa-solid fa-car" title="주차"></i>';
+      if(b.facCoffee == 1 || b.facCoffee == '1') html += '<i class="fa-solid fa-mug-hot" title="무료커피"></i>';
+      if(b.facHours24 == 1 || b.facHours24 == '1') html += '<i class="fa-solid fa-clock" title="24시간"></i>';
+      if(b.facPet == 1 || b.facPet == '1') html += '<i class="fa-solid fa-paw" title="반려동물"></i>';
+      if(b.facCafe == 1 || b.facCafe == '1') html += '<i class="fa-solid fa-utensils" title="카페테리아"></i>';
+      if(b.facKitchen == 1 || b.facKitchen == '1') html += '<i class="fa-solid fa-kitchen-set" title="공용주방"></i>';
+      if(b.facWater == 1 || b.facWater == '1') html += '<i class="fa-solid fa-bottle-water" title="정수기"></i>';
+      if(b.facPrinter == 1 || b.facPrinter == '1') html += '<i class="fa-solid fa-print" title="프린터/복사기"></i>';
+      if(b.facLounge == 1 || b.facLounge == '1') html += '<i class="fa-solid fa-couch" title="휴식 라운지"></i>';
       html += '</div>';
 
       html += '<a href="' + ctxPath + '/detail/detail?brnIdx=' + b.brnIdx + '" class="btn-reservation">상세보기</a>';
