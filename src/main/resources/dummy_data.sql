@@ -100,16 +100,16 @@ INSERT IGNORE INTO branch (b_idx, p_idx, b_name, b_description, b_file, b_addres
 -- 5. space (s_active: 0=대기, 1=활성, 2=비활성)
 -- ============================================================
 INSERT IGNORE INTO space (s_idx, b_idx, s_type, s_name, s_price, s_max_capacity, s_description, s_img, s_created, s_active) VALUES
-(1,  1, 'INDIVIDUAL', '테헤란 개인석 A',      5000,  1,  '집중 업무를 위한 독립 개인석입니다. 1인용 파티션이 설치되어 있어 방해 없이 작업할 수 있습니다.', NULL, '2026-01-01 09:00:00', 1),
-(2,  1, 'GROUP',      '테헤란 회의실 1호',   30000,  8,  '8인 규모의 회의실입니다. 빔 프로젝터, 화이트보드 완비. 비즈니스 미팅에 최적화되어 있습니다.', NULL, '2026-01-01 09:00:00', 1),
-(3,  2, 'INDIVIDUAL', '역삼 포커스 데스크',   6000,  1,  '조용한 집중 업무 공간입니다. 높은 파티션으로 프라이버시가 보장됩니다.', NULL, '2026-01-05 09:00:00', 1),
-(4,  2, 'GROUP',      '역삼 세미나룸',       50000, 15,  '15인 규모 세미나룸입니다. 프레젠테이션, 교육, 워크샵 등에 활용 가능합니다.', NULL, '2026-01-05 09:00:00', 1),
-(5,  3, 'INDIVIDUAL', '합정 카페데스크',      4000,  1,  '카페형 인테리어의 개인 작업 공간입니다. 자유로운 분위기에서 창의적인 작업이 가능합니다.', NULL, '2026-01-10 09:00:00', 1),
-(6,  3, 'GROUP',      '합정 팀룸',           20000,  6,  '6인 소규모 팀 전용 룸입니다. 모니터, 화이트보드 포함. 장기 사용에 적합합니다.', NULL, '2026-01-10 09:00:00', 1),
-(7,  4, 'INDIVIDUAL', '상암 스탠딩 데스크',   7000,  1,  '높이 조절 가능한 스탠딩 데스크입니다. 장시간 업무에도 피로감을 줄일 수 있습니다.', NULL, '2026-01-15 09:00:00', 1),
-(8,  4, 'GROUP',      '상암 방송스튜디오',   80000, 10,  '방송급 조명과 음향 장비가 구비된 스튜디오입니다. 유튜브 촬영, 팟캐스트 녹음에 최적입니다.', NULL, '2026-01-15 09:00:00', 1),
-(9,  5, 'INDIVIDUAL', '홍대 아티스트 데스크', 3500,  1,  '예술가를 위한 넓은 개인 작업 공간입니다. 자연광이 풍부하고 창작 활동에 최적화되어 있습니다.', NULL, '2026-01-20 09:00:00', 1),
-(10, 5, 'GROUP',      '홍대 콜라보룸',       25000, 10,  '10인 협업을 위한 개방형 공간입니다. 이동식 파티션으로 자유롭게 공간 구성 변경이 가능합니다.', NULL, '2026-01-20 09:00:00', 1);
+(1,  1, 'INDIVIDUAL', '테헤란 개인석 A',      5000,  1,  '집중 업무를 위한 독립 개인석입니다. 1인용 파티션이 설치되어 있어 방해 없이 작업할 수 있습니다.', '/static/upload/partner/g1.jpg', '2026-01-01 09:00:00', 1),
+(2,  1, 'GROUP',      '테헤란 회의실 1호',   30000,  8,  '8인 규모의 회의실입니다. 빔 프로젝터, 화이트보드 완비. 비즈니스 미팅에 최적화되어 있습니다.', '/static/upload/partner/cb.png', '2026-01-01 09:00:00', 1),
+(3,  2, 'INDIVIDUAL', '역삼 포커스 데스크',   6000,  1,  '조용한 집중 업무 공간입니다. 높은 파티션으로 프라이버시가 보장됩니다.', '/static/upload/partner/p1.jpg', '2026-01-05 09:00:00', 1),
+(4,  2, 'GROUP',      '역삼 세미나룸',       50000, 15,  '15인 규모 세미나룸입니다. 프레젠테이션, 교육, 워크샵 등에 활용 가능합니다.', '/static/upload/partner/pr1.jpg', '2026-01-05 09:00:00', 1),
+(5,  3, 'INDIVIDUAL', '합정 카페데스크',      4000,  1,  '카페형 인테리어의 개인 작업 공간입니다. 자유로운 분위기에서 창의적인 작업이 가능합니다.', '/static/upload/partner/gl1.jpg', '2026-01-10 09:00:00', 1),
+(6,  3, 'GROUP',      '합정 팀룸',           20000,  6,  '6인 소규모 팀 전용 룸입니다. 모니터, 화이트보드 포함. 장기 사용에 적합합니다.', '/static/upload/partner/gs.png', '2026-01-10 09:00:00', 1),
+(7,  4, 'INDIVIDUAL', '상암 스탠딩 데스크',   7000,  1,  '높이 조절 가능한 스탠딩 데스크입니다. 장시간 업무에도 피로감을 줄일 수 있습니다.', '/static/upload/partner/g2.jpg', '2026-01-15 09:00:00', 1),
+(8,  4, 'GROUP',      '상암 방송스튜디오',   80000, 10,  '방송급 조명과 음향 장비가 구비된 스튜디오입니다. 유튜브 촬영, 팟캐스트 녹음에 최적입니다.', '/static/upload/partner/pseminar.png', '2026-01-15 09:00:00', 1),
+(9,  5, 'INDIVIDUAL', '홍대 아티스트 데스크', 3500,  1,  '예술가를 위한 넓은 개인 작업 공간입니다. 자연광이 풍부하고 창작 활동에 최적화되어 있습니다.', '/static/upload/partner/g1.jpg', '2026-01-20 09:00:00', 1),
+(10, 5, 'GROUP',      '홍대 콜라보룸',       25000, 10,  '10인 협업을 위한 개방형 공간입니다. 이동식 파티션으로 자유롭게 공간 구성 변경이 가능합니다.', '/static/upload/partner/gs1.jpg', '2026-01-20 09:00:00', 1);
 
 -- ============================================================
 -- 6. facilities (1=있음, 0=없음)
@@ -128,21 +128,21 @@ INSERT IGNORE INTO facilities (s_idx, f_cafe, f_desk, f_delivery, f_water, f_hou
 
 -- ============================================================
 -- 7. branch_img
--- bi_url: 파일명만 저장 → JSP에서 /static/upload/branch/{bi_url} 로 표시
--- 실제 파일: src/main/webapp/static/upload/branch/
+-- bi_url: 정식 경로 포함(/static/upload/partner/파일명)
+-- 실제 파일: src/main/webapp/static/upload/partner/
 -- ============================================================
 INSERT IGNORE INTO branch_img (b_idx, bi_url, bi_order, bi_is_main, bi_created) VALUES
-(1, 'gs.png',        1, 1, NOW()),
-(1, 'gs1.jpg',       2, 0, NOW()),
-(1, 'g1.jpg',        3, 0, NOW()),
-(2, 'g2.jpg',        1, 1, NOW()),
-(2, 'gl1.jpg',       2, 0, NOW()),
-(3, 'p1.jpg',        1, 1, NOW()),
-(3, 'pr1.jpg',       2, 0, NOW()),
-(4, 'sr.jpg',        1, 1, NOW()),
-(4, 'cb.png',        2, 0, NOW()),
-(5, 'hmain.png',     1, 1, NOW()),
-(5, 'pseminar.png',  2, 0, NOW());
+(1, '/static/upload/partner/gs.png',        1, 1, NOW()),
+(1, '/static/upload/partner/gs1.jpg',       2, 0, NOW()),
+(1, '/static/upload/partner/g1.jpg',        3, 0, NOW()),
+(2, '/static/upload/partner/g2.jpg',        1, 1, NOW()),
+(2, '/static/upload/partner/gl1.jpg',       2, 0, NOW()),
+(3, '/static/upload/partner/p1.jpg',        1, 1, NOW()),
+(3, '/static/upload/partner/pr1.jpg',       2, 0, NOW()),
+(4, '/static/upload/partner/sr.jpg',        1, 1, NOW()),
+(4, '/static/upload/partner/cb.png',        2, 0, NOW()),
+(5, '/static/upload/partner/hmain.png',     1, 1, NOW()),
+(5, '/static/upload/partner/pseminar.png',  2, 0, NOW());
 
 -- ============================================================
 -- 8. reservation (r_status: PENDING/CONFIRMED/CANCELLED/FINISH/USE)

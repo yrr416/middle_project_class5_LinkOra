@@ -49,13 +49,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/uploads/profiles/**")
                 .addResourceLocations(location);
 
-        // [공지사항 이미지]
+        // [공지사항 이미지] 파일시스템(런타임 업로드) 먼저 탐색, 없으면 WAR 내부로 폴백
         Path noticeImgDir = Paths.get(noticeDir).toAbsolutePath().normalize();
         String noticeLocation = "file:" + noticeImgDir.toString().replace("\\", "/") + "/";
-
+ 
         registry.addResourceHandler("/static/upload/notice/**")
-                .addResourceLocations(noticeLocation);
-
+                .addResourceLocations(noticeLocation, "/static/upload/notice/");
+ 
         // webapp/static/ 하위 이미지 서빙 (branch, review 등) - WAR 내부 웹루트 경로 사용
         registry.addResourceHandler("/static/**")
                 .addResourceLocations("/static/");

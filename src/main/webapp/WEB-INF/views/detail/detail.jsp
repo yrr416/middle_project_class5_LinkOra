@@ -82,9 +82,18 @@
           <div class="flex transition-transform duration-300 ease-in-out" id="imgTrack">
             <c:forEach var="img" items="${branch.images}">
               <div class="min-w-full h-96 flex-shrink-0">
-                <img src="${pageContext.request.contextPath}${img.biUrl}"
-                     alt="${branch.brnName}"
-                     class="w-full h-full object-cover">
+                <c:choose>
+                  <c:when test="${fn:startsWith(img.biUrl, '/static')}">
+                    <img src="${pageContext.request.contextPath}${img.biUrl}"
+                         alt="${branch.brnName}"
+                         class="w-full h-full object-cover">
+                  </c:when>
+                  <c:otherwise>
+                    <img src="${pageContext.request.contextPath}/static/upload/partner/${img.biUrl}"
+                         alt="${branch.brnName}"
+                         class="w-full h-full object-cover">
+                  </c:otherwise>
+                </c:choose>
               </div>
             </c:forEach>
           </div>
@@ -339,9 +348,18 @@
                 <%-- 공간 이미지 --%>
                 <c:choose>
                   <c:when test="${not empty space.spcImg}">
-                    <img src="${pageContext.request.contextPath}${space.spcImg}"
-                         alt="${space.spcName}"
-                         class="w-full h-44 object-cover">
+                    <c:choose>
+                      <c:when test="${fn:startsWith(space.spcImg, '/static')}">
+                        <img src="${pageContext.request.contextPath}${space.spcImg}"
+                             alt="${space.spcName}"
+                             class="w-full h-44 object-cover">
+                      </c:when>
+                      <c:otherwise>
+                        <img src="${pageContext.request.contextPath}/static/upload/partner/${space.spcImg}"
+                             alt="${space.spcName}"
+                             class="w-full h-44 object-cover">
+                      </c:otherwise>
+                    </c:choose>
                   </c:when>
                   <c:otherwise>
                     <div class="w-full h-44 bg-gradient-to-br from-indigo-50 to-indigo-100
@@ -1152,14 +1170,23 @@
     function deleteReview(revIdx, btn) {
       if (!confirm('리뷰를 삭제하시겠습니까?')) return;
 
-      $.post(CTX + '/review/delete', { revIdx: revIdx }, function(res) {
-        if (res.success) {
-          // 버튼의 가장 가까운 리뷰 카드(bg-white rounded-2xl)를 찾아서 제거
-          const card = btn.closest('.bg-white.rounded-2xl');
-          if (card) card.remove();
-        } else {
-          alert(res.message || '삭제에 실패했습니다.');
-        }
+      const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+      $.ajax({
+        type: 'POST',
+        url:  CTX + '/review/delete',
+        data: { revIdx: revIdx },
+        beforeSend: function(xhr) { xhr.setRequestHeader(csrfHeader, csrfToken); },
+        success: function(res) {
+          if (res.success) {
+            const card = btn.closest('.bg-white.rounded-2xl');
+            if (card) card.remove();
+          } else {
+            alert(res.message || '삭제에 실패했습니다.');
+          }
+        },
+        error: function() { alert('삭제 요청 중 오류가 발생했습니다.'); }
       });
     }
 

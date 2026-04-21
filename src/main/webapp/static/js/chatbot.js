@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (spcImg.startsWith('/static')) {
                     imgPath = `${contextPath}${spcImg}`;
                 } else {
-                    imgPath = `${contextPath}/static/upload/branch/${spcImg}`;
+                    imgPath = `${contextPath}/static/upload/partner/${spcImg}`;
                 }
                 const fallbackImg = `${contextPath}/static/upload/chatbot/default_office.png`;
                 
