@@ -12,7 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body { background: #f4f6f9; }
-        .sidebar { min-height: 100vh; background: linear-gradient(180deg,#1a3a5c 0%,#0d2137 100%); position: sticky; top: 0; }
+        .sidebar { height: 100vh; background: linear-gradient(180deg,#1a3a5c 0%,#0d2137 100%); position: sticky; top: 0; align-self: flex-start; overflow-y: auto; }
         .sidebar .nav-link { color: rgba(255,255,255,.75); padding: 10px 20px; border-radius: 6px; margin: 2px 8px; }
         .sidebar .nav-link:hover, .sidebar .nav-link.active { color: #fff; background: rgba(255,255,255,.15); }
         .sidebar .nav-link i { margin-right: 8px; }
@@ -131,7 +131,7 @@
                             <span class="branch-name">${b.brnName}</span>
                             <c:choose>
                                 <c:when test="${b.brnActive == 0}">
-                                    <span class="badge badge-pending">심사중</span>
+                                    <span class="badge badge-pending">승인대기중</span>
                                 </c:when>
                                 <c:when test="${b.brnActive == 1}">
                                     <span class="badge badge-approved">승인완료</span>
@@ -145,8 +145,16 @@
                         <div class="mt-1 small text-muted">
                             <span class="me-3"><i class="bi bi-door-open me-1"></i>공간 ${b.spaceCount}개</span>
                             <c:if test="${not empty b.brnHours}">
-                                <span><i class="bi bi-clock me-1"></i>${b.brnHours}</span>
+                                <span class="me-3"><i class="bi bi-clock me-1"></i>${b.brnHours}</span>
                             </c:if>
+                            <c:choose>
+                                <c:when test="${b.currentHeadcount > 0}">
+                                    <span class="fw-semibold text-success"><i class="bi bi-people-fill me-1"></i>현재 이용중 ${b.currentHeadcount}명</span>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="text-muted"><i class="bi bi-people me-1"></i>이용중 없음</span>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                     </div>
 
@@ -163,6 +171,10 @@
                                 data-bs-toggle="collapse"
                                 data-bs-target="#spaces-${b.brnIdx}">
                             <i class="bi bi-grid me-1"></i>공간 목록
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm"
+                                onclick="deleteBranch(${b.brnIdx}, '${b.brnName}')">
+                            <i class="bi bi-trash me-1"></i>지점 삭제
                         </button>
                     </div>
                 </div>
@@ -203,13 +215,25 @@
                                             <c:otherwise>${s.spcType}</c:otherwise>
                                         </c:choose>
                                     </span>
-                                    <span class="meta-chip"><i class="bi bi-people me-1"></i>${s.spcMaxCapacity}명</span>
+                                    <span class="meta-chip"><i class="bi bi-people me-1"></i>최대 ${s.spcMaxCapacity}명</span>
                                     <span class="meta-chip"><i class="bi bi-currency-won"></i><fmt:formatNumber value="${s.spcPrice}" pattern="#,###"/>/h</span>
+                                    <c:choose>
+                                        <c:when test="${s.currentHeadcount > 0}">
+                                            <span class="meta-chip text-success fw-semibold" style="border-color:#198754;">
+                                                <i class="bi bi-person-fill me-1"></i>이용중 ${s.currentHeadcount}명
+                                            </span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="meta-chip text-muted">
+                                                <i class="bi bi-person me-1"></i>이용없음
+                                            </span>
+                                        </c:otherwise>
+                                    </c:choose>
 
                                     <!-- 상태 배지 -->
                                     <c:choose>
                                         <c:when test="${s.spcActive == 0}">
-                                            <span class="badge badge-pending">심사중</span>
+                                            <span class="badge badge-pending">승인대기중</span>
                                         </c:when>
                                         <c:when test="${s.spcActive == 1}">
                                             <span class="badge badge-approved">활성</span>
@@ -228,6 +252,10 @@
                                                 <span>${s.spcActive == 1 ? '비활성화' : '활성화'}</span>
                                             </button>
                                         </c:if>
+                                        <button class="btn btn-outline-danger btn-sm py-0 px-2"
+                                                onclick="deleteSpace(${s.spcIdx}, '${s.spcName}')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </c:forEach>
@@ -239,7 +267,7 @@
                         <a href="${ctx}/partner/register/initForBranch?brnIdx=${b.brnIdx}" class="btn btn-outline-primary btn-sm">
                             <i class="bi bi-plus me-1"></i>공간 추가
                         </a>
-                        <a href="${ctx}/partner/register/step4" class="btn btn-outline-secondary btn-sm">
+                        <a href="${ctx}/partner/register/initForBranchPhoto?brnIdx=${b.brnIdx}" class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-images me-1"></i>사진 관리
                         </a>
                     </div>
@@ -254,6 +282,8 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 const ctx = '${ctx}';
+const csrfParam = '${_csrf.parameterName}';
+const csrfToken = '${_csrf.token}';
 
 function showAlert(msg, type) {
     const box = document.getElementById('alertBox');
@@ -272,7 +302,7 @@ function toggleBranch(brnIdx, btn) {
     fetch(ctx + '/partner/manage/toggleBranch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'brnIdx=' + brnIdx
+        body: 'brnIdx=' + brnIdx + '&' + csrfParam + '=' + csrfToken
     })
     .then(r => r.json())
     .then(data => {
@@ -329,11 +359,49 @@ function toggleBranch(brnIdx, btn) {
     .catch(() => showAlert('요청 중 오류가 발생했습니다.', 'danger'));
 }
 
+function deleteBranch(brnIdx, brnName) {
+    if (!confirm('[' + brnName + '] 지점을 삭제하시겠습니까?\n소속 공간과 이미지가 모두 삭제되며 복구할 수 없습니다.')) return;
+    fetch(ctx + '/partner/manage/deleteBranch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'brnIdx=' + brnIdx + '&' + csrfParam + '=' + csrfToken
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('branch-' + brnIdx).remove();
+            showAlert(data.message, 'success');
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    })
+    .catch(() => showAlert('요청 중 오류가 발생했습니다.', 'danger'));
+}
+
+function deleteSpace(spcIdx, spcName) {
+    if (!confirm('[' + spcName + '] 공간을 삭제하시겠습니까?\n이미지가 함께 삭제되며 복구할 수 없습니다.')) return;
+    fetch(ctx + '/partner/manage/deleteSpace', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'spcIdx=' + spcIdx + '&' + csrfParam + '=' + csrfToken
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('space-' + spcIdx).remove();
+            showAlert(data.message, 'success');
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    })
+    .catch(() => showAlert('요청 중 오류가 발생했습니다.', 'danger'));
+}
+
 function toggleSpace(spcIdx, btn) {
     fetch(ctx + '/partner/manage/toggleSpace', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'spcIdx=' + spcIdx
+        body: 'spcIdx=' + spcIdx + '&' + csrfParam + '=' + csrfToken
     })
     .then(r => r.json())
     .then(data => {

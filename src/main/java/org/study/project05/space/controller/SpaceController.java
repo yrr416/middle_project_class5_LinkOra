@@ -11,7 +11,9 @@ import org.study.project05.space.vo.SpaceVO;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -90,6 +92,9 @@ public class SpaceController {
         // 관리자 직접 등록은 바로 활성(1)
         spaceVO.setSpcActive("1");
         int result = spaceService.insertSpace(spaceVO);
+        if (result > 0 && spaceVO.getSpcIdx() != null) {
+            spaceService.saveFacilities(spaceVO.getSpcIdx(), buildFacilityMap(request));
+        }
         return result > 0 ? "redirect:/admin/space/list"
                           : "redirect:/admin/space/register?error=fail";
     }
@@ -104,10 +109,11 @@ public class SpaceController {
         SpaceVO svo = spaceService.getSpaceDetail(spcIdx);
         if (svo == null) return "redirect:/admin/space/list";
 
-        model.addAttribute("svo",        svo);
-        model.addAttribute("branchList", spaceService.getBranchList());
-        model.addAttribute("nowPage",    nowPage);
-        model.addAttribute("mode",       "update");
+        model.addAttribute("svo",          svo);
+        model.addAttribute("branchList",   spaceService.getBranchList());
+        model.addAttribute("facilityMap",  spaceService.getFacilities(spcIdx));
+        model.addAttribute("nowPage",      nowPage);
+        model.addAttribute("mode",         "update");
         return "space/form";
     }
 
@@ -124,6 +130,9 @@ public class SpaceController {
             if (savedPath != null) spaceVO.setSpcImg(savedPath);
         }
         int result = spaceService.updateSpace(spaceVO);
+        if (result > 0) {
+            spaceService.saveFacilities(spaceVO.getSpcIdx(), buildFacilityMap(request));
+        }
         return result > 0
                 ? "redirect:/admin/space/list?nowPage=" + nowPage
                 : "redirect:/admin/space/update?spcIdx=" + spaceVO.getSpcIdx() + "&nowPage=" + nowPage + "&error=fail";
@@ -170,6 +179,24 @@ public class SpaceController {
         spaceService.deleteSpace(spcIdx);
         log.info("공간 삭제 - spcIdx: {}", spcIdx);
         return "redirect:/admin/space/list";
+    }
+
+    /**
+     * 요청 파라미터에서 편의시설 Map 생성
+     * 체크된 항목은 1, 미체크 항목은 0
+     */
+    private Map<String, Object> buildFacilityMap(HttpServletRequest request) {
+        String[] cols = {"f_wifi","f_coffee","f_printer","f_locker",
+                         "f_cafe","f_desk","f_delivery","f_water","f_hours24",
+                         "f_kitchen","f_display","f_storage","f_parking","f_fax","f_pet","f_lounge"};
+        String[] keys = {"fWifi","fCoffee","fPrinter","fLocker",
+                         "fCafe","fDesk","fDelivery","fWater","fHours24",
+                         "fKitchen","fDisplay","fStorage","fParking","fFax","fPet","fLounge"};
+        Map<String, Object> m = new HashMap<>();
+        for (int i = 0; i < cols.length; i++) {
+            m.put(keys[i], request.getParameter(cols[i]) != null ? 1 : 0);
+        }
+        return m;
     }
 
     /**

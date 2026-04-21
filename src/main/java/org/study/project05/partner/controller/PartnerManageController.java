@@ -66,4 +66,36 @@ public class PartnerManageController {
         return ok ? ResponseEntity.ok(body)
                   : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
+
+    /** POST /partner/manage/deleteBranch - 지점 전체 삭제 */
+    @PostMapping("/deleteBranch")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteBranch(
+            @RequestParam int brnIdx,
+            HttpSession session
+    ) {
+        int partnerIdx = getPartnerIdx(session);
+        boolean ok = partnerRegService.deleteBranch(brnIdx, partnerIdx);
+        Map<String, Object> body = new HashMap<>();
+        body.put("success", ok);
+        body.put("message", ok ? "지점이 삭제되었습니다." : "삭제 권한이 없습니다.");
+        return ok ? ResponseEntity.ok(body)
+                  : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    /** POST /partner/manage/deleteSpace - 공간 삭제 */
+    @PostMapping("/deleteSpace")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteSpace(
+            @RequestParam int spcIdx,
+            HttpSession session
+    ) {
+        int partnerIdx = getPartnerIdx(session);
+        boolean ok = partnerRegService.deleteSpace(spcIdx, partnerIdx);
+        Map<String, Object> body = new HashMap<>();
+        body.put("success", ok);
+        body.put("message", ok ? "공간이 삭제되었습니다." : "삭제 권한이 없습니다.");
+        return ok ? ResponseEntity.ok(body)
+                  : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
 }

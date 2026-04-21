@@ -6,7 +6,9 @@ package org.study.project05.login.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,6 +23,7 @@ import org.study.project05.member.vo.UserProfileVO;
 import java.nio.charset.StandardCharsets;
 
 @Controller
+@Slf4j
 public class KakaoAuthController {
 
     private static final String KAKAO_AUTH = "https://kauth.kakao.com/oauth/authorize";
@@ -107,7 +110,10 @@ public class KakaoAuthController {
 
             return "redirect:/mypage";
         } catch (Exception e) {
-            e.printStackTrace();
+            if (containsInChain(e, DisabledException.class)) {
+                return "redirect:/loginPage?error=inactive";
+            }
+            log.warn("카카오 로그인 처리 중 예외 발생", e);
             return "redirect:/loginPage?error=kakao_fail";
         }
     }
@@ -129,5 +135,14 @@ public class KakaoAuthController {
             return detail.trim();
         }
         return (base + " " + detail).trim();
+    }
+
+    private static boolean containsInChain(Throwable throwable, Class<? extends Throwable> type) {
+        for (Throwable t = throwable; t != null; t = t.getCause()) {
+            if (type.isInstance(t)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

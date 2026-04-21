@@ -31,4 +31,8 @@ public interface SpaceService {
     int deleteSpace(String s_idx);
 
     List<Map<String, Object>> getBranchList();
+
+    Map<String, Object> getFacilities(String spcIdx);
+
+    void saveFacilities(String spcIdx, Map<String, Object> facilityMap);
 }

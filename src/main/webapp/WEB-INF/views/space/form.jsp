@@ -11,7 +11,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; }
-        .sidebar { min-height:100vh; background:linear-gradient(180deg,#1a3a5c 0%,#0d2137 100%); }
+        .sidebar { height:100vh; background:linear-gradient(180deg,#1a3a5c 0%,#0d2137 100%); position:sticky; top:0; align-self:flex-start; overflow-y:auto; }
         .sidebar .nav-link { color:rgba(255,255,255,.75); padding:10px 20px; border-radius:6px; margin:2px 8px; }
         .sidebar .nav-link:hover,.sidebar .nav-link.active { color:#fff; background:rgba(255,255,255,.15); }
         .sidebar .nav-link i { margin-right:8px; }
@@ -116,9 +116,8 @@
                             <label class="form-label fw-semibold">공간 타입 <span class="text-danger">*</span></label>
                             <select name="spcType" class="form-select" required>
                                 <option value="">-- 타입 선택 --</option>
-                                <option value="CONFERENCE" ${svo.spcType == 'CONFERENCE' ? 'selected':''}>회의실 (Conference)</option>
-                                <option value="INDIVIDUAL"  ${svo.spcType == 'INDIVIDUAL'  ? 'selected':''}>집중석 (Individual)</option>
-                                <option value="LOUNGE"      ${svo.spcType == 'LOUNGE'      ? 'selected':''}>라운지 (Lounge)</option>
+                                <option value="INDIVIDUAL" ${svo.spcType == 'INDIVIDUAL' ? 'selected':''}>개인 공간 (Individual)</option>
+                                <option value="GROUP"      ${svo.spcType == 'GROUP'      ? 'selected':''}>그룹 공간 (Group)</option>
                             </select>
                         </div>
                         <!-- 수용 인원 -->
@@ -150,7 +149,7 @@
                             <div class="img-preview-wrap" id="previewWrap">
                                 <c:choose>
                                     <c:when test="${not empty svo.spcImg}">
-                                        <img id="imgPreview" src="${svo.spcImg}" alt="미리보기">
+                                        <img id="imgPreview" src="${ctx}${svo.spcImg}" alt="미리보기">
                                     </c:when>
                                     <c:otherwise>
                                         <div class="placeholder-text" id="placeholder">
@@ -186,37 +185,85 @@
                 <div class="form-section">
                     <div class="section-title"><i class="bi bi-wifi me-2 text-primary"></i>편의시설</div>
                     <div class="amenity-box" id="amenityBox">
-                        <label class="amenity-item" id="lbl-wifi">
-                            <input type="checkbox" name="amenities" value="WIFI" class="amenity-chk" style="display:none;">
+                        <label class="amenity-item <c:if test="${facilityMap['f_wifi'] == 1}">selected</c:if>">
+                            <input type="checkbox" name="f_wifi" value="1" class="amenity-chk" style="display:none;"
+                                <c:if test="${facilityMap['f_wifi'] == 1}">checked</c:if>>
                             <i class="bi bi-wifi text-primary"></i> Wi-Fi
                         </label>
-                        <label class="amenity-item" id="lbl-printer">
-                            <input type="checkbox" name="amenities" value="PRINTER" class="amenity-chk" style="display:none;">
+                        <label class="amenity-item <c:if test="${facilityMap['f_coffee'] == 1}">selected</c:if>">
+                            <input type="checkbox" name="f_coffee" value="1" class="amenity-chk" style="display:none;"
+                                <c:if test="${facilityMap['f_coffee'] == 1}">checked</c:if>>
+                            <i class="bi bi-cup-hot text-warning"></i> 커피/음료
+                        </label>
+                        <label class="amenity-item <c:if test="${facilityMap['f_printer'] == 1}">selected</c:if>">
+                            <input type="checkbox" name="f_printer" value="1" class="amenity-chk" style="display:none;"
+                                <c:if test="${facilityMap['f_printer'] == 1}">checked</c:if>>
                             <i class="bi bi-printer text-success"></i> 프린터
                         </label>
-                        <label class="amenity-item" id="lbl-monitor">
-                            <input type="checkbox" name="amenities" value="MONITOR" class="amenity-chk" style="display:none;">
-                            <i class="bi bi-display text-info"></i> 모니터
-                        </label>
-                        <label class="amenity-item" id="lbl-whiteboard">
-                            <input type="checkbox" name="amenities" value="WHITEBOARD" class="amenity-chk" style="display:none;">
-                            <i class="bi bi-easel2 text-warning"></i> 화이트보드
-                        </label>
-                        <label class="amenity-item" id="lbl-projector">
-                            <input type="checkbox" name="amenities" value="PROJECTOR" class="amenity-chk" style="display:none;">
-                            <i class="bi bi-projector text-danger"></i> 빔프로젝터
-                        </label>
-                        <label class="amenity-item" id="lbl-locker">
-                            <input type="checkbox" name="amenities" value="LOCKER" class="amenity-chk" style="display:none;">
+                        <label class="amenity-item <c:if test="${facilityMap['f_locker'] == 1}">selected</c:if>">
+                            <input type="checkbox" name="f_locker" value="1" class="amenity-chk" style="display:none;"
+                                <c:if test="${facilityMap['f_locker'] == 1}">checked</c:if>>
                             <i class="bi bi-lock text-secondary"></i> 사물함
                         </label>
-                        <label class="amenity-item" id="lbl-parking">
-                            <input type="checkbox" name="amenities" value="PARKING" class="amenity-chk" style="display:none;">
+                        <label class="amenity-item <c:if test="${facilityMap['f_cafe'] == 1}">selected</c:if>">
+                            <input type="checkbox" name="f_cafe" value="1" class="amenity-chk" style="display:none;"
+                                <c:if test="${facilityMap['f_cafe'] == 1}">checked</c:if>>
+                            <i class="bi bi-shop text-info"></i> 카페테리아
+                        </label>
+                        <label class="amenity-item <c:if test="${facilityMap['f_desk'] == 1}">selected</c:if>">
+                            <input type="checkbox" name="f_desk" value="1" class="amenity-chk" style="display:none;"
+                                <c:if test="${facilityMap['f_desk'] == 1}">checked</c:if>>
+                            <i class="bi bi-person-badge text-primary"></i> 안내데스크
+                        </label>
+                        <label class="amenity-item <c:if test="${facilityMap['f_delivery'] == 1}">selected</c:if>">
+                            <input type="checkbox" name="f_delivery" value="1" class="amenity-chk" style="display:none;"
+                                <c:if test="${facilityMap['f_delivery'] == 1}">checked</c:if>>
+                            <i class="bi bi-box-seam text-warning"></i> 택배수령
+                        </label>
+                        <label class="amenity-item <c:if test="${facilityMap['f_water'] == 1}">selected</c:if>">
+                            <input type="checkbox" name="f_water" value="1" class="amenity-chk" style="display:none;"
+                                <c:if test="${facilityMap['f_water'] == 1}">checked</c:if>>
+                            <i class="bi bi-droplet text-info"></i> 정수기
+                        </label>
+                        <label class="amenity-item <c:if test="${facilityMap['f_hours24'] == 1}">selected</c:if>">
+                            <input type="checkbox" name="f_hours24" value="1" class="amenity-chk" style="display:none;"
+                                <c:if test="${facilityMap['f_hours24'] == 1}">checked</c:if>>
+                            <i class="bi bi-clock text-success"></i> 24시 운영
+                        </label>
+                        <label class="amenity-item <c:if test="${facilityMap['f_kitchen'] == 1}">selected</c:if>">
+                            <input type="checkbox" name="f_kitchen" value="1" class="amenity-chk" style="display:none;"
+                                <c:if test="${facilityMap['f_kitchen'] == 1}">checked</c:if>>
+                            <i class="bi bi-fire text-danger"></i> 공용주방
+                        </label>
+                        <label class="amenity-item <c:if test="${facilityMap['f_display'] == 1}">selected</c:if>">
+                            <input type="checkbox" name="f_display" value="1" class="amenity-chk" style="display:none;"
+                                <c:if test="${facilityMap['f_display'] == 1}">checked</c:if>>
+                            <i class="bi bi-display text-info"></i> TV/프로젝터
+                        </label>
+                        <label class="amenity-item <c:if test="${facilityMap['f_storage'] == 1}">selected</c:if>">
+                            <input type="checkbox" name="f_storage" value="1" class="amenity-chk" style="display:none;"
+                                <c:if test="${facilityMap['f_storage'] == 1}">checked</c:if>>
+                            <i class="bi bi-archive text-secondary"></i> 보관함
+                        </label>
+                        <label class="amenity-item <c:if test="${facilityMap['f_parking'] == 1}">selected</c:if>">
+                            <input type="checkbox" name="f_parking" value="1" class="amenity-chk" style="display:none;"
+                                <c:if test="${facilityMap['f_parking'] == 1}">checked</c:if>>
                             <i class="bi bi-p-circle text-dark"></i> 주차
                         </label>
-                        <label class="amenity-item" id="lbl-kitchen">
-                            <input type="checkbox" name="amenities" value="KITCHEN" class="amenity-chk" style="display:none;">
-                            <i class="bi bi-cup-hot text-warning"></i> 음료/간식
+                        <label class="amenity-item <c:if test="${facilityMap['f_fax'] == 1}">selected</c:if>">
+                            <input type="checkbox" name="f_fax" value="1" class="amenity-chk" style="display:none;"
+                                <c:if test="${facilityMap['f_fax'] == 1}">checked</c:if>>
+                            <i class="bi bi-printer-fill text-secondary"></i> 팩스
+                        </label>
+                        <label class="amenity-item <c:if test="${facilityMap['f_pet'] == 1}">selected</c:if>">
+                            <input type="checkbox" name="f_pet" value="1" class="amenity-chk" style="display:none;"
+                                <c:if test="${facilityMap['f_pet'] == 1}">checked</c:if>>
+                            <i class="bi bi-heart text-danger"></i> 반려견 허용
+                        </label>
+                        <label class="amenity-item <c:if test="${facilityMap['f_lounge'] == 1}">selected</c:if>">
+                            <input type="checkbox" name="f_lounge" value="1" class="amenity-chk" style="display:none;"
+                                <c:if test="${facilityMap['f_lounge'] == 1}">checked</c:if>>
+                            <i class="bi bi-sofa text-warning"></i> 라운지
                         </label>
                     </div>
                     <div class="form-text mt-2">

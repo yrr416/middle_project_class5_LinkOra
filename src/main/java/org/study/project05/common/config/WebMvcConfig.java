@@ -5,16 +5,12 @@ package org.study.project05.common.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.server.WebServerFactoryCustomizer;
-import org.springframework.boot.web.server.servlet.ConfigurableServletWebServerFactory;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.study.project05.common.interceptor.SessionSyncInterceptor;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -43,41 +39,36 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // [프로필 이미지] file: 접두사 사용하여 절대 경로 매핑 (Windows 환경 안정성 확보)
         Path dir = Paths.get(profilesDir).toAbsolutePath().normalize();
-        String location = dir.toUri().toString();
-        if (!location.endsWith("/")) {
-            location += "/";
-        }
+        String location = "file:" + dir.toString().replace("\\", "/") + "/";
+
         registry.addResourceHandler("/static/upload/profiles/**")
                 .addResourceLocations(location);
 
-        // 레거시 URL(/uploads/profiles/**) 호환 유지
         registry.addResourceHandler("/uploads/profiles/**")
                 .addResourceLocations(location);
 
-        // 공지/이벤트 대표 이미지 서빙
+        // [공지사항 이미지] 파일시스템(런타임 업로드) 먼저 탐색, 없으면 WAR 내부로 폴백
         Path noticeImgDir = Paths.get(noticeDir).toAbsolutePath().normalize();
-        String noticeLocation = noticeImgDir.toUri().toString();
-        if (!noticeLocation.endsWith("/")) noticeLocation += "/";
+        String noticeLocation = "file:" + noticeImgDir.toString().replace("\\", "/") + "/";
+ 
         registry.addResourceHandler("/static/upload/notice/**")
-                .addResourceLocations(noticeLocation);
-
-        // webapp/static/ 하위 업로드 이미지 서빙 (branch, review, video 등)
-        Path staticDir = Paths.get("src", "main", "webapp", "static").toAbsolutePath().normalize();
-        String staticLocation = staticDir.toUri().toString();
-        if (!staticLocation.endsWith("/")) staticLocation += "/";
+                .addResourceLocations(noticeLocation, "/static/upload/notice/");
+ 
+        // webapp/static/ 하위 이미지 서빙 (branch, review 등) - WAR 내부 웹루트 경로 사용
         registry.addResourceHandler("/static/**")
-                .addResourceLocations(staticLocation);
+                .addResourceLocations("/static/");
 
+        // [추가] /assets/** 매핑 (기존 StaticResourceConfig 대체)
+        Path assetsPath = Paths.get("assets").toAbsolutePath().normalize();
+        String assetsLocation = "file:" + assetsPath.toString().replace("\\", "/") + "/";
+        registry.addResourceHandler("/assets/**")
+                .addResourceLocations(assetsLocation);
+
+        // [Favicon]
+        registry.addResourceHandler("/favicon.ico")
+                .addResourceLocations("classpath:/static/");
     }
 
-    @Bean
-    public WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> webappDocumentRootCustomizer() {
-        return factory -> {
-            File webapp = Paths.get("src", "main", "webapp").toFile();
-            if (webapp.isDirectory()) {
-                factory.setDocumentRoot(webapp);
-            }
-        };
-    }
 }

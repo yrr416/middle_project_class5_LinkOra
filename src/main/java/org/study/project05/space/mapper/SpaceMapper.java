@@ -37,6 +37,9 @@ public interface SpaceMapper {
     // 파트너 매물 수락 (s_active = 1)
     int approveSpace(String s_idx);
 
+    // 공간 승인 시 부모 지점도 활성화 (b_active=0인 경우만)
+    int activateBranchBySpaceIdx(String s_idx);
+
     // 공간 삭제 전처리: facilities 삭제
     int deleteFacilitiesBySpcIdx(String s_idx);
 
@@ -48,4 +51,10 @@ public interface SpaceMapper {
 
     // 지점 목록 조회 (등록 폼 드롭다운용)
     List<Map<String, Object>> getBranchList();
+
+    // 편의시설 조회
+    Map<String, Object> getFacilities(String spcIdx);
+
+    // 편의시설 등록
+    int insertFacilities(Map<String, Object> map);
 }

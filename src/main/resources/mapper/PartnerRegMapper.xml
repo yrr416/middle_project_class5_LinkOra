@@ -28,9 +28,11 @@
     <!-- 시설 정보 INSERT -->
     <insert id="insertFacilities" parameterType="org.study.project05.partner.vo.SpaceRegVO">
         INSERT INTO facilities (s_idx, f_cafe, f_desk, f_delivery, f_water, f_hours24,
-                                f_kitchen, f_display, f_storage, f_parking, f_fax, f_pet, f_lounge)
+                                f_kitchen, f_display, f_storage, f_parking, f_fax, f_pet, f_lounge,
+                                f_wifi, f_coffee, f_printer, f_locker)
         VALUES (#{spcIdx}, #{facCafe}, #{facDesk}, #{facDelivery}, #{facWater}, #{fac24hours},
-                #{facKitchen}, #{facDisplay}, #{facStorage}, #{facParking}, #{facFax}, #{facPet}, #{facLounge})
+                #{facKitchen}, #{facDisplay}, #{facStorage}, #{facParking}, #{facFax}, #{facPet}, #{facLounge},
+                #{facWifi}, #{facCoffee}, #{facPrinter}, #{facLocker})
     </insert>
 
     <!-- 지점 대표 이미지 URL 업데이트 -->
@@ -49,6 +51,11 @@
         INSERT INTO space_img (s_idx, si_url, si_order, si_is_main, si_created)
         VALUES (#{spcIdx}, #{spiUrl}, #{spiOrder}, #{spiIsMain}, NOW())
     </insert>
+
+    <!-- 공간 대표 이미지 URL 업데이트 -->
+    <update id="updateSpaceMainImg">
+        UPDATE space SET s_img = #{spcImg} WHERE s_idx = #{spcIdx}
+    </update>
 
     <!-- 지점 활성화 -->
     <update id="activateBranch">
@@ -77,7 +84,10 @@
                b.b_name    AS brn_name,
                b.b_address AS brn_address,
                b.b_active  AS brn_active,
-               b.b_url     AS brn_url,
+               COALESCE(
+                   (SELECT bi.bi_url FROM branch_img bi WHERE bi.b_idx = b.b_idx AND bi.bi_is_main = 1 LIMIT 1),
+                   b.b_url
+               )            AS brn_url,
                b.b_hours   AS brn_hours,
                b.b_phone   AS brn_phone,
                (SELECT COUNT(*) FROM space s WHERE s.b_idx = b.b_idx) AS space_count
@@ -119,19 +129,79 @@
 
     <!-- 지점 소속 공간 목록 조회 -->
     <select id="selectSpacesByBranchId" resultType="org.study.project05.partner.vo.SpaceRegVO">
-        SELECT s_idx          AS spc_idx,
-               b_idx          AS brn_idx,
-               s_type         AS spc_type,
-               s_name         AS spc_name,
-               s_price        AS spc_price,
-               s_max_capacity AS spc_max_capacity,
-               s_description  AS spc_description,
-               s_img          AS spc_img,
-               s_active       AS spc_active
-        FROM space
-        WHERE b_idx = #{brnIdx}
-        ORDER BY s_idx
+        SELECT s.s_idx          AS spc_idx,
+               s.b_idx          AS brn_idx,
+               s.s_type         AS spc_type,
+               s.s_name         AS spc_name,
+               s.s_price        AS spc_price,
+               s.s_max_capacity AS spc_max_capacity,
+               s.s_description  AS spc_description,
+               COALESCE(s.s_img, (SELECT si.si_url FROM space_img si WHERE si.s_idx = s.s_idx AND si.si_is_main = 1 LIMIT 1)) AS spc_img,
+               s.s_active       AS spc_active,
+               IFNULL((SELECT SUM(r.r_headcount)
+                        FROM reservation r
+                        WHERE r.s_idx = s.s_idx
+                          AND r.r_start_time &lt;= NOW()
+                          AND r.r_end_time   &gt;= NOW()
+                          AND r.r_status NOT IN ('CANCELLED','PENDING','FINISH')), 0) AS current_headcount
+        FROM space s
+        WHERE s.b_idx = #{brnIdx}
+        ORDER BY s.s_idx
     </select>
 
+    <!-- 삭제 · 지점 소유 확인 -->
+    <select id="countBranchByPartner" resultType="int">
+        SELECT COUNT(*) FROM branch WHERE b_idx = #{brnIdx} AND p_idx = #{partnerIdx}
+    </select>
+
+    <!-- 삭제 · 공간 소유 확인 -->
+    <select id="countSpaceByPartner" resultType="int">
+        SELECT COUNT(*) FROM space s JOIN branch b ON s.b_idx = b.b_idx
+        WHERE s.s_idx = #{spcIdx} AND b.p_idx = #{partnerIdx}
+    </select>
+
+    <!-- 삭제 · 지점 소속 공간 편의시설 전체 삭제 -->
+    <delete id="deleteFacilitiesByBranch">
+        DELETE f FROM facilities f
+        JOIN space s ON f.s_idx = s.s_idx
+        WHERE s.b_idx = #{brnIdx}
+    </delete>
+
+    <!-- 삭제 · 공간 편의시설 삭제 -->
+    <delete id="deleteFacilitiesBySpcIdx">
+        DELETE FROM facilities WHERE s_idx = #{spcIdx}
+    </delete>
+
+    <!-- 삭제 · 지점 이미지 삭제 -->
+    <delete id="deleteBranchImgs">
+        DELETE FROM branch_img WHERE b_idx = #{brnIdx}
+    </delete>
+
+    <!-- 삭제 · 지점 소속 공간 이미지 전체 삭제 -->
+    <delete id="deleteSpaceImgsByBranch">
+        DELETE si FROM space_img si
+        JOIN space s ON si.s_idx = s.s_idx
+        WHERE s.b_idx = #{brnIdx}
+    </delete>
+
+    <!-- 삭제 · 지점 소속 공간 전체 삭제 -->
+    <delete id="deleteSpacesByBranch">
+        DELETE FROM space WHERE b_idx = #{brnIdx}
+    </delete>
+
+    <!-- 삭제 · 지점 삭제 -->
+    <delete id="deleteBranch">
+        DELETE FROM branch WHERE b_idx = #{brnIdx}
+    </delete>
+
+    <!-- 삭제 · 공간 이미지 삭제 -->
+    <delete id="deleteSpaceImgs">
+        DELETE FROM space_img WHERE s_idx = #{spcIdx}
+    </delete>
+
+    <!-- 삭제 · 공간 삭제 -->
+    <delete id="deleteSpace">
+        DELETE FROM space WHERE s_idx = #{spcIdx}
+    </delete>
 
 </mapper>

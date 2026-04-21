@@ -56,6 +56,19 @@ public class PartnerRegController {
         return "redirect:/partner/register/step3";
     }
 
+    /**
+     * 내 매물 관리 → 사진 관리: 해당 지점을 세션에 주입 후 step4로 이동
+     */
+    @GetMapping("/initForBranchPhoto")
+    public String initForBranchPhoto(@RequestParam int brnIdx, Model model) {
+        BranchRegVO branch = partnerRegService.getBranchById(brnIdx);
+        if (branch == null) {
+            return "redirect:/partner/manage";
+        }
+        model.addAttribute("branchVO", branch);
+        return "redirect:/partner/register/step4";
+    }
+
     @PostMapping("/step1")
     public String step1Post(@ModelAttribute("branchVO") BranchRegVO branchVO,
                             @RequestParam String brnName,
@@ -189,7 +202,7 @@ public class PartnerRegController {
     public String uploadImg(@RequestParam MultipartFile file, HttpServletRequest request) {
         try {
             String uploadDir = request.getServletContext().getRealPath("/")
-                    + "static" + File.separator + "img" + File.separator + "partner";
+                    + "static" + File.separator + "upload" + File.separator + "partner";
             File dir = new File(uploadDir);
             if (!dir.exists()) dir.mkdirs();
 
@@ -199,7 +212,7 @@ public class PartnerRegController {
             String fileName = UUID.randomUUID().toString().replace("-", "") + ext;
 
             file.transferTo(new File(dir, fileName));
-            return "/static/img/partner/" + fileName;
+            return "/static/upload/partner/" + fileName;
         } catch (Exception e) {
             return "";
         }

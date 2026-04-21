@@ -59,6 +59,13 @@ public class BranchDetailController {
                 reservationMapper.countByUserAndBranch(loginUser.getUserIdx(), brnIdx) > 0;
         model.addAttribute("hasReservation", hasReservation);
 
+        boolean isAdmin = authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken)
+                && authentication.getAuthorities().stream()
+                   .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        model.addAttribute("isAdmin", isAdmin);
+
         return "detail/detail";
     }
 }

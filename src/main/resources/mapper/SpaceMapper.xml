@@ -88,7 +88,7 @@
     </select>
 
     <!-- 공간 등록 -->
-    <insert id="insertSpace" parameterType="SpaceVO">
+    <insert id="insertSpace" parameterType="SpaceVO" useGeneratedKeys="true" keyProperty="spcIdx">
         INSERT INTO space (b_idx, s_name, s_type, s_price, s_max_capacity, s_description, s_img, s_active, s_created)
         VALUES (#{brnIdx}, #{spcName}, #{spcType}, #{spcPrice}, #{spcMaxCapacity}, #{spcDescription}, #{spcImg}, #{spcActive}, NOW())
     </insert>
@@ -122,6 +122,15 @@
          WHERE s_idx = #{spcIdx}
     </update>
 
+    <!-- 공간 승인 시 부모 지점이 아직 대기중(b_active=0)이면 함께 활성화 -->
+    <update id="activateBranchBySpaceIdx" parameterType="String">
+        UPDATE branch b
+          JOIN space s ON s.b_idx = b.b_idx
+           SET b.b_active = 1
+         WHERE s.s_idx = #{spcIdx}
+           AND b.b_active = 0
+    </update>
+
     <!-- 공간 삭제 전처리: facilities 삭제 -->
     <delete id="deleteFacilitiesBySpcIdx" parameterType="String">
         DELETE FROM facilities WHERE s_idx = #{spcIdx}
@@ -139,7 +148,27 @@
 
     <!-- 지점 목록 (등록 폼 드롭다운) -->
     <select id="getBranchList" resultType="map">
-        SELECT b_idx AS brn_idx, b_name AS brn_name FROM branch ORDER BY b_name
+        SELECT b_idx AS brnIdx, b_name AS brnName FROM branch ORDER BY b_name
     </select>
+
+    <!-- 편의시설 조회 -->
+    <select id="getFacilities" parameterType="String" resultType="map">
+        SELECT f_wifi, f_coffee, f_printer, f_locker,
+               f_cafe, f_desk, f_delivery, f_water, f_hours24,
+               f_kitchen, f_display, f_storage, f_parking, f_fax, f_pet, f_lounge
+          FROM facilities
+         WHERE s_idx = #{spcIdx}
+         LIMIT 1
+    </select>
+
+    <!-- 편의시설 등록 -->
+    <insert id="insertFacilities" parameterType="map">
+        INSERT INTO facilities (s_idx, f_wifi, f_coffee, f_printer, f_locker,
+                                f_cafe, f_desk, f_delivery, f_water, f_hours24,
+                                f_kitchen, f_display, f_storage, f_parking, f_fax, f_pet, f_lounge)
+        VALUES (#{spcIdx}, #{fWifi}, #{fCoffee}, #{fPrinter}, #{fLocker},
+                #{fCafe}, #{fDesk}, #{fDelivery}, #{fWater}, #{fHours24},
+                #{fKitchen}, #{fDisplay}, #{fStorage}, #{fParking}, #{fFax}, #{fPet}, #{fLounge})
+    </insert>
 
 </mapper>

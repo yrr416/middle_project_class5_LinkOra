@@ -3,6 +3,8 @@ package org.study.project05.review.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -182,23 +184,73 @@ public class ReviewController {
         }
     }
 
+    /** 관리자 답글 삭제 (ADMIN만) */
+    @PostMapping("/replyDelete")
+    @ResponseBody
+    public Map<String, Object> replyDelete(@RequestParam int revIdx,
+                                           Authentication authentication) {
+        boolean isAdmin = authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken)
+                && authentication.getAuthorities().stream()
+                   .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        if (!isAdmin) {
+            return Map.of("success", false, "message", "관리자만 삭제할 수 있습니다.");
+        }
+        try {
+            reviewService.deleteAdminReply(revIdx);
+            return Map.of("success", true);
+        } catch (IllegalArgumentException e) {
+            return Map.of("success", false, "message", e.getMessage());
+        }
+    }
+
+    /** 관리자 답글 수정 (ADMIN만) */
+    @PostMapping("/replyUpdate")
+    @ResponseBody
+    public Map<String, Object> replyUpdate(@RequestParam int revIdx,
+                                           @RequestParam String content,
+                                           Authentication authentication) {
+        boolean isAdmin = authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken)
+                && authentication.getAuthorities().stream()
+                   .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        if (!isAdmin) {
+            return Map.of("success", false, "message", "관리자만 수정할 수 있습니다.");
+        }
+        try {
+            reviewService.updateAdminReply(revIdx, content);
+            return Map.of("success", true);
+        } catch (IllegalArgumentException e) {
+            return Map.of("success", false, "message", e.getMessage());
+        }
+    }
+
     /** 답글 등록 (ADMIN만) */
     @PostMapping("/reply")
     @ResponseBody
     public Map<String, Object> reply(@RequestParam int spcIdx,
                                      @RequestParam int revParentIdx,
                                      @RequestParam String content,
-                                     HttpSession session) {
-        UserProfileVO user = (UserProfileVO) session.getAttribute("loginUser");
-        // 비로그인 상태에서 user.getRole() 호출 시 NPE 발생 → 다른 메서드와 동일하게 null 체크 추가
-        if (user == null) {
-            return Map.of("success", false, "message", "로그인이 필요합니다.");
-        }
-        if (!"ADMIN".equals(user.getRole())) {
-            return Map.of("success", false, "message", "파트너 담당자만 답글을 작성할 수 있습니다.");
+                                     HttpSession session,
+                                     Authentication authentication) {
+        // Spring Security 권한으로 ADMIN 여부 먼저 확인 (admin 테이블 계정은 loginUser 세션이 없음)
+        boolean isAdmin = authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken)
+                && authentication.getAuthorities().stream()
+                   .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin) {
+            UserProfileVO user = (UserProfileVO) session.getAttribute("loginUser");
+            if (user == null) {
+                return Map.of("success", false, "message", "로그인이 필요합니다.");
+            }
+            return Map.of("success", false, "message", "관리자만 답글을 작성할 수 있습니다.");
         }
         try {
-            reviewService.writeReply(spcIdx, revParentIdx, user.getUserIdx(), content);
+            reviewService.writeReply(spcIdx, revParentIdx, null, content);
             return Map.of("success", true);
         } catch (IllegalArgumentException e) {
             return Map.of("success", false, "message", e.getMessage());

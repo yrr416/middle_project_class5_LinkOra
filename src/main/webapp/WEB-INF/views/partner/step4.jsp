@@ -29,6 +29,7 @@
         .preview-item img { width:100%; height:100%; object-fit:cover; }
         .preview-item .remove-btn { position:absolute; top:4px; right:4px; background:rgba(0,0,0,.55); color:#fff; border:none; border-radius:50%; width:22px; height:22px; font-size:.75rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
         .preview-item .main-badge { position:absolute; bottom:0; left:0; right:0; background:rgba(13,110,253,.85); color:#fff; font-size:.7rem; text-align:center; padding:2px 0; }
+        .preview-item .upload-overlay { position:absolute; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; border-radius:8px; }
     </style>
 </head>
 <body>
@@ -105,17 +106,31 @@
     const branchImgs = [];
     const spaceImgs  = [];
 
-    // 파일 선택 → 서버 업로드 후 경로 저장
+    // 파일 선택 → 미리보기 즉시 표시 후 백그라운드 업로드
     function previewImages(input, previewId, type, sIdx) {
         const preview = document.getElementById(previewId);
         const files   = Array.from(input.files);
 
         files.forEach(file => {
             const localUrl = URL.createObjectURL(file);
+            const isMain   = (type === 'branch' ? branchImgs.length : spaceImgs.length) === 0;
+
+            // 1) 미리보기 즉시 표시 (업로드 대기 중 오버레이 포함)
+            const div = document.createElement('div');
+            div.className = 'preview-item';
+            div.innerHTML = '<img src="' + localUrl + '" alt="preview">'
+                + (isMain ? '<span class="main-badge">대표</span>' : '')
+                + '<div class="upload-overlay"><div class="spinner-border spinner-border-sm text-light" role="status"></div></div>'
+                + '<button type="button" class="remove-btn" style="display:none"><i class="bi bi-x"></i></button>';
+            preview.appendChild(div);
+
+            const overlay  = div.querySelector('.upload-overlay');
+            const removeBtn = div.querySelector('.remove-btn');
+
+            // 2) 백그라운드 업로드
             const formData = new FormData();
             formData.append('file', file);
 
-            // CSRF 토큰을 헤더에 포함 (Spring Security CSRF 보호)
             fetch('${ctx}/partner/register/uploadImg', {
                 method: 'POST',
                 headers: { '${_csrf.headerName}': '${_csrf.token}' },
@@ -123,36 +138,39 @@
             })
                 .then(res => res.text())
                 .then(serverUrl => {
-                    if (!serverUrl) return;
-                    const isMain = (type === 'branch' ? branchImgs.length : spaceImgs.length) === 0;
+                    overlay.remove();
+                    if (!serverUrl) { div.remove(); return; }
 
-                    // 미리보기 DOM
-                    const div = document.createElement('div');
-                    div.className = 'preview-item';
-                    div.innerHTML = '<img src="' + localUrl + '" alt="preview">'
-                        + (isMain ? '<span class="main-badge">대표</span>' : '')
-                        + '<button type="button" class="remove-btn" onclick="removeImg(this,\'' + type + '\',' + (sIdx || 0) + ')">'
-                        + '<i class="bi bi-x"></i></button>';
-                    preview.appendChild(div);
+                    removeBtn.style.display = '';
+                    removeBtn.addEventListener('click', () => removeImg(removeBtn, type, sIdx || 0));
 
-                    // 서버 경로만 저장
                     if (type === 'branch') {
                         branchImgs.push({ briUrl: serverUrl });
                     } else {
                         spaceImgs.push({ spcIdx: sIdx, spiUrl: serverUrl });
                     }
-                });
+                })
+                .catch(() => { overlay.remove(); div.remove(); });
         });
     }
 
-    // 이미지 제거 (간단 구현)
+    // 이미지 제거
     function removeImg(btn, type, sIdx) {
         btn.closest('.preview-item').remove();
+    }
+
+    // 폼 제출 전 업로드 중인 항목 확인
+    function hasPendingUploads() {
+        return document.querySelectorAll('.upload-overlay').length > 0;
     }
 
     // 폼 제출 전 JSON 빌드
     function buildJsonAndSubmit(e) {
         e.preventDefault();
+        if (hasPendingUploads()) {
+            alert('사진 업로드 중입니다. 잠시 후 다시 시도해주세요.');
+            return;
+        }
         document.getElementById('branchImgsJson').value = JSON.stringify(branchImgs);
         document.getElementById('spaceImgsJson').value  = JSON.stringify(spaceImgs);
         document.getElementById('step4Form').submit();

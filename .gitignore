@@ -52,6 +52,14 @@ src/main/resources/application-local.yml
 src/main/resources/application-secret.properties
 src/main/resources/db.properties
 
+# Node.js
+node_modules/
+scripts/node_modules/
+scripts/package-lock.json
+
+# Patch files
+*.patch
+
 # AI Logs & Temporary
 _ai_project_logs/
 tmp/

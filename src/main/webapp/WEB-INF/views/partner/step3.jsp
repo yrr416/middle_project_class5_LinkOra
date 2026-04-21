@@ -129,6 +129,10 @@
                     <div class="form-check"><input class="form-check-input" type="checkbox" data-fac="facFax"><label class="form-check-label">팩스</label></div>
                     <div class="form-check"><input class="form-check-input" type="checkbox" data-fac="facPet"><label class="form-check-label">반려동물</label></div>
                     <div class="form-check"><input class="form-check-input" type="checkbox" data-fac="facLounge"><label class="form-check-label">라운지</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" data-fac="facWifi"><label class="form-check-label">Wi-Fi</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" data-fac="facCoffee"><label class="form-check-label">커피/음료</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" data-fac="facPrinter"><label class="form-check-label">프린터</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" data-fac="facLocker"><label class="form-check-label">사물함</label></div>
                 </div>
             </div>
             <!-- 삭제 버튼 -->

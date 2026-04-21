@@ -73,9 +73,6 @@
         ${branch.partnerName}
       </span>
     </div>
-    <c:if test="${not empty branch.brnDescription}">
-      <p class="text-sm text-gray-500 mb-5">${branch.brnDescription}</p>
-    </c:if>
 
     <%-- 이미지 슬라이더 --%>
     <c:choose>
@@ -84,10 +81,19 @@
             <%-- 슬라이드 목록 --%>
           <div class="flex transition-transform duration-300 ease-in-out" id="imgTrack">
             <c:forEach var="img" items="${branch.images}">
-              <div class="min-w-full h-64 flex-shrink-0">
-                <img src="${pageContext.request.contextPath}${img.biUrl}"
-                     alt="${branch.brnName}"
-                     class="w-full h-full object-cover">
+              <div class="min-w-full h-96 flex-shrink-0">
+                <c:choose>
+                  <c:when test="${fn:startsWith(img.biUrl, '/static')}">
+                    <img src="${pageContext.request.contextPath}${img.biUrl}"
+                         alt="${branch.brnName}"
+                         class="w-full h-full object-cover">
+                  </c:when>
+                  <c:otherwise>
+                    <img src="${pageContext.request.contextPath}/static/upload/partner/${img.biUrl}"
+                         alt="${branch.brnName}"
+                         class="w-full h-full object-cover">
+                  </c:otherwise>
+                </c:choose>
               </div>
             </c:forEach>
           </div>
@@ -146,6 +152,15 @@
     <div id="tab-info" class="tab-panel active">
       <div class="space-y-6">
 
+        <c:if test="${not empty branch.brnDescription}">
+          <div class="bg-white rounded-2xl p-6 shadow-sm">
+            <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+              <span class="text-indigo-500">🏢</span> 지점 소개
+            </h3>
+            <p class="text-base text-gray-700 whitespace-pre-line leading-loose">${branch.brnDescription}</p>
+          </div>
+        </c:if>
+
         <c:if test="${not empty branch.brnHours}">
           <%-- 줄바꿈 포함 텍스트를 JS에 안전하게 전달: 요소의 textContent로 읽음 --%>
           <div id="branchHoursData" class="hidden">${branch.brnHours}</div>
@@ -155,7 +170,7 @@
                 <%-- JS가 채워 넣을 영업중/종료 뱃지 --%>
               <span id="hoursStatusBadge"></span>
             </h3>
-            <p class="text-sm text-gray-600 whitespace-pre-line">${branch.brnHours}</p>
+            <p class="text-base text-gray-700 whitespace-pre-line leading-loose">${branch.brnHours}</p>
           </div>
         </c:if>
 
@@ -165,7 +180,7 @@
             <h3 class="text-sm font-bold text-amber-700 mb-3 flex items-center gap-2">
               <span>⚠️</span> 예약 시 주의사항
             </h3>
-            <p class="text-sm text-amber-700 whitespace-pre-line">${branch.brnNotice}</p>
+            <p class="text-base text-amber-700 whitespace-pre-line leading-loose">${branch.brnNotice}</p>
           </div>
         </c:if>
 
@@ -174,7 +189,7 @@
             <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
               <span class="text-indigo-500">💳</span> 환불 규정
             </h3>
-            <p class="text-sm text-gray-600 whitespace-pre-line">${branch.brnRefundPoli}</p>
+            <p class="text-base text-gray-700 whitespace-pre-line leading-loose">${branch.brnRefundPoli}</p>
           </div>
         </c:if>
 
@@ -329,7 +344,30 @@
         <c:when test="${not empty branch.spaces}">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <c:forEach var="space" items="${branch.spaces}">
-              <div class="bg-white rounded-2xl shadow-sm p-5 flex flex-col gap-3">
+              <div class="bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col">
+                <%-- 공간 이미지 --%>
+                <c:choose>
+                  <c:when test="${not empty space.spcImg}">
+                    <c:choose>
+                      <c:when test="${fn:startsWith(space.spcImg, '/static')}">
+                        <img src="${pageContext.request.contextPath}${space.spcImg}"
+                             alt="${space.spcName}"
+                             class="w-full h-44 object-cover">
+                      </c:when>
+                      <c:otherwise>
+                        <img src="${pageContext.request.contextPath}/static/upload/partner/${space.spcImg}"
+                             alt="${space.spcName}"
+                             class="w-full h-44 object-cover">
+                      </c:otherwise>
+                    </c:choose>
+                  </c:when>
+                  <c:otherwise>
+                    <div class="w-full h-44 bg-gradient-to-br from-indigo-50 to-indigo-100
+                                flex items-center justify-center text-indigo-200 text-4xl font-bold select-none">WS</div>
+                  </c:otherwise>
+                </c:choose>
+
+                <div class="p-5 flex flex-col gap-3">
                 <div class="flex items-center gap-2">
                   <c:choose>
                     <c:when test="${space.spcType eq 'INDIVIDUAL'}">
@@ -349,18 +387,18 @@
                   <%-- 시설 아이콘 (DB 값 1 = 제공) --%>
                 <c:if test="${not empty space.facilities}">
                   <div class="flex flex-wrap gap-1.5">
-                    <c:if test="${space.facilities.facCafe     == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">☕ 카페</span></c:if>
-                    <c:if test="${space.facilities.facDesk     == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">🖥️ 데스크</span></c:if>
-                    <c:if test="${space.facilities.facDelivery == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">📦 택배</span></c:if>
-                    <c:if test="${space.facilities.facWater    == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">💧 정수기</span></c:if>
-                    <c:if test="${space.facilities.facHours24  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">🕐 24시간</span></c:if>
-                    <c:if test="${space.facilities.facKitchen  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">🍳 주방</span></c:if>
-                    <c:if test="${space.facilities.facDisplay  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">📺 디스플레이</span></c:if>
-                    <c:if test="${space.facilities.facStorage  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">🗄️ 보관함</span></c:if>
-                    <c:if test="${space.facilities.facParking  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">🅿️ 주차</span></c:if>
-                    <c:if test="${space.facilities.facFax      == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">📠 팩스</span></c:if>
-                    <c:if test="${space.facilities.facPet      == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">🐾 반려동물</span></c:if>
-                    <c:if test="${space.facilities.facLounge   == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">🛋️ 라운지</span></c:if>
+                    <c:if test="${space.facilities.facCafe     == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-utensils mr-1"></i>카페</span></c:if>
+                    <c:if test="${space.facilities.facDesk     == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-desktop mr-1"></i>데스크</span></c:if>
+                    <c:if test="${space.facilities.facDelivery == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-box mr-1"></i>택배</span></c:if>
+                    <c:if test="${space.facilities.facWater    == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-bottle-water mr-1"></i>정수기</span></c:if>
+                    <c:if test="${space.facilities.facHours24  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-clock mr-1"></i>24시간</span></c:if>
+                    <c:if test="${space.facilities.facKitchen  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-kitchen-set mr-1"></i>주방</span></c:if>
+                    <c:if test="${space.facilities.facDisplay  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-tv mr-1"></i>디스플레이</span></c:if>
+                    <c:if test="${space.facilities.facStorage  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-vault mr-1"></i>보관함</span></c:if>
+                    <c:if test="${space.facilities.facParking  == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-car mr-1"></i>주차</span></c:if>
+                    <c:if test="${space.facilities.facFax      == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-fax mr-1"></i>팩스</span></c:if>
+                    <c:if test="${space.facilities.facPet      == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-paw mr-1"></i>반려동물</span></c:if>
+                    <c:if test="${space.facilities.facLounge   == 1}"><span class="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1"><i class="fa-solid fa-couch mr-1"></i>라운지</span></c:if>
                   </div>
                 </c:if>
 
@@ -394,6 +432,7 @@
                     </a>
                   </c:otherwise>
                 </c:choose>
+                </div><%-- /p-5 --%>
               </div>
             </c:forEach>
           </div>
@@ -566,6 +605,62 @@
     </div>
   </div>
 
+  <%-- ── 답글 작성 모달 (관리자 전용) ── --%>
+  <div id="replyModal"
+       class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+       onclick="closeReplyModal(event)">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl" onclick="event.stopPropagation()">
+      <h3 class="font-bold text-gray-800 mb-1">답글 작성</h3>
+      <p class="text-xs text-gray-400 mb-4">관리자 답글은 리뷰 아래에 표시됩니다.</p>
+
+      <textarea id="replyContent" rows="4"
+                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3
+                       focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none"
+                placeholder="답글 내용을 입력해주세요."></textarea>
+
+      <p id="replyMsg" class="text-xs text-red-400 mb-3 hidden"></p>
+
+      <div class="flex gap-2">
+        <button onclick="submitReply()"
+                class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-2 rounded-xl transition">
+          등록하기
+        </button>
+        <button onclick="closeReplyModal()"
+                class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-semibold py-2 rounded-xl transition">
+          취소
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <%-- ── 답글 수정 모달 (관리자 전용) ── --%>
+  <div id="editReplyModal"
+       class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+       onclick="closeEditReplyModal(event)">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl" onclick="event.stopPropagation()">
+      <h3 class="font-bold text-gray-800 mb-1">답글 수정</h3>
+      <p class="text-xs text-gray-400 mb-4">수정할 내용을 입력하세요.</p>
+
+      <textarea id="editReplyContent" rows="4"
+                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3
+                       focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none"
+                placeholder="답글 내용을 입력해주세요."></textarea>
+
+      <p id="editReplyMsg" class="text-xs text-red-400 mb-3 hidden"></p>
+
+      <div class="flex gap-2">
+        <button onclick="submitEditReply()"
+                class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-2 rounded-xl transition">
+          수정하기
+        </button>
+        <button onclick="closeEditReplyModal()"
+                class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-semibold py-2 rounded-xl transition">
+          취소
+        </button>
+      </div>
+    </div>
+  </div>
+
   <%-- ── 하단 고정 예약 바 ── --%>
   <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
     <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -602,6 +697,7 @@
     const BRANCH_NAME = '${branch.brnName}';
     // 로그인 사용자 번호 (비로그인이면 0) — 신고/삭제 기능에서 r.userIdx와 비교
     const LOGIN_USER_IDX = ${not empty sessionScope.loginUser ? sessionScope.loginUser.userIdx : 0};
+    const IS_ADMIN = ${isAdmin};
 
     /* ── 탭 전환 ── */
     function switchTab(id, btn) {
@@ -835,6 +931,13 @@
                        title="부적절한 리뷰 신고">신고</button>`
               : '';
 
+      // 답글 버튼: 관리자에게만 표시 (최상위 리뷰에만, 답글에 답글 불가)
+      const replyBtn = (IS_ADMIN && !r.revParentIdx)
+              ? `<button onclick="openReplyModal(\${r.revIdx}, \${r.spcIdx})"
+                         class="text-xs text-gray-300 hover:text-indigo-500 transition ml-2"
+                         title="답글 작성">답글</button>`
+              : '';
+
       // 삭제/수정 버튼: 본인이 작성한 리뷰에만 표시
       const deleteBtn = (LOGIN_USER_IDX > 0 && LOGIN_USER_IDX === r.userIdx)
               ? `<button onclick="deleteReview(\${r.revIdx}, this)"
@@ -889,6 +992,7 @@
                     \${reportBtn}
                     \${editBtn}
                     \${deleteBtn}
+                    \${replyBtn}
                 </div>
                 <span class="text-sm">\${stars}</span>
             </div>
@@ -899,12 +1003,28 @@
       if (r.replies && r.replies.length > 0) {
         r.replies.forEach(reply => {
           const rDate = reply.revCreatedAt ? reply.revCreatedAt.substring(0, 10) : '';
+          // 관리자가 작성한 답글(u_idx IS NULL → userIdx === null)에만 삭제/수정 버튼 표시
+          const isAdminReply = reply.userIdx === null || reply.userIdx === undefined;
+          const replyDeleteBtn = (IS_ADMIN && isAdminReply)
+                  ? `<button onclick="deleteAdminReply(\${reply.revIdx})"
+                             class="text-xs text-gray-300 hover:text-red-500 transition ml-auto"
+                             title="답글 삭제">삭제</button>`
+                  : '';
+          const replyEditBtn = (IS_ADMIN && isAdminReply)
+                  ? `<button onclick="openEditReplyModal(this)"
+                             data-rev-idx="\${reply.revIdx}"
+                             data-content="\${esc(reply.revContent)}"
+                             class="text-xs text-gray-300 hover:text-indigo-500 transition"
+                             title="답글 수정">수정</button>`
+                  : '';
           html += `
             <div class="mt-3 ml-4 pl-4 border-l-2 border-indigo-100 bg-indigo-50 rounded-xl p-3">
-                <div class="flex items-center gap-2 mb-1">
+                <div class="flex items-center gap-2 mb-1 flex-wrap">
                     <span class="text-xs font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full">파트너</span>
-                    <span class="text-xs font-semibold text-gray-700">\${esc(reply.authorName)}</span>
+                    <span class="text-xs font-semibold text-gray-700">\${esc(reply.authorName || '관리자')}</span>
                     <span class="text-xs text-gray-400">\${rDate}</span>
+                    \${replyEditBtn}
+                    \${replyDeleteBtn}
                 </div>
                 <p class="text-xs text-gray-600">\${censorContent(reply.revContent)}</p>
             </div>`;
@@ -1050,14 +1170,23 @@
     function deleteReview(revIdx, btn) {
       if (!confirm('리뷰를 삭제하시겠습니까?')) return;
 
-      $.post(CTX + '/review/delete', { revIdx: revIdx }, function(res) {
-        if (res.success) {
-          // 버튼의 가장 가까운 리뷰 카드(bg-white rounded-2xl)를 찾아서 제거
-          const card = btn.closest('.bg-white.rounded-2xl');
-          if (card) card.remove();
-        } else {
-          alert(res.message || '삭제에 실패했습니다.');
-        }
+      const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+      $.ajax({
+        type: 'POST',
+        url:  CTX + '/review/delete',
+        data: { revIdx: revIdx },
+        beforeSend: function(xhr) { xhr.setRequestHeader(csrfHeader, csrfToken); },
+        success: function(res) {
+          if (res.success) {
+            const card = btn.closest('.bg-white.rounded-2xl');
+            if (card) card.remove();
+          } else {
+            alert(res.message || '삭제에 실패했습니다.');
+          }
+        },
+        error: function() { alert('삭제 요청 중 오류가 발생했습니다.'); }
       });
     }
 
@@ -1100,6 +1229,144 @@
           } else {
             // 실패 사유를 모달 내부에 표시
             msgEl.textContent = res.message;
+            msgEl.classList.remove('hidden');
+          }
+        },
+        error: function() {
+          msgEl.textContent = '서버 오류가 발생했습니다.';
+          msgEl.classList.remove('hidden');
+        }
+      });
+    }
+
+    /* ──────────────────────────────────────────
+       답글 기능 (관리자 전용)
+    ────────────────────────────────────────── */
+    let replyTargetRevIdx = 0;
+    let replyTargetSpcIdx = 0;
+
+    function openReplyModal(revIdx, spcIdx) {
+      replyTargetRevIdx = revIdx;
+      replyTargetSpcIdx = spcIdx;
+      document.getElementById('replyContent').value = '';
+      document.getElementById('replyMsg').classList.add('hidden');
+      document.getElementById('replyModal').classList.remove('hidden');
+    }
+
+    function closeReplyModal(event) {
+      document.getElementById('replyModal').classList.add('hidden');
+      replyTargetRevIdx = 0;
+      replyTargetSpcIdx = 0;
+    }
+
+    function submitReply() {
+      const content = document.getElementById('replyContent').value.trim();
+      const msgEl   = document.getElementById('replyMsg');
+      if (!content) {
+        msgEl.textContent = '답글 내용을 입력해주세요.';
+        msgEl.classList.remove('hidden');
+        return;
+      }
+
+      const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+      $.ajax({
+        url:      CTX + '/review/reply',
+        type:     'POST',
+        data:     { spcIdx: replyTargetSpcIdx, revParentIdx: replyTargetRevIdx, content: content },
+        dataType: 'json',
+        beforeSend: function(xhr) {
+          xhr.setRequestHeader(csrfHeader, csrfToken);
+        },
+        success: function(res) {
+          if (res.success) {
+            document.getElementById('replyModal').classList.add('hidden');
+            loadReviews(1);
+          } else {
+            msgEl.textContent = res.message || '등록에 실패했습니다.';
+            msgEl.classList.remove('hidden');
+          }
+        },
+        error: function() {
+          msgEl.textContent = '서버 오류가 발생했습니다.';
+          msgEl.classList.remove('hidden');
+        }
+      });
+    }
+
+    /* ──────────────────────────────────────────
+       관리자 답글 삭제 / 수정 기능
+    ────────────────────────────────────────── */
+    function deleteAdminReply(revIdx) {
+      if (!confirm('이 답글을 삭제하시겠습니까?')) return;
+
+      const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+      $.ajax({
+        url:      CTX + '/review/replyDelete',
+        type:     'POST',
+        data:     { revIdx: revIdx },
+        dataType: 'json',
+        beforeSend: function(xhr) {
+          xhr.setRequestHeader(csrfHeader, csrfToken);
+        },
+        success: function(res) {
+          if (res.success) {
+            loadReviews(1);
+          } else {
+            alert(res.message || '삭제에 실패했습니다.');
+          }
+        },
+        error: function() {
+          alert('서버 오류가 발생했습니다.');
+        }
+      });
+    }
+
+    let editReplyTargetIdx = 0;
+
+    function openEditReplyModal(btn) {
+      editReplyTargetIdx = parseInt(btn.dataset.revIdx);
+      const content = (btn.dataset.content || '')
+              .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"');
+      document.getElementById('editReplyContent').value = content;
+      document.getElementById('editReplyMsg').classList.add('hidden');
+      document.getElementById('editReplyModal').classList.remove('hidden');
+    }
+
+    function closeEditReplyModal(event) {
+      document.getElementById('editReplyModal').classList.add('hidden');
+      editReplyTargetIdx = 0;
+    }
+
+    function submitEditReply() {
+      const content = document.getElementById('editReplyContent').value.trim();
+      const msgEl   = document.getElementById('editReplyMsg');
+      if (!content) {
+        msgEl.textContent = '답글 내용을 입력해주세요.';
+        msgEl.classList.remove('hidden');
+        return;
+      }
+
+      const csrfToken  = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+      $.ajax({
+        url:      CTX + '/review/replyUpdate',
+        type:     'POST',
+        data:     { revIdx: editReplyTargetIdx, content: content },
+        dataType: 'json',
+        beforeSend: function(xhr) {
+          xhr.setRequestHeader(csrfHeader, csrfToken);
+        },
+        success: function(res) {
+          if (res.success) {
+            document.getElementById('editReplyModal').classList.add('hidden');
+            loadReviews(1);
+          } else {
+            msgEl.textContent = res.message || '수정에 실패했습니다.';
             msgEl.classList.remove('hidden');
           }
         },

@@ -14,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         body { background-color:#f4f6f9; }
-        .sidebar { min-height:100vh; background:linear-gradient(180deg,#1a3a5c 0%,#0d2137 100%); position:sticky; top:0; }
+        .sidebar { height:100vh; background:linear-gradient(180deg,#1a3a5c 0%,#0d2137 100%); position:sticky; top:0; align-self:flex-start; overflow-y:auto; }
         .sidebar .nav-link { color:rgba(255,255,255,.75); padding:10px 20px; border-radius:6px; margin:2px 8px; transition:.2s; }
         .sidebar .nav-link:hover,.sidebar .nav-link.active { color:#fff; background:rgba(255,255,255,.15); }
         .sidebar .nav-link i { margin-right:8px; }
@@ -35,8 +35,7 @@
         .heatmap-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
         .heatmap-day-label { text-align:center; font-size:.75rem; font-weight:600; color:#6c757d; padding:4px 0; }
         .heatmap-cell { aspect-ratio:1; border-radius:4px; cursor:default; }
-        .heat-0{background:#e9ecef;} .heat-1{background:#bdd7f5;} .heat-2{background:#84b9ee;}
-        .heat-3{background:#4b9be3;} .heat-4{background:#1a7fdb;} .heat-5{background:#0d5fad;}
+        .heat-0{background:#e9ecef;} .heat-mid{background:#4b9be3;} .heat-high{background:#0d5fad;}
         .list-card { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.06); overflow:hidden; }
         .list-card .list-header { padding:16px 20px; border-bottom:1px solid #f0f0f0; font-weight:600; font-size:.95rem; }
         .list-item { padding:12px 20px; border-bottom:1px solid #f8f9fa; display:flex; align-items:center; gap:12px; }
@@ -166,11 +165,12 @@
                     <div class="card-title">
                         <i class="bi bi-grid-3x3 me-2 text-warning"></i>요일별 예약 히트맵 <small class="text-muted fw-normal">(이번달)</small>
                         <span class="float-end d-flex align-items-center gap-1" style="font-size:.75rem;">
-                            <span>적음</span>
                             <span style="width:14px;height:14px;border-radius:3px;background:#e9ecef;display:inline-block;"></span>
-                            <span style="width:14px;height:14px;border-radius:3px;background:#4b9be3;display:inline-block;"></span>
-                            <span style="width:14px;height:14px;border-radius:3px;background:#0d5fad;display:inline-block;"></span>
-                            <span>많음</span>
+                            <span>없음</span>
+                            <span style="width:14px;height:14px;border-radius:3px;background:#4b9be3;display:inline-block;margin-left:6px;"></span>
+                            <span>중간 (1~5건)</span>
+                            <span style="width:14px;height:14px;border-radius:3px;background:#0d5fad;display:inline-block;margin-left:6px;"></span>
+                            <span>많음 (6건+)</span>
                         </span>
                     </div>
                     <div class="heatmap-grid mb-2">
@@ -306,11 +306,10 @@ new Chart(document.getElementById('monthlySalesChart'),{
 /* 요일별 히트맵 */
 (function(){
     const raw=${heatmapJson};
-    const maxCnt=raw.reduce((m,d)=>Math.max(m,Number(d.reservecnt||0)),0);
     const map={};
     raw.forEach(d=>{ map[d.weeknum+'-'+d.dayofweek]=Number(d.reservecnt||0); });
     const maxWeek=raw.reduce((m,d)=>Math.max(m,Number(d.weeknum||0)),0)||5;
-    function heatLevel(cnt){ if(!cnt)return 0; const r=cnt/maxCnt; return r<=.2?1:r<=.4?2:r<=.6?3:r<=.8?4:5; }
+    function heatLevel(cnt){ if(!cnt)return 0; return cnt<=5?'mid':'high'; }
     const dayNames=['','일','월','화','수','목','금','토'];
     const grid=document.getElementById('heatmapGrid');
     let html='';
@@ -319,7 +318,7 @@ new Chart(document.getElementById('monthlySalesChart'),{
         html+='<div class="heatmap-grid mb-1">';
         for(let d=1;d<=7;d++){
             const cnt=map[w+'-'+d]||0;
-            html+='<div class="heatmap-cell heat-'+heatLevel(cnt)+'" title="'+w+'주차 '+dayNames[d]+'요일: '+cnt+'건"></div>';
+            html+='<div class="heatmap-cell heat-'+heatLevel(cnt)+'" title="'+w+'주차 '+dayNames[d]+'요일: '+cnt+'건 '+(cnt===0?'없음':cnt<=5?'중간':'많음')+'"></div>';
         }
         html+='</div>';
     }

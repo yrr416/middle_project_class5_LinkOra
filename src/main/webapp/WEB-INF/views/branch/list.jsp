@@ -335,7 +335,7 @@
                                                 </c:when>
                                                 <c:otherwise>
 
-                                                    <img src="${pageContext.request.contextPath}/static/upload/branch/${branch.mainImgUrl}"
+                                                    <img src="${pageContext.request.contextPath}/static/upload/partner/${branch.mainImgUrl}"
                                                          alt="${branch.brnName}"
 
                                                          style="width:100%;
