@@ -61,8 +61,13 @@ public class SpaceServiceImpl implements SpaceService {
     }
 
     @Override
+    @Transactional
     public int approveSpace(String s_idx) {
-        return spaceMapper.approveSpace(s_idx);
+        int result = spaceMapper.approveSpace(s_idx);
+        if (result > 0) {
+            spaceMapper.activateBranchBySpaceIdx(s_idx);
+        }
+        return result;
     }
 
     @Override
@@ -82,5 +87,18 @@ public class SpaceServiceImpl implements SpaceService {
     @Override
     public List<Map<String, Object>> getBranchList() {
         return spaceMapper.getBranchList();
+    }
+
+    @Override
+    public Map<String, Object> getFacilities(String spcIdx) {
+        return spaceMapper.getFacilities(spcIdx);
+    }
+
+    @Override
+    @Transactional
+    public void saveFacilities(String spcIdx, Map<String, Object> facilityMap) {
+        spaceMapper.deleteFacilitiesBySpcIdx(spcIdx);
+        facilityMap.put("spcIdx", Integer.parseInt(spcIdx));
+        spaceMapper.insertFacilities(facilityMap);
     }
 }

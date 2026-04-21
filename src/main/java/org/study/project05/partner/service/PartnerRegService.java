@@ -34,4 +34,6 @@ public interface PartnerRegService {
     List<BranchRegVO> getMyBranches(int partnerIdx);
     boolean toggleBranchActive(int brnIdx, int partnerIdx);
     boolean toggleSpaceActive(int spcIdx, int partnerIdx);
+    boolean deleteBranch(int brnIdx, int partnerIdx);
+    boolean deleteSpace(int spcIdx, int partnerIdx);
 }

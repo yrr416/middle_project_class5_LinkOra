@@ -11,7 +11,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; }
-        .sidebar { min-height: 100vh; background: linear-gradient(180deg, #1a3a5c 0%, #0d2137 100%); position: sticky; top: 0; }
+        .sidebar { height: 100vh; background: linear-gradient(180deg, #1a3a5c 0%, #0d2137 100%); position: sticky; top: 0; align-self: flex-start; overflow-y: auto; }
         .sidebar .nav-link { color: rgba(255,255,255,.75); padding: 10px 20px; border-radius: 6px; margin: 2px 8px; transition: .2s; }
         .sidebar .nav-link:hover, .sidebar .nav-link.active { color: #fff; background: rgba(255,255,255,.15); }
         .sidebar .nav-link i { margin-right: 8px; }

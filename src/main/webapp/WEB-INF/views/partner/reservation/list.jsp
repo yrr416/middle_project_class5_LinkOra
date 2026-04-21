@@ -16,7 +16,7 @@
         body { background-color: #f4f6f9; }
 
         /* ── 사이드바 ── */
-        .sidebar { min-height: 100vh; background: linear-gradient(180deg, #1a3a5c 0%, #0d2137 100%); position: sticky; top: 0; }
+        .sidebar { height: 100vh; background: linear-gradient(180deg, #1a3a5c 0%, #0d2137 100%); position: sticky; top: 0; align-self: flex-start; overflow-y: auto; }
         .sidebar .nav-link { color: rgba(255,255,255,.75); padding: 10px 20px; border-radius: 6px; margin: 2px 8px; }
         .sidebar .nav-link:hover, .sidebar .nav-link.active { color: #fff; background: rgba(255,255,255,.15); }
         .sidebar .nav-link i { margin-right: 8px; }
@@ -43,7 +43,7 @@
         .filter-card { padding: 16px 20px; margin-bottom: 16px; }
         .table-card  { overflow: hidden; }
         .table thead th { background: #f8f9fa; font-size: .82rem; font-weight: 600; color: #495057; white-space: nowrap; }
-        .table tbody tr:hover { background: #f0f4ff; cursor: default; }
+        .table tbody tr:hover { background: #f0f4ff; cursor: pointer; }
 
         /* ── 상태 배지 ── */
         .badge-pending   { background: #fff3cd; color: #856404; }
@@ -280,7 +280,7 @@
                             </c:if>
 
                             <c:forEach var="r" items="${list}">
-                                <tr>
+                                <tr onclick="openDetail(${r.resIdx})">
                                     <td class="ps-4">
                                         <span class="text-muted small">${r.resCode}</span>
                                     </td>
@@ -304,11 +304,11 @@
                                                 <span class="badge badge-pending px-2 py-1 rounded-pill">대기중</span>
                                                 <div class="mt-1 d-flex gap-1 justify-content-center">
                                                     <button class="btn btn-success btn-sm py-0 px-2"
-                                                            onclick="confirmRes(${r.resIdx}, this)">
+                                                            onclick="event.stopPropagation(); confirmRes(${r.resIdx}, this)">
                                                         <i class="bi bi-check-lg"></i> 수락
                                                     </button>
                                                     <button class="btn btn-outline-danger btn-sm py-0 px-2"
-                                                            onclick="openRejectModal(${r.resIdx})">
+                                                            onclick="event.stopPropagation(); openRejectModal(${r.resIdx})">
                                                         <i class="bi bi-x-lg"></i> 거절
                                                     </button>
                                                 </div>
@@ -330,7 +330,7 @@
                                             </c:otherwise>
                                         </c:choose>
                                     </td>
-                                    <td class="text-center">
+                                    <td class="text-center" onclick="event.stopPropagation()">
                                         <button class="btn btn-outline-primary btn-sm py-0 px-2"
                                                 onclick="openDetail(${r.resIdx})">
                                             <i class="bi bi-eye"></i>

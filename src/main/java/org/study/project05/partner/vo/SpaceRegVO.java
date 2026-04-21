@@ -14,6 +14,7 @@ public class SpaceRegVO {
     private String spcDescription;  // 공간 설명
     private String spcImg;          // 대표 이미지 URL
     private int    spcActive;       // 활성 여부
+    private int    currentHeadcount; // 현재 이용중 인원 (DB 저장 안 함)
 
     // 시설 정보 (Step3)
     private int facCafe;      // 카페
@@ -28,4 +29,8 @@ public class SpaceRegVO {
     private int facFax;       // 팩스
     private int facPet;       // 반려동물
     private int facLounge;    // 라운지
+    private int facWifi;      // Wi-Fi
+    private int facCoffee;    // 커피/음료
+    private int facPrinter;   // 프린터
+    private int facLocker;    // 사물함
 }

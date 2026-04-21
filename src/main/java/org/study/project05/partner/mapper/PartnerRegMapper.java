@@ -33,6 +33,9 @@ public interface PartnerRegMapper {
     // Step4 · 공간 이미지 목록 저장
     int insertSpaceImg(Map<String, Object> param);
 
+    // Step4 · 공간 대표 이미지 URL 저장
+    int updateSpaceMainImg(@Param("spcIdx") int spcIdx, @Param("spcImg") String spcImg);
+
     // Step5 · 지점 활성화 (최종 제출)
     int activateBranch(@Param("brnIdx") int brnIdx);
 
@@ -56,4 +59,34 @@ public interface PartnerRegMapper {
 
     // 내 매물 관리 · 공간 활성/비활성 토글
     int toggleSpaceActiveByPartner(@Param("spcIdx") int spcIdx, @Param("partnerIdx") int partnerIdx);
+
+    // 삭제 · 지점 소유 확인
+    int countBranchByPartner(@Param("brnIdx") int brnIdx, @Param("partnerIdx") int partnerIdx);
+
+    // 삭제 · 공간 소유 확인 (지점-파트너 연결)
+    int countSpaceByPartner(@Param("spcIdx") int spcIdx, @Param("partnerIdx") int partnerIdx);
+
+    // 삭제 · 지점 소속 공간 편의시설 전체 삭제
+    int deleteFacilitiesByBranch(@Param("brnIdx") int brnIdx);
+
+    // 삭제 · 공간 편의시설 삭제
+    int deleteFacilitiesBySpcIdx(@Param("spcIdx") int spcIdx);
+
+    // 삭제 · 지점 이미지 삭제
+    int deleteBranchImgs(@Param("brnIdx") int brnIdx);
+
+    // 삭제 · 지점 소속 공간 이미지 삭제
+    int deleteSpaceImgsByBranch(@Param("brnIdx") int brnIdx);
+
+    // 삭제 · 지점 소속 공간 전체 삭제
+    int deleteSpacesByBranch(@Param("brnIdx") int brnIdx);
+
+    // 삭제 · 지점 삭제
+    int deleteBranch(@Param("brnIdx") int brnIdx);
+
+    // 삭제 · 공간 이미지 삭제
+    int deleteSpaceImgs(@Param("spcIdx") int spcIdx);
+
+    // 삭제 · 공간 삭제
+    int deleteSpace(@Param("spcIdx") int spcIdx);
 }

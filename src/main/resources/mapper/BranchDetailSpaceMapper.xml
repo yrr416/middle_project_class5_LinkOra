@@ -15,25 +15,28 @@
         <result property="spcImg"          column="s_img"/>
     </resultMap>
 
-    <!-- 전체 공간 목록 -->
+    <!-- 전체 공간 목록 (활성 공간만) -->
     <select id="selectAll" resultMap="spaceResultMap">
         SELECT s_idx, b_idx, s_type, s_name, s_price, s_max_capacity, s_description, s_img
         FROM space
+        WHERE s_active = 1
         ORDER BY s_idx ASC
     </select>
 
-    <!-- 공간 단건 -->
+    <!-- 공간 단건 (활성 공간만) -->
     <select id="selectById" parameterType="int" resultMap="spaceResultMap">
         SELECT s_idx, b_idx, s_type, s_name, s_price, s_max_capacity, s_description, s_img
         FROM space
         WHERE s_idx = #{spcIdx}
+          AND s_active = 1
     </select>
 
-    <!-- 지점에 속한 공간 목록 -->
+    <!-- 지점에 속한 공간 목록 (활성 공간만) -->
     <select id="selectByBranch" parameterType="int" resultMap="spaceResultMap">
         SELECT s_idx, b_idx, s_type, s_name, s_price, s_max_capacity, s_description, s_img
         FROM space
         WHERE b_idx = #{brnIdx}
+          AND s_active = 1
         ORDER BY s_type ASC, s_idx ASC
     </select>
 

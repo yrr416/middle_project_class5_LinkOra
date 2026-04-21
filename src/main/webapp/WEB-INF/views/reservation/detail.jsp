@@ -30,7 +30,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body { background-color:#f4f6f9; }
-        .sidebar { min-height:100vh; background:linear-gradient(180deg,#1a3a5c 0%,#0d2137 100%); }
+        .sidebar { height:100vh; background:linear-gradient(180deg,#1a3a5c 0%,#0d2137 100%); position:sticky; top:0; align-self:flex-start; overflow-y:auto; }
         .sidebar .nav-link { color:rgba(255,255,255,.75); padding:10px 20px; border-radius:6px; margin:2px 8px; }
         .sidebar .nav-link:hover,.sidebar .nav-link.active { color:#fff; background:rgba(255,255,255,.15); }
         .sidebar .nav-link i { margin-right:8px; }
@@ -207,9 +207,8 @@
                                 <span class="info-label">공간 타입</span>
                                 <span class="info-value">
                                     <c:choose>
-                                        <c:when test="${rvo.spcType == 'MEETING'}">회의실</c:when>
-                                        <c:when test="${rvo.spcType == 'FOCUS'}">집중석</c:when>
-                                        <c:when test="${rvo.spcType == 'LOUNGE'}">라운지</c:when>
+                                        <c:when test="${rvo.spcType == 'INDIVIDUAL'}">개인 공간</c:when>
+                                        <c:when test="${rvo.spcType == 'GROUP'}">그룹 공간</c:when>
                                         <c:otherwise>${rvo.spcType}</c:otherwise>
                                     </c:choose>
                                 </span>
