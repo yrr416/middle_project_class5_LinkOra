@@ -186,6 +186,23 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    public void deleteAdminReply(int revIdx) {
+        int deleted = reviewMapper.deleteByAdmin(revIdx);
+        if (deleted == 0) {
+            throw new IllegalArgumentException("존재하지 않는 답글입니다.");
+        }
+    }
+
+    @Override
+    public void updateAdminReply(int revIdx, String content) {
+        if (content == null || content.isBlank()) throw new IllegalArgumentException("답글 내용을 입력해주세요.");
+        int updated = reviewMapper.updateAdminReply(revIdx, content.trim());
+        if (updated == 0) {
+            throw new IllegalArgumentException("존재하지 않거나 수정 권한이 없는 답글입니다.");
+        }
+    }
+
+    @Override
     public void reportReview(int revIdx, int userIdx, String reason) {
         if (reviewMapper.countReport(revIdx, userIdx) > 0) {
             throw new IllegalStateException("이미 신고한 후기입니다.");
@@ -194,7 +211,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public void writeReply(int spcIdx, int revParentIdx, int userIdx, String content) {
+    public void writeReply(int spcIdx, int revParentIdx, Integer userIdx, String content) {
         if (content == null || content.isBlank()) throw new IllegalArgumentException("답글 내용을 입력해주세요.");
 
         ReviewVO vo = new ReviewVO();

@@ -89,7 +89,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         // [추가] 자바스크립트로 POST 요청을 보내는 찜하기 API(/api/wishlist/**)에서 403 에러가 나지 않도록 CSRF 검사 예외 처리 추가
                         .ignoringRequestMatchers("/chat/**", "/api/wishlist/**", "/admin/reservation/**",
-                                "/partner/register/uploadImg", "/partner/manage/toggleBranch", "/partner/manage/toggleSpace")
+                                "/partner/register/uploadImg", "/partner/manage/toggleBranch", "/partner/manage/toggleSpace",
+                                "/review/report", "/review/replyDelete", "/review/replyUpdate")
                 )
                 .authorizeHttpRequests(auth -> auth
                         // 관리자 전용 경로 - ROLE_ADMIN만 접근 허용
