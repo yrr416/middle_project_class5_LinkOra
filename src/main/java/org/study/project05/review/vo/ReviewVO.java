@@ -16,7 +16,7 @@ public class ReviewVO {
 
     private int     revIdx;
     private int     spcIdx;
-    private int     userIdx;
+    private Integer userIdx;
     private Integer revParentIdx;   // NULL = 최상위 후기, 값 = 답글
     private String  revContent;
     private Integer revRating;      // 1~5, 최상위 후기만 (답글은 NULL)

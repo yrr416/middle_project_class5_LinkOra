@@ -69,4 +69,7 @@ public interface ReviewMapper {
     /** 리뷰 단건 조회 (삭제 전 이미지 파일명 확인용) */
     ReviewVO selectOne(@Param("revIdx") int revIdx);
 
+    /** 관리자 답글 내용 수정 (v_idx + u_idx IS NULL 조건) */
+    int updateAdminReply(@Param("revIdx") int revIdx, @Param("content") String content);
+
 }

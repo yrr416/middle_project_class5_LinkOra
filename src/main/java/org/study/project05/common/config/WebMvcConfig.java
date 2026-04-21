@@ -43,22 +43,20 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // [프로필 이미지] file: 접두사 사용하여 절대 경로 매핑 (Windows 환경 안정성 확보)
         Path dir = Paths.get(profilesDir).toAbsolutePath().normalize();
-        String location = dir.toUri().toString();
-        if (!location.endsWith("/")) {
-            location += "/";
-        }
+        String location = "file:" + dir.toString().replace("\\", "/") + "/";
+        
         registry.addResourceHandler("/static/upload/profiles/**")
                 .addResourceLocations(location);
 
-        // 레거시 URL(/uploads/profiles/**) 호환 유지
         registry.addResourceHandler("/uploads/profiles/**")
                 .addResourceLocations(location);
 
-        // 공지/이벤트 대표 이미지 서빙
+        // [공지사항 이미지]
         Path noticeImgDir = Paths.get(noticeDir).toAbsolutePath().normalize();
-        String noticeLocation = noticeImgDir.toUri().toString();
-        if (!noticeLocation.endsWith("/")) noticeLocation += "/";
+        String noticeLocation = "file:" + noticeImgDir.toString().replace("\\", "/") + "/";
+        
         registry.addResourceHandler("/static/upload/notice/**")
                 .addResourceLocations(noticeLocation);
 
@@ -66,6 +64,15 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/static/**")
                 .addResourceLocations("/static/");
 
+        // [추가] /assets/** 매핑 (기존 StaticResourceConfig 대체)
+        Path assetsPath = Paths.get("assets").toAbsolutePath().normalize();
+        String assetsLocation = "file:" + assetsPath.toString().replace("\\", "/") + "/";
+        registry.addResourceHandler("/assets/**")
+                .addResourceLocations(assetsLocation);
+
+        // [Favicon]
+        registry.addResourceHandler("/favicon.ico")
+                .addResourceLocations("classpath:/static/");
     }
 
     @Bean
