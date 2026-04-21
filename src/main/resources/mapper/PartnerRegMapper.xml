@@ -50,6 +50,11 @@
         VALUES (#{spcIdx}, #{spiUrl}, #{spiOrder}, #{spiIsMain}, NOW())
     </insert>
 
+    <!-- 공간 메인 이미지를 space.s_img에 동기화 -->
+    <update id="updateSpaceMainImg" parameterType="map">
+        UPDATE space SET s_img = #{spiUrl} WHERE s_idx = #{spcIdx}
+    </update>
+
     <!-- 지점 활성화 -->
     <update id="activateBranch">
         UPDATE branch SET b_active = 1 WHERE b_idx = #{brnIdx}

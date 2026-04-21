@@ -62,12 +62,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/static/upload/notice/**")
                 .addResourceLocations(noticeLocation);
 
-        // webapp/static/ 하위 업로드 이미지 서빙 (branch, review, video 등)
-        Path staticDir = Paths.get("src", "main", "webapp", "static").toAbsolutePath().normalize();
-        String staticLocation = staticDir.toUri().toString();
-        if (!staticLocation.endsWith("/")) staticLocation += "/";
+        // webapp/static/ 하위 이미지 서빙 (branch, review 등) - WAR 내부 웹루트 경로 사용
         registry.addResourceHandler("/static/**")
-                .addResourceLocations(staticLocation);
+                .addResourceLocations("/static/");
 
     }
 

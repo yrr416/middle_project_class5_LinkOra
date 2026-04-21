@@ -33,6 +33,9 @@ public interface PartnerRegMapper {
     // Step4 · 공간 이미지 목록 저장
     int insertSpaceImg(Map<String, Object> param);
 
+    // Step4 · 공간 메인 이미지를 space.s_img에 동기화
+    int updateSpaceMainImg(Map<String, Object> param);
+
     // Step5 · 지점 활성화 (최종 제출)
     int activateBranch(@Param("brnIdx") int brnIdx);
 

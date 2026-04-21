@@ -65,6 +65,9 @@ public class PartnerRegServiceImpl implements PartnerRegService {
             img.put("spiOrder", i);
             img.put("spiIsMain", i == 0 ? 1 : 0);
             partnerRegMapper.insertSpaceImg(img);
+            if (i == 0) {
+                partnerRegMapper.updateSpaceMainImg(img);
+            }
         }
     }
 
