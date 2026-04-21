@@ -24,9 +24,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Value("${app.upload.profiles-dir:src/main/webapp/static/upload/profiles}")
     private String profilesDir;
 
-    @Value("${app.upload.notice-dir:src/main/webapp/static/upload/notice}")
-    private String noticeDir;
-
     private final SessionSyncInterceptor sessionSyncInterceptor;
 
     @Autowired
@@ -43,32 +40,27 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // [프로필 이미지] file: 접두사 사용하여 절대 경로 매핑 (Windows 환경 안정성 확보)
-        Path dir = Paths.get(profilesDir).toAbsolutePath().normalize();
-        String location = "file:" + dir.toString().replace("\\", "/") + "/";
-        
-        registry.addResourceHandler("/static/upload/profiles/**")
-                .addResourceLocations(location);
+        // [전체 업로드 디렉터리] /static/upload/** → webapp/static/upload/ 파일시스템 절대 경로
+        // toUri().toString() 사용으로 Windows에서 올바른 file:///D:/... 형식 생성
+        Path uploadsDir = Paths.get("src/main/webapp/static/upload").toAbsolutePath().normalize();
+        String uploadsLocation = uploadsDir.toUri().toString();
 
+        registry.addResourceHandler("/static/upload/**")
+                .addResourceLocations(uploadsLocation);
+
+        // [프로필 이미지] /uploads/profiles/** 별칭 유지 (하위 호환)
+        Path profilesPath = Paths.get(profilesDir).toAbsolutePath().normalize();
         registry.addResourceHandler("/uploads/profiles/**")
-                .addResourceLocations(location);
+                .addResourceLocations(profilesPath.toUri().toString());
 
-        // [공지사항 이미지]
-        Path noticeImgDir = Paths.get(noticeDir).toAbsolutePath().normalize();
-        String noticeLocation = "file:" + noticeImgDir.toString().replace("\\", "/") + "/";
-        
-        registry.addResourceHandler("/static/upload/notice/**")
-                .addResourceLocations(noticeLocation);
-
-        // webapp/static/ 하위 이미지 서빙 (branch, review 등) - WAR 내부 웹루트 경로 사용
+        // webapp/static/ 하위 정적 리소스 서빙 (css, js, img 등)
         registry.addResourceHandler("/static/**")
                 .addResourceLocations("/static/");
 
-        // [추가] /assets/** 매핑 (기존 StaticResourceConfig 대체)
+        // [assets] /assets/** 매핑
         Path assetsPath = Paths.get("assets").toAbsolutePath().normalize();
-        String assetsLocation = "file:" + assetsPath.toString().replace("\\", "/") + "/";
         registry.addResourceHandler("/assets/**")
-                .addResourceLocations(assetsLocation);
+                .addResourceLocations(assetsPath.toUri().toString());
 
         // [Favicon]
         registry.addResourceHandler("/favicon.ico")
