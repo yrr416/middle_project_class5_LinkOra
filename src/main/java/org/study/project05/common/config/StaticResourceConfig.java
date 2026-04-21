@@ -13,7 +13,8 @@ import java.nio.file.Paths;
 
 @Configuration
 public class StaticResourceConfig implements WebMvcConfigurer {
-
+    // 모든 설정은 WebMvcConfig.java로 통합되었습니다.
+    /*
     private final String assetsLocation;
     private final String uploadsLocation;
 
@@ -46,4 +47,5 @@ public class StaticResourceConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/favicon.ico")
                 .addResourceLocations("classpath:/static/");
     }
+    */
 }

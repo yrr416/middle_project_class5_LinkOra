@@ -22,6 +22,7 @@ public class ChatServiceImpl implements ChatService {
     private final org.study.project05.branch.mapper.BranchMapper branchMapper;
     private final org.study.project05.branch.mapper.BranchDetailSpaceMapper spaceMapper;
     private final org.study.project05.branch.mapper.FacilityMapper facilityMapper;
+    private final org.study.project05.branch.mapper.BranchImgMapper branchImgMapper;
 
     @Override
     public ChatVO processMessage(ChatVO chatVO) {
@@ -381,6 +382,30 @@ public class ChatServiceImpl implements ChatService {
                     org.study.project05.branch.vo.FacilityVO f = facilityMapper.selectBySpaceIdx(s.getSpcIdx());
                     String facInfos = (f != null) ? getFacilitySummary(f) : "기본 시설";
 
+                    // [이미지 처리] 공간 이미지가 없으면 지점의 대표 이미지를 가져옴
+                    String spcImg = s.getSpcImg();
+                    if (spcImg != null) {
+                        spcImg = spcImg.trim();
+                        // 경로가 포함되어 있을 경우 파일명만 추출
+                        if (spcImg.contains("/")) {
+                            spcImg = spcImg.substring(spcImg.lastIndexOf("/") + 1);
+                        }
+                    }
+
+                    if (spcImg == null || spcImg.isEmpty()) {
+                        org.study.project05.branch.vo.BranchImgVO mainImg = branchImgMapper.selectMainByBranch(b.getBrnIdx());
+                        if (mainImg != null && mainImg.getBiUrl() != null) {
+                            String biUrl = mainImg.getBiUrl().trim();
+                            if (biUrl.contains("/")) {
+                                biUrl = biUrl.substring(biUrl.lastIndexOf("/") + 1);
+                            }
+                            spcImg = biUrl;
+                        }
+                    }
+                    if (spcImg == null || spcImg.isEmpty()) {
+                        spcImg = "default_office.png";
+                    }
+
                     // 가용성 체크 (단순화: 오늘 14시 기준 좌석 유무)
                     int maxCap = s.getSpcMaxCapacity();
                     java.util.Map<Integer, Integer> seats = reservationService.getRemainingSeats(s.getSpcIdx(), today, maxCap);
@@ -390,7 +415,7 @@ public class ChatServiceImpl implements ChatService {
                             .append(" (ID:").append(s.getSpcIdx())
                             .append(", 시설:").append(facInfos)
                             .append(", 상태:").append(currentSeats > 0 ? "예약가능" : "매진")
-                            .append(", 이미지:").append(s.getSpcImg() != null ? s.getSpcImg() : "default_office.png")
+                            .append(", 이미지:").append(spcImg)
                             .append(", 가격:").append(s.getSpcPrice())
                             .append(", 타입:").append(s.getSpcType())
                             .append(", BrnID:").append(b.getBrnIdx())

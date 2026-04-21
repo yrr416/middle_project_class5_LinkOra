@@ -222,8 +222,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             actionMatches.forEach(match => {
                 const parts = match[1].split('|').map(p => p.trim());
-                const spcIdx = parts[0], spcName = parts[1], brnName = parts[2], 
-                      spcImg = (parts[3] && parts[3] !== ' ') ? parts[3] : 'default_office.png', 
+                let spcImg = (parts[3] && parts[3] !== ' ') ? parts[3] : 'default_office.png';
+                const spcIdx = parts[0], spcName = parts[1], brnName = parts[2],
                       facInfo = parts[4] || '',
                       spcPrice = parts[5] || '0',
                       spcType = parts[6] || 'INDIVIDUAL',
@@ -234,7 +234,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (isCarousel) cardDiv.classList.add('carousel-item');
                 if (position === 'prepend') cardDiv.classList.add('history-msg');
                 
-                const imgPath = `${contextPath}/static/upload/branch/${spcImg}`;
+                // [경로 조립 보강] 기본 이미지는 chatbot 폴더, 나머지는 branch 폴더 참조
+                let imgPath;
+                if (spcImg === 'default_office.png') {
+                    imgPath = `${contextPath}/static/upload/chatbot/${spcImg}`;
+                } else if (spcImg.startsWith('/static')) {
+                    imgPath = `${contextPath}${spcImg}`;
+                } else {
+                    imgPath = `${contextPath}/static/upload/branch/${spcImg}`;
+                }
                 const fallbackImg = `${contextPath}/static/upload/chatbot/default_office.png`;
                 
                 cardDiv.innerHTML = `
