@@ -3,14 +3,13 @@ package org.study.project05.review.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.study.project05.review.mapper.ReviewMapper;
+import org.study.project05.review.vo.ReviewReportVO;
 import org.study.project05.review.vo.ReviewVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 관리자 리뷰 관리 컨트롤러
@@ -58,6 +57,15 @@ public class AdminReviewController {
         model.addAttribute("searchWord",   searchWord);
 
         return "review/admin_list";
+    }
+
+    /**
+     * 신고 목록 조회 (GET /admin/review/reports?revIdx=X)  — AJAX JSON 응답
+     */
+    @GetMapping("/reports")
+    @ResponseBody
+    public List<ReviewReportVO> getReports(@RequestParam int revIdx) {
+        return reviewMapper.selectReportsByRevIdx(revIdx);
     }
 
     /**
