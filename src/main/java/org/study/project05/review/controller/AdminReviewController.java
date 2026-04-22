@@ -3,14 +3,13 @@ package org.study.project05.review.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.study.project05.review.mapper.ReviewMapper;
+import org.study.project05.review.vo.ReviewReportVO;
 import org.study.project05.review.vo.ReviewVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 관리자 리뷰 관리 컨트롤러
@@ -61,12 +60,22 @@ public class AdminReviewController {
     }
 
     /**
+     * 신고 목록 조회 (GET /admin/review/reports?revIdx=X)  — AJAX JSON 응답
+     */
+    @GetMapping("/reports")
+    @ResponseBody
+    public List<ReviewReportVO> getReports(@RequestParam int revIdx) {
+        return reviewMapper.selectReportsByRevIdx(revIdx);
+    }
+
+    /**
      * 리뷰 강제 삭제 (POST /admin/review/delete)
      */
     @PostMapping("/delete")
     public String delete(@RequestParam("revIdx") int revIdx,
                          @RequestParam(defaultValue = "1")  int    nowPage,
                          @RequestParam(defaultValue = "")   String searchWord) {
+        reviewMapper.deleteReportsByRevIdx(revIdx);
         reviewMapper.deleteByAdmin(revIdx);
         return "redirect:/admin/review/list?nowPage=" + nowPage
                 + "&searchWord=" + searchWord;
