@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.study.project05.settings.mapper.RefundPolicyMapper">
+
+    <!-- 전체 정책 조회 (hours_before 내림차순) -->
+    <select id="selectAll" resultType="org.study.project05.settings.vo.RefundPolicyVO">
+        SELECT policy_idx  AS policyIdx,
+               hours_before AS hoursBefore,
+               refund_rate  AS refundRate,
+               description
+        FROM   refund_policy
+        ORDER  BY hours_before DESC
+    </select>
+
+    <!-- 정책 등록 -->
+    <insert id="insert" parameterType="org.study.project05.settings.vo.RefundPolicyVO">
+        INSERT INTO refund_policy (hours_before, refund_rate, description)
+        VALUES (#{hoursBefore}, #{refundRate}, #{description})
+    </insert>
+
+    <!-- 정책 수정 -->
+    <update id="update" parameterType="org.study.project05.settings.vo.RefundPolicyVO">
+        UPDATE refund_policy
+        SET    hours_before = #{hoursBefore},
+               refund_rate  = #{refundRate},
+               description  = #{description}
+        WHERE  policy_idx   = #{policyIdx}
+    </update>
+
+    <!-- 정책 삭제 -->
+    <delete id="delete">
+        DELETE FROM refund_policy WHERE policy_idx = #{policyIdx}
+    </delete>
+
+    <!--
+        환불율 조회
+        hoursLeft: 현재 시각부터 예약 시작까지 남은 시간(정수)
+        예) hoursLeft=20 → hours_before <= 20 중 가장 큰 구간 적용 (12시간 → 50%)
+        구간이 없으면 0% 반환
+    -->
+    <select id="selectRefundRate" resultType="java.lang.Integer">
+        SELECT refund_rate
+        FROM   refund_policy
+        WHERE  hours_before &lt;= #{hoursLeft}
+        ORDER  BY hours_before DESC
+        LIMIT  1
+    </select>
+
+</mapper>

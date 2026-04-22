@@ -307,7 +307,7 @@ public class ChatServiceImpl implements ChatService {
             vo.setResIdx(resIdx);
             vo.setUserIdx(userIdx.intValue());
 
-            reservationService.cancelReservation(resIdx, userIdx.intValue());
+            reservationService.cancelReservation(resIdx, userIdx.intValue(), null, null);
 
             String successMsg = "\n\n✔️ 예약이 취소되었습니다. (예약번호: #" + resIdx + ")\n환불 규정에 따라 처리가 진행됩니다.";
             return botResponse.replace(tag, successMsg);

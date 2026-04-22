@@ -1,6 +1,7 @@
 package org.study.project05.settings.service;
 
 import org.study.project05.settings.vo.AdminLogVO;
+import org.study.project05.settings.vo.RefundPolicyVO;
 import org.study.project05.settings.vo.TemplateVO;
 
 import java.util.List;
@@ -28,6 +29,14 @@ public interface SettingsService {
     int insertTemplate(TemplateVO templateVO);
     int updateTemplate(TemplateVO templateVO);
     int deleteTemplate(String t_idx);
+
+    // ── 환불 정책 ────────────────────────────────────────────────
+    List<RefundPolicyVO> getRefundPolicyList();
+    int insertRefundPolicy(RefundPolicyVO vo);
+    int updateRefundPolicy(RefundPolicyVO vo);
+    int deleteRefundPolicy(int policyIdx);
+    /** 남은 시간(시)에 해당하는 환불율 반환. 해당 구간 없으면 0 */
+    int getRefundRate(int hoursLeft);
 
     // ── 관리자 활동 로그 ─────────────────────────────────────────
     int getLogCount();

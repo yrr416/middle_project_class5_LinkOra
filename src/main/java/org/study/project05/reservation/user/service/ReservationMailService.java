@@ -33,4 +33,14 @@ public interface ReservationMailService {
     void sendReservationApproved(String toEmail, String name,
                                  String spaceName,
                                  String startTime, String endTime);
+
+    /**
+     * ONLINE 결제 예약 취소 안내 메일
+     *
+     * @param refundAmount 환불 금액 (0이면 환불 없음)
+     */
+    void sendReservationCancelled(String toEmail, String name,
+                                  String spaceName,
+                                  String startTime, String endTime,
+                                  int paidAmount, int refundAmount);
 }

@@ -2,8 +2,10 @@ package org.study.project05.settings.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.study.project05.settings.mapper.RefundPolicyMapper;
 import org.study.project05.settings.mapper.SettingsMapper;
 import org.study.project05.settings.vo.AdminLogVO;
+import org.study.project05.settings.vo.RefundPolicyVO;
 import org.study.project05.settings.vo.TemplateVO;
 
 import java.util.HashMap;
@@ -18,6 +20,9 @@ public class SettingsServiceImpl implements SettingsService {
 
     @Autowired
     private SettingsMapper settingsMapper;
+
+    @Autowired
+    private RefundPolicyMapper refundPolicyMapper;
 
     // ── 설정 키-값 ──────────────────────────────────────────────
 
@@ -131,6 +136,34 @@ public class SettingsServiceImpl implements SettingsService {
     @Override
     public int deleteTemplate(String t_idx) {
         return settingsMapper.deleteTemplate(t_idx);
+    }
+
+    // ── 환불 정책 ────────────────────────────────────────────────
+
+    @Override
+    public List<RefundPolicyVO> getRefundPolicyList() {
+        return refundPolicyMapper.selectAll();
+    }
+
+    @Override
+    public int insertRefundPolicy(RefundPolicyVO vo) {
+        return refundPolicyMapper.insert(vo);
+    }
+
+    @Override
+    public int updateRefundPolicy(RefundPolicyVO vo) {
+        return refundPolicyMapper.update(vo);
+    }
+
+    @Override
+    public int deleteRefundPolicy(int policyIdx) {
+        return refundPolicyMapper.delete(policyIdx);
+    }
+
+    @Override
+    public int getRefundRate(int hoursLeft) {
+        Integer rate = refundPolicyMapper.selectRefundRate(hoursLeft);
+        return rate != null ? rate : 0;
     }
 
     // ── 관리자 활동 로그 ─────────────────────────────────────────

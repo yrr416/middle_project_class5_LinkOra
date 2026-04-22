@@ -17,4 +17,14 @@ public interface PaymentService {
     void confirmPayment(String paymentKey, String orderId, int amount,
                         int resIdx, int userIdx,
                         String email, String name, String spaceName);
+
+    /**
+     * 토스페이먼츠 환불 처리
+     *
+     * @param resIdx        예약 번호
+     * @param refundAmount  환불 금액 (호출 전에 계산해서 넘김)
+     * @param cancelReason  취소 사유
+     * @return 실제 환불된 금액
+     */
+    int cancelPayment(int resIdx, int refundAmount, String cancelReason);
 }

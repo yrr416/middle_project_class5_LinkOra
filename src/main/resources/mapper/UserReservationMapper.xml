@@ -17,6 +17,7 @@
         <result property="resHeadcount" column="r_headcount"   />
         <result property="resTotalPrice" column="r_total_price"/>
         <result property="resStatus"    column="r_status"      />
+        <result property="paymentType"  column="payment_type"  />
         <!-- JOIN으로 가져오는 표시용 필드 -->
         <result property="spaceName"    column="s_name"        />
         <result property="branchName"   column="b_name"        />
@@ -57,9 +58,9 @@
     -->
     <insert id="insert" parameterType="UserReservationVO" useGeneratedKeys="true" keyProperty="resIdx">
         INSERT INTO reservation
-            (s_idx, u_idx, r_start_time, r_end_time, r_headcount, r_total_price, r_status, r_content, r_created, r_updated)
+            (s_idx, u_idx, r_start_time, r_end_time, r_headcount, r_total_price, r_status, r_content, r_created, r_updated, payment_type)
         VALUES
-            (#{spcIdx}, #{userIdx}, #{resStartTime}, #{resEndTime}, #{resHeadcount}, #{resTotalPrice}, 'PENDING', '', NOW(), NOW())
+            (#{spcIdx}, #{userIdx}, #{resStartTime}, #{resEndTime}, #{resHeadcount}, #{resTotalPrice}, 'PENDING', '', NOW(), NOW(), #{paymentType})
     </insert>
 
     <!--
@@ -74,6 +75,7 @@
                r.r_headcount    AS resHeadcount,
                r.r_total_price  AS resTotalPrice,
                r.r_status       AS resStatus,
+               r.payment_type   AS paymentType,
                s.s_name         AS spaceName,
                b.b_name         AS branchName
         FROM reservation r
@@ -122,6 +124,16 @@
         FOR UPDATE
     </select>
 
+    <!-- [예약 단건 조회 - 취소 전 환불 계산용] -->
+    <select id="selectById" parameterType="int" resultMap="reservationResultMap">
+        SELECT r.r_idx, r.s_idx, r.u_idx, r.r_status, r.r_total_price,
+               r.r_start_time, r.r_end_time, r.payment_type,
+               s.s_name AS s_name
+        FROM reservation r
+        JOIN space s ON r.s_idx = s.s_idx
+        WHERE r.r_idx = #{resIdx}
+    </select>
+
     <!--
         [결제 승인용 조회 - 행 락]
         SELECT FOR UPDATE: 이 행을 조회하는 순간 다른 트랜잭션이 건드리지 못하게 락을 건다.
@@ -156,6 +168,7 @@
         SET    r_status  = 'CANCELLED',
                r_updated = NOW()
         WHERE  r_status = 'PENDING'
+          AND  payment_type = 'ONLINE'
           AND  TIMESTAMPDIFF(MINUTE, r_created, NOW()) >= 10
     </update>
 
