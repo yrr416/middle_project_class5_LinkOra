@@ -79,22 +79,20 @@
                             <%-- 오른쪽: 버튼 영역 --%>
                             <div class="flex flex-col gap-2">
 
-                                <%-- 결제 버튼 — 결제 기능 연동 시 아래 주석 해제
-                                     조건: PENDING 상태이고 결제가 아직 안 된 경우에만 표시
-                                <c:if test="${r.resStatus eq 'PENDING'}">
-                                    <a href="${pageContext.request.contextPath}/payment/checkout?resIdx=${r.resIdx}"
+                                <%-- 결제하기 버튼 — ONLINE 결제 미완료(PENDING) 예약만 표시 --%>
+                                <c:if test="${r.resStatus eq 'PENDING' and r.paymentType eq 'ONLINE'}">
+                                    <a href="${pageContext.request.contextPath}/payment/retry?resIdx=${r.resIdx}"
                                        class="text-sm text-white bg-primary-600 hover:bg-primary-700
                                               px-4 py-2 rounded-xl transition text-center">
                                         결제하기
                                     </a>
                                 </c:if>
-                                --%>
 
-                                <%-- 취소 버튼 (PENDING만) --%>
-                                <c:if test="${r.resStatus eq 'PENDING'}">
+                                <%-- 취소 버튼 (PENDING / CONFIRMED) --%>
+                                <c:if test="${r.resStatus eq 'PENDING' or r.resStatus eq 'CONFIRMED'}">
                                     <form action="${pageContext.request.contextPath}/reservation/cancel"
                                           method="post"
-                                          onsubmit="return confirm('예약을 취소하시겠습니까?')">
+                                          onsubmit="return confirm('예약을 취소하시겠습니까?${r.resStatus eq 'CONFIRMED' and r.paymentType eq 'ONLINE' ? ' 환불 정책에 따라 환불됩니다.' : ''}')">
                                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                                         <input type="hidden" name="resIdx" value="${r.resIdx}">
                                         <button type="submit"

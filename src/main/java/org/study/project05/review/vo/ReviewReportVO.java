@@ -21,6 +21,9 @@ public class ReviewReportVO {
     private String revIdx;          // 신고 대상 리뷰 번호 (FK)
     private String userIdx;         // 신고자 회원 번호 (FK)
     private String userName;        // 신고자명 (JOIN)
+    private String userId;          // 신고자 로그인 ID (JOIN)
+    private String userEmail;       // 신고자 이메일 (JOIN)
+    private String userPhone;       // 신고자 연락처 (JOIN)
     private String rvrReason;       // 신고 사유
     private String rvrStatus;       // 처리 상태 (PENDING / BLINDED / DISMISSED)
     private String rvrAdminReply;   // 관리자 처리 결과 알림 메시지

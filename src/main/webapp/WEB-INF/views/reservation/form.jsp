@@ -164,6 +164,23 @@ g<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
                 <p id="summaryText" class="text-sm text-indigo-600">날짜와 시간을 선택하면 예상 금액이 표시됩니다.</p>
             </div>
 
+            <%-- 결제 방식 선택 --%>
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-3">결제 방식</label>
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="paymentType" value="ONLINE" checked
+                               class="accent-indigo-600">
+                        <span class="text-sm text-gray-700">온라인 결제 (카드/간편결제)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="paymentType" value="OFFLINE"
+                               class="accent-indigo-600">
+                        <span class="text-sm text-gray-700">현장 결제</span>
+                    </label>
+                </div>
+            </div>
+
             <%-- 제출 버튼 --%>
             <button type="submit" id="submitBtn" disabled
                     class="w-full py-3 rounded-xl font-semibold text-white bg-gray-300 cursor-not-allowed transition">

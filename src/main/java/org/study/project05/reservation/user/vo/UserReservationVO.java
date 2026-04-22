@@ -19,6 +19,7 @@ public class UserReservationVO {
     private int    resHeadcount;
     private String resTotalPrice;
     private String resStatus;
+    private String paymentType;  // ONLINE: 웹결제, OFFLINE: 현장결제
 
     /** 목록 조회 시 JOIN으로 가져오는 표시용 필드 */
     private String spaceName;

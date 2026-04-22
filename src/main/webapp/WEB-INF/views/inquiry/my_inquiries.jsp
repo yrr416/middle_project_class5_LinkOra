@@ -47,6 +47,26 @@
     .inq-footer-nav { margin-top: 30px; text-align: center; }
     .inq-footer-nav a { color: #888; text-decoration: none; font-size: 14px; font-weight: 600; }
     .inq-footer-nav a:hover { color: #2F4F4F; text-decoration: underline; }
+
+    /* 필터 탭 스타일 */
+    .filter-tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
+    .filter-tab { 
+        padding: 8px 20px; 
+        border-radius: 30px; 
+        font-size: 14px; 
+        font-weight: 700; 
+        color: #888; 
+        text-decoration: none; 
+        background: #f5f7f9;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+    .filter-tab:hover { background: #eef2f5; color: #2F4F4F; }
+    .filter-tab.active { 
+        background: #2F4F4F; 
+        color: white; 
+        box-shadow: 0 4px 10px rgba(47, 79, 79, 0.2);
+    }
 </style>
 
 <main class="inquiry-list-wrap">
@@ -57,6 +77,13 @@
                 <a href="${pageContext.request.contextPath}/inquiry" class="btn-create-new">
                     <i class="fa-solid fa-pen-to-square"></i> 새로운 문의 남기기
                 </a>
+            </div>
+
+            <%-- 필터 탭 영역 --%>
+            <div class="filter-tabs">
+                <a href="?status=" class="filter-tab ${empty currentStatus ? 'active' : ''}">전체</a>
+                <a href="?status=PENDING" class="filter-tab ${currentStatus == 'PENDING' ? 'active' : ''}">답변 대기</a>
+                <a href="?status=COMPLETE" class="filter-tab ${currentStatus == 'COMPLETE' ? 'active' : ''}">답변 완료</a>
             </div>
             
             <c:choose>
@@ -95,17 +122,17 @@
                         <div class="pagination-inq">
                             <%-- 이전 블록 --%>
                             <c:if test="${paging.beginBlock > 1}">
-                                <a href="?page=${paging.beginBlock - 1}" class="pg-item edge">이전</a>
+                                <a href="?page=${paging.beginBlock - 1}&status=${currentStatus}" class="pg-item edge">이전</a>
                             </c:if>
                             
                             <%-- 페이지 번호 --%>
                             <c:forEach var="p" begin="${paging.beginBlock}" end="${paging.endBlock}">
-                                <a href="?page=${p}" class="pg-item ${p == paging.nowPage ? 'active' : ''}">${p}</a>
+                                <a href="?page=${p}&status=${currentStatus}" class="pg-item ${p == paging.nowPage ? 'active' : ''}">${p}</a>
                             </c:forEach>
                             
                             <%-- 다음 블록 --%>
                             <c:if test="${paging.endBlock < paging.totalPage}">
-                                <a href="?page=${paging.endBlock + 1}" class="pg-item edge">다음</a>
+                                <a href="?page=${paging.endBlock + 1}&status=${currentStatus}" class="pg-item edge">다음</a>
                             </c:if>
                         </div>
                     </c:if>

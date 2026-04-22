@@ -38,7 +38,7 @@
 
     <!-- 미처리 문의 건수 (inquiries 테이블) -->
     <select id="getPendingInquiryCnt" resultType="int">
-        SELECT COUNT(*) FROM inquiries WHERE i_status='PENDING'
+        SELECT COUNT(*) FROM inquiries WHERE i_active = 1 AND i_status = '대기중'
     </select>
 
     <!-- 월별 매출 추이 (최근 6개월) -->

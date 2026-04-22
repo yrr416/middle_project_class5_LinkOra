@@ -5,6 +5,7 @@ package org.study.project05.member.service.impl;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.study.project05.login.service.TemporaryPasswordWindowService;
 import org.study.project05.member.mapper.UserProfileMapper;
 import org.study.project05.member.service.UserProfileService;
 import org.study.project05.member.vo.UserProfileVO;
@@ -25,17 +26,20 @@ public class UserProfileServiceImpl implements UserProfileService {
     private final UserProfileMapper userProfileMapper;
     private final PartnerMapper partnerMapper;
     private final PasswordEncoder passwordEncoder;
+    private final TemporaryPasswordWindowService temporaryPasswordWindowService;
     private static final String RESET_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     public UserProfileServiceImpl(
             UserProfileMapper userProfileMapper,
             PartnerMapper partnerMapper,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            TemporaryPasswordWindowService temporaryPasswordWindowService
     ) {
         this.userProfileMapper = userProfileMapper;
         this.partnerMapper = partnerMapper;
         this.passwordEncoder = passwordEncoder;
+        this.temporaryPasswordWindowService = temporaryPasswordWindowService;
     }
 
     public UserProfileVO getByUserId(String userId) {
@@ -134,6 +138,9 @@ public class UserProfileServiceImpl implements UserProfileService {
         }
         String encoded = passwordEncoder.encode(newPassword);
         int updated = userProfileMapper.updatePasswordByUserId(user.getUserId(), encoded);
+        if (updated > 0) {
+            temporaryPasswordWindowService.clearMemberTemporaryPassword(user.getUserId());
+        }
         return updated > 0 ? PasswordChangeResult.SUCCESS : PasswordChangeResult.userNotFound;
     }
 
@@ -198,6 +205,8 @@ public class UserProfileServiceImpl implements UserProfileService {
                 partnerMapper.updatePasswordByPartnerId(pid.strip(), encoded);
             }
         }
+        temporaryPasswordWindowService.markMemberTemporaryPasswords(distinctMemberIds);
+        temporaryPasswordWindowService.markPartnerTemporaryPasswords(distinctPartnerIds);
 
         String memberCsv = memberIds.isEmpty() ? null : String.join(", ", memberIds);
         String partnerCsv = partnerIds.isEmpty() ? null : String.join(", ", partnerIds);

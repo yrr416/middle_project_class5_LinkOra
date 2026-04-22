@@ -39,4 +39,21 @@
         WHERE order_id = #{orderId}
     </update>
 
+    <!-- 예약 번호로 결제 정보 조회 -->
+    <select id="selectByResIdx" resultMap="paymentResultMap">
+        SELECT pay_idx, r_idx, u_idx, payment_key, order_id, amount, pay_status, paid_at
+        FROM payment
+        WHERE r_idx = #{resIdx}
+        ORDER BY pay_idx DESC
+        LIMIT 1
+    </select>
+
+    <!-- 환불 금액 업데이트 -->
+    <update id="updateRefundAmount">
+        UPDATE payment
+        SET pay_status    = 'CANCELED',
+            refund_amount = #{refundAmount}
+        WHERE r_idx = #{resIdx}
+    </update>
+
 </mapper>

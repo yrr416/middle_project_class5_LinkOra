@@ -31,8 +31,8 @@ public class InquiryServiceImpl implements InquiryService {
     }
 
     @Override
-    public Map<String, Object> getInquiryList(Long userIdx, int page) {
-        int totalRecord = inquiryMapper.countInquiriesByUser(userIdx);
+    public Map<String, Object> getInquiryList(Long userIdx, int page, String status) {
+        int totalRecord = inquiryMapper.countInquiriesByUser(userIdx, status);
 
         Paging paging = new Paging();
         paging.setTotalRecord(totalRecord);
@@ -52,7 +52,7 @@ public class InquiryServiceImpl implements InquiryService {
         paging.setEndBlock(endBlock > paging.getTotalPage() ? paging.getTotalPage() : endBlock);
 
         List<InquiryVO> list = inquiryMapper.selectInquiryListByUser(userIdx, paging.getNumPerPage(),
-                paging.getOffset());
+                paging.getOffset(), status);
 
         Map<String, Object> result = new HashMap<>();
         result.put("inquiryList", list);

@@ -44,17 +44,18 @@ public class  UserReservationController {
         try {
             reservationService.reserve(vo);
 
-            /* ── 결제 기능 보류 중 ──────────────────────────────────────────
-             * 팀 합치기 완료 후 아래 주석을 해제하고 위 두 줄(reserve + redirect)을 교체할 것
-             *
-             * reservationService.reserve(vo);
-             * session.setAttribute("pendingResIdx",    vo.getResIdx());
-             * session.setAttribute("pendingAmount",    Integer.parseInt(vo.getResTotalPrice()));
-             * session.setAttribute("pendingSpaceName", branchService.getSpaceById(vo.getSpcIdx()).getSpcName());
-             * return "redirect:/payment/checkout";
-             * ────────────────────────────────────────────────────────────── */
+            // ONLINE: 결제창으로 이동 / OFFLINE: 바로 예약완료
+            if ("ONLINE".equals(vo.getPaymentType())) {
+                session.setAttribute("pendingResIdx",     vo.getResIdx());
+                session.setAttribute("pendingAmount",     Integer.parseInt(vo.getResTotalPrice()));
+                session.setAttribute("pendingSpaceName",  branchService.getSpaceById(vo.getSpcIdx()).getSpcName());
+                session.setAttribute("pendingStartTime",  vo.getResStartTime());
+                session.setAttribute("pendingEndTime",    vo.getResEndTime());
+                return "redirect:/payment/checkout";
+            }
 
             redirectAttributes.addFlashAttribute("reservation", vo);
+            redirectAttributes.addFlashAttribute("paymentType", "OFFLINE");
             return "redirect:/reservation/complete";
 
         } catch (IllegalArgumentException e) {
@@ -103,7 +104,8 @@ public class  UserReservationController {
                          HttpSession session,
                          RedirectAttributes redirectAttributes) {
         UserProfileVO loginUser = (UserProfileVO) session.getAttribute("loginUser");
-        reservationService.cancelReservation(resIdx, loginUser.getUserIdx());
+        reservationService.cancelReservation(resIdx, loginUser.getUserIdx(),
+                loginUser.getEmail(), loginUser.getName());
         redirectAttributes.addFlashAttribute("cancelMsg", "예약이 취소되었습니다.");
         return "redirect:/reservation/mylist";
     }

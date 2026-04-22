@@ -110,10 +110,14 @@
     function previewImages(input, previewId, type, sIdx) {
         const preview = document.getElementById(previewId);
         const files   = Array.from(input.files);
+        input.value = ''; // 같은 파일 재선택 가능하도록 초기화
 
         files.forEach(file => {
             const localUrl = URL.createObjectURL(file);
-            const isMain   = (type === 'branch' ? branchImgs.length : spaceImgs.length) === 0;
+            // 공간별로 독립된 isMain 계산 (spacePreview 내 기존 항목 수 기준)
+            const isMain = type === 'branch'
+                ? branchImgs.length === 0
+                : spaceImgs.filter(i => i.spcIdx === sIdx).length === 0;
 
             // 1) 미리보기 즉시 표시 (업로드 대기 중 오버레이 포함)
             const div = document.createElement('div');
@@ -142,7 +146,7 @@
                     if (!serverUrl) { div.remove(); return; }
 
                     removeBtn.style.display = '';
-                    removeBtn.addEventListener('click', () => removeImg(removeBtn, type, sIdx || 0));
+                    removeBtn.addEventListener('click', () => removeImg(div, serverUrl, type, sIdx || 0));
 
                     if (type === 'branch') {
                         branchImgs.push({ briUrl: serverUrl });
@@ -154,9 +158,16 @@
         });
     }
 
-    // 이미지 제거
-    function removeImg(btn, type, sIdx) {
-        btn.closest('.preview-item').remove();
+    // 이미지 제거 (DOM + 배열에서 모두 제거)
+    function removeImg(div, serverUrl, type, sIdx) {
+        div.remove();
+        if (type === 'branch') {
+            const idx = branchImgs.findIndex(i => i.briUrl === serverUrl);
+            if (idx !== -1) branchImgs.splice(idx, 1);
+        } else {
+            const idx = spaceImgs.findIndex(i => i.spcIdx === sIdx && i.spiUrl === serverUrl);
+            if (idx !== -1) spaceImgs.splice(idx, 1);
+        }
     }
 
     // 폼 제출 전 업로드 중인 항목 확인

@@ -15,6 +15,7 @@ public class PaymentVO {
     private String paymentKey;  // 토스가 발급하는 고유 결제 키
     private String orderId;     // 우리가 만든 주문번호 (UUID)
     private int    amount;      // 결제 금액
-    private String payStatus;   // DONE / CANCELED
-    private String paidAt;      // 결제 시각
+    private String payStatus;    // DONE / CANCELED
+    private String paidAt;       // 결제 시각
+    private int    refundAmount; // 환불 금액
 }

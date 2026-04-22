@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -21,6 +22,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.study.project05.common.util.SessionUtil;
 
 @Configuration
 public class SecurityConfig {
@@ -138,6 +140,22 @@ public class SecurityConfig {
                                 return;
                             }
 
+                            // 비밀번호 찾기 메일 등: /loginPage?next=/mypage 형태로 저장된 경로
+                            String pending = SessionUtil.peekPostLoginRedirect(session);
+                            if (pending != null) {
+                                if ("/mypage".equals(pending) && !isPartner && !isAdmin) {
+                                    SessionUtil.clearPostLoginRedirect(session);
+                                    response.sendRedirect(request.getContextPath() + "/mypage");
+                                    return;
+                                }
+                                if ("/partner/mypage".equals(pending) && isPartner) {
+                                    SessionUtil.clearPostLoginRedirect(session);
+                                    response.sendRedirect(request.getContextPath() + "/partner/mypage");
+                                    return;
+                                }
+                                SessionUtil.clearPostLoginRedirect(session);
+                            }
+
                             String target = isAdmin ? "/admin/dashboard" : isPartner ? "/partner/mypage" : "/";
                             response.sendRedirect(request.getContextPath() + target);
                         })
@@ -147,6 +165,8 @@ public class SecurityConfig {
                             // InternalAuthenticationServiceException으로 감싸 전달하는 경우가 있음
                             if (containsInChain(exception, DisabledException.class)) {
                                 errorCode = "inactive";
+                            } else if (containsInChain(exception, CredentialsExpiredException.class)) {
+                                errorCode = "tempExpired";
                             } else {
                                 log.warn("로그인 실패: {}", exception.toString());
                             }

@@ -191,6 +191,29 @@
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
+    <!-- 관리자용: 특정 리뷰의 신고 목록 + 신고자 인적사항 조회 -->
+    <select id="selectReportsByRevIdx" resultType="org.study.project05.review.vo.ReviewReportVO">
+        SELECT rr.rr_idx                          AS rvrIdx,
+               rr.v_idx                           AS revIdx,
+               rr.u_idx                           AS userIdx,
+               IFNULL(u.u_name,  '탈퇴한 유저')   AS userName,
+               IFNULL(u.u_id,    '탈퇴한 유저')   AS userId,
+               IFNULL(u.u_email, '-')              AS userEmail,
+               IFNULL(u.u_phone, '-')              AS userPhone,
+               rr.rr_reason                       AS rvrReason,
+               rr.rr_status                       AS rvrStatus,
+               rr.rr_created                      AS rvrCreated
+          FROM review_report rr
+          LEFT JOIN user u ON rr.u_idx = u.u_idx
+         WHERE rr.v_idx = #{revIdx}
+         ORDER BY rr.rr_created ASC
+    </select>
+
+    <!-- 관리자 강제 삭제 전 신고 기록 먼저 삭제 -->
+    <delete id="deleteReportsByRevIdx">
+        DELETE FROM review_report WHERE v_idx = #{revIdx}
+    </delete>
+
     <!-- 관리자 강제 삭제 (신고 누적 등) -->
     <delete id="deleteByAdmin">
         DELETE FROM review WHERE v_idx = #{revIdx}

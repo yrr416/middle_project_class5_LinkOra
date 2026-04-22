@@ -10,11 +10,14 @@ public interface InquiryMapper {
     // 문의글 등록
     int insertInquiry(InquiryVO vo);
     
-    // 특정 사용자의 전체 문의 개수 조회 (페이징용)
-    int countInquiriesByUser(@Param("userIdx") Long userIdx);
+    // 특정 사용자의 전체 문의 개수 조회 (페이징용 + 필터)
+    int countInquiriesByUser(@Param("userIdx") Long userIdx, @Param("status") String status);
     
-    // 특정 사용자의 문의 내역 리스트 조회 (페이징 적용)
-    List<InquiryVO> selectInquiryListByUser(@Param("userIdx") Long userIdx, @Param("limit") int limit, @Param("offset") int offset);
+    // 특정 사용자의 문의 내역 리스트 조회 (페이징 + 필터 적용)
+    List<InquiryVO> selectInquiryListByUser(@Param("userIdx") Long userIdx, 
+                                            @Param("limit") int limit, 
+                                            @Param("offset") int offset,
+                                            @Param("status") String status);
     
     /**
      * 특정 문의 상세 내용 및 관리자 답변 조회

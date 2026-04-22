@@ -14,7 +14,7 @@ public interface UserReservationService {
 
     List<UserReservationVO> getMyReservations(int userIdx);
 
-    void cancelReservation(int resIdx, int userIdx);
+    void cancelReservation(int resIdx, int userIdx, String email, String name);
 
     List<Integer> getUnavailableSlots(int spaceIdx, String date);
 
@@ -23,4 +23,7 @@ public interface UserReservationService {
 
     /** 해당 지점에 완료/진행중 예약이 있는지 확인 — 리뷰 작성 권한 체크용 */
     int countByUserAndBranch(int userIdx, int brnIdx);
+
+    /** 예약 단건 조회 */
+    UserReservationVO getReservationById(int resIdx);
 }
