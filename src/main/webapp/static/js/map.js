@@ -356,7 +356,7 @@ function displayMarkers(branches) {
                     <div style="font-weight:900; font-size:18px; color:#2F4F4F; margin-bottom:8px; padding-right:20px;">${branch.brnName}</div>
                     <div style="font-size:13px; color:#666; line-height:1.5; white-space:normal; word-break:keep-all; margin-bottom:15px;">${branch.brnAddress}</div>
                     <div style="display:flex; gap:10px;">
-                        <button onclick="location.href='/linkora/branch/detail?brnIdx=${branch.brnIdx}'"
+                        <button onclick="location.href='/linkora/detail/detail?brnIdx=${branch.brnIdx}'"
                             style="flex:1; background:#2F4F4F; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer;">
                             상세보기
                         </button>
@@ -423,6 +423,11 @@ function initResultList(branches, keyword) {
         panel.id = 'searchResultPanel';
         panel.style.cssText = 'position:absolute; top:110px; left:50%; transform:translateX(-50%); width:340px; max-height:calc(100vh - 150px); overflow-y:auto; background:white; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.2); z-index:10; display:none; overflow-x:hidden;';
         document.querySelector('.map-container').appendChild(panel);
+    } else {
+        // 새 검색 시 패널 위치 초기화
+        panel.style.top = '110px';
+        panel.style.left = '50%';
+        panel.style.transform = 'translateX(-50%)';
     }
 
     searchGroupedData = {};
@@ -435,13 +440,11 @@ function initResultList(branches, keyword) {
         if (!searchGroupedData[region]) {
             searchGroupedData[region] = [];
             searchRegionPage[region] = 0;
-            // 아코디언 UI를 위해 기본적으로 모두 닫힘 상태로 설정
             searchRegionOpen[region] = false;
         }
         searchGroupedData[region].push(b);
     });
 
-    // 검색 완료 후 첫 번째 지역만 자동으로 열리도록 처리
     const regions = Object.keys(searchGroupedData);
     if(regions.length > 0) {
         searchRegionOpen[regions[0]] = true;
@@ -456,13 +459,12 @@ function renderResultPanel(keyword, totalCount) {
     const panel = document.getElementById('searchResultPanel');
     if (!panel) return;
 
-    // 상단 고정 헤더 영역
-    let html = `<div style="display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:white; padding:20px; z-index:10; border-bottom: 1px solid #eee;">
+    // 상단 드래그 핸들 영역
+    let html = `<div id="panelDragHandle" style="display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:white; padding:20px; z-index:10; border-bottom: 1px solid #eee; cursor:grab;" title="마우스로 꾹 눌러 이동할 수 있습니다.">
                     <strong style="color:#2F4F4F; font-size:16px;">'${keyword}' 검색 결과 (${totalCount}개)</strong>
                     <button onclick="closeResultPanel()" style="background:none; border:none; font-size:22px; cursor:pointer; color:#999;"><i class="fa-solid fa-xmark"></i></button>
                 </div>`;
 
-    // 스크롤 영역 여백 설정
     html += `<div style="padding:20px; padding-top:15px;">`;
 
     for (const region in searchGroupedData) {
@@ -523,20 +525,48 @@ function renderResultPanel(keyword, totalCount) {
     html += `</div>`;
 
     panel.innerHTML = html;
+
+    // 패널 드래그 기능 이벤트 적용
+    const dragHandle = document.getElementById('panelDragHandle');
+    if (dragHandle) {
+        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+        dragHandle.onmousedown = function(e) {
+            e.preventDefault();
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+
+            document.onmouseup = function() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+                dragHandle.style.cursor = 'grab';
+            };
+
+            document.onmousemove = function(e) {
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+
+                // transform 속성 해제 후 자유 이동
+                panel.style.transform = 'none';
+                panel.style.top = (panel.offsetTop - pos2) + "px";
+                panel.style.left = (panel.offsetLeft - pos1) + "px";
+            };
+            dragHandle.style.cursor = 'grabbing';
+        };
+    }
 }
 
-// 지역별 아코디언 토글 (한 번에 하나씩만 열리도록 수정)
+// 지역별 아코디언 토글
 window.toggleRegion = function(region, keyword, totalCount) {
-    // 현재 클릭한 지역이 열려있는 상태인지 확인
     const isCurrentlyOpen = searchRegionOpen[region];
 
-    // 클릭 시 모든 지역을 일단 닫힘 상태로 초기화
     for (let key in searchRegionOpen) {
         searchRegionOpen[key] = false;
     }
 
-    // 클릭한 지역이 닫혀있었다면 열림 상태로 변경
-    // (이미 열려있었다면 위 반복문에서 닫혔으므로 닫힌 상태가 유지됨)
     if (!isCurrentlyOpen) {
         searchRegionOpen[region] = true;
     }
@@ -556,12 +586,15 @@ window.changePage = function(region, step, keyword, totalCount) {
     }
 };
 
-// 선택 지점 지도 포커스 이동
+// 선택 지점 지도 포커스 이동 및 패널 닫기
 window.moveToBranch = function(lat, lng) {
     if (map) {
         const pos = new kakao.maps.LatLng(lat, lng);
         map.setCenter(pos);
         map.setLevel(3);
+
+        // 지점 클릭 시 화면 가림 방지를 위해 패널 닫기
+        closeResultPanel();
     }
 };
 

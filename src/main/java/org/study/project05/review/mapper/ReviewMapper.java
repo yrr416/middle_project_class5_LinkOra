@@ -51,6 +51,9 @@ public interface ReviewMapper {
                                      @Param("offset")     int    offset,
                                      @Param("limit")      int    limit);
 
+    /** 관리자 리뷰 강제 삭제 전 신고 기록 삭제 */
+    int deleteReportsByRevIdx(@Param("revIdx") int revIdx);
+
     /** 관리자 리뷰 강제 삭제 */
     int deleteByAdmin(@Param("revIdx") int revIdx);
 
