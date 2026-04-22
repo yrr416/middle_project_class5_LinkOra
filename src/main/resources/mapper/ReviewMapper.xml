@@ -191,6 +191,11 @@
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
+    <!-- 관리자 강제 삭제 전 신고 기록 먼저 삭제 -->
+    <delete id="deleteReportsByRevIdx">
+        DELETE FROM review_report WHERE v_idx = #{revIdx}
+    </delete>
+
     <!-- 관리자 강제 삭제 (신고 누적 등) -->
     <delete id="deleteByAdmin">
         DELETE FROM review WHERE v_idx = #{revIdx}

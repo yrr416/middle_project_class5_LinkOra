@@ -67,6 +67,7 @@ public class AdminReviewController {
     public String delete(@RequestParam("revIdx") int revIdx,
                          @RequestParam(defaultValue = "1")  int    nowPage,
                          @RequestParam(defaultValue = "")   String searchWord) {
+        reviewMapper.deleteReportsByRevIdx(revIdx);
         reviewMapper.deleteByAdmin(revIdx);
         return "redirect:/admin/review/list?nowPage=" + nowPage
                 + "&searchWord=" + searchWord;
