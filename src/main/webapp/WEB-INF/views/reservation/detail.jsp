@@ -248,7 +248,13 @@
                         <div class="col-md-6">
                             <div class="info-row">
                                 <span class="info-label">결제 수단</span>
-                                <span class="info-value text-muted">정보 없음</span>
+                                <span class="info-value">
+                                    <c:choose>
+                                        <c:when test="${rvo.paymentType == 'ONLINE'}">온라인결제</c:when>
+                                        <c:when test="${rvo.paymentType == 'OFFLINE'}">현장결제</c:when>
+                                        <c:otherwise><span class="text-muted">정보 없음</span></c:otherwise>
+                                    </c:choose>
+                                </span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">결제 상태</span>
