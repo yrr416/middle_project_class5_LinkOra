@@ -228,10 +228,7 @@
                         <div class="d-flex align-items-center gap-2"><i class="bi bi-chat-left-dots text-info fs-5"></i><span>미처리 문의</span></div>
                         <span class="badge bg-info text-white rounded-pill px-3">${summary.pendingInquiryCnt}건</span>
                     </div>
-                    <div class="alert-item">
-                        <div class="d-flex align-items-center gap-2"><i class="bi bi-flag text-danger fs-5"></i><span>대기 중인 신고</span></div>
-                        <span class="badge bg-danger rounded-pill px-3">${summary.pendingReportCnt}건</span>
-                    </div>
+                    <%-- 대기 중인 신고: 추후 구현 예정 (보류) --%>
                 </div>
                 <div class="list-card">
                     <div class="list-header d-flex justify-content-between align-items-center">
