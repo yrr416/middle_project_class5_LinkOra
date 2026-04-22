@@ -1,11 +1,12 @@
 package org.study.project05.chat.controller;
 
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.study.project05.chat.service.ChatService;
 import org.study.project05.chat.vo.ChatVO;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/chat")
 @RequiredArgsConstructor
@@ -50,6 +51,7 @@ public class ChatController {
                     chatVO.setUserIdx(Long.parseLong(String.valueOf(uIdxObj)));
                 }
             } catch (Exception e) {
+                log.warn("세션 userIdx 파싱 오류 - 값: {}, 원인: {}", uIdxObj, e.getMessage());
                 chatVO.setUserIdx(0L);
             }
         }
@@ -75,7 +77,9 @@ public class ChatController {
             try {
                 if (uIdxObj instanceof Long) userIdx = (Long) uIdxObj;
                 else userIdx = Long.parseLong(String.valueOf(uIdxObj));
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                log.warn("getHistory userIdx 파싱 실패 - 값: {}, 원인: {}", uIdxObj, e.getMessage());
+            }
         }
         return chatService.getChatHistory(chatSession, userIdx, session.getId());
     }
@@ -91,7 +95,9 @@ public class ChatController {
              try {
                 if (uIdxObj instanceof Long) userIdx = (Long) uIdxObj;
                 else userIdx = Long.parseLong(String.valueOf(uIdxObj));
-             } catch (Exception e) {}
+             } catch (Exception e) {
+                log.warn("getRecentHistory userIdx 파싱 실패 - 값: {}, 원인: {}", uIdxObj, e.getMessage());
+             }
         }
         if (userIdx == null || userIdx == 0) {
             userIdx = 1L; // 비회원 또는 초기 상태 시 테스트용 기본 데이터 조회
