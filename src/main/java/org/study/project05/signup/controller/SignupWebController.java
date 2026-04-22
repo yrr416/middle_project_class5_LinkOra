@@ -59,11 +59,15 @@ public class SignupWebController {
             @RequestParam("userEmail") String email,
             @RequestParam("userAddr") String address,
             @RequestParam(value = "agreePrivacy", required = false) String agreePrivacy,
+            @RequestParam(value = "agreeTerms", required = false) String agreeTerms,
             @RequestParam(value = "profileImage", required = false) MultipartFile profileImage,
             HttpSession session
     ) {
         if (!"true".equals(agreePrivacy)) {
             return "redirect:/signup?error=privacyRequired";
+        }
+        if (!"true".equals(agreeTerms)) {
+            return "redirect:/signup?error=termsRequired";
         }
         if (!Objects.equals(password, passwordConfirm)) {
             return "redirect:/signup?error=passwordMismatch";
@@ -128,11 +132,15 @@ public class SignupWebController {
             @RequestParam("partnerEmail") String email,
             @RequestParam("partnerAddr") String address,
             @RequestParam(value = "agreePrivacy", required = false) String agreePrivacy,
+            @RequestParam(value = "agreeTerms", required = false) String agreeTerms,
             @RequestParam(value = "partnerProfileImage", required = false) MultipartFile profileImage,
             HttpSession session
     ) {
         if (!"true".equals(agreePrivacy)) {
             return "redirect:/partner-signup?error=privacyRequired";
+        }
+        if (!"true".equals(agreeTerms)) {
+            return "redirect:/partner-signup?error=termsRequired";
         }
         if (!Objects.equals(password, passwordConfirm)) {
             return "redirect:/partner-signup?error=passwordMismatch";

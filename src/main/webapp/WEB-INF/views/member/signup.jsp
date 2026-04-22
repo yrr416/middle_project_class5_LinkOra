@@ -247,6 +247,8 @@
         <p class="msg error">이메일 인증을 완료해 주세요.</p>
         <% } else if ("privacyRequired".equals(errorParam)) { %>
         <p class="msg error">개인정보 처리방침에 동의해야 회원가입할 수 있습니다.</p>
+        <% } else if ("termsRequired".equals(errorParam)) { %>
+        <p class="msg error">이용약관에 동의해야 회원가입할 수 있습니다.</p>
         <% } %>
 
         <form method="post" action="${pageContext.request.contextPath}/signup" enctype="multipart/form-data">
@@ -327,6 +329,10 @@
                 <label class="consent-label" for="agreePrivacy">
                     <input type="checkbox" name="agreePrivacy" value="true" id="agreePrivacy" required>
                     <span><a href="${pageContext.request.contextPath}/privacy" target="_blank" rel="noopener noreferrer">개인정보 처리방침</a>을 확인하였으며 이에 동의합니다. (필수)</span>
+                </label>
+                <label class="consent-label" for="agreeTerms" style="margin-top:8px;">
+                    <input type="checkbox" name="agreeTerms" value="true" id="agreeTerms" required>
+                    <span><a href="${pageContext.request.contextPath}/terms" target="_blank" rel="noopener noreferrer">이용약관</a>을 확인하였으며 이에 동의합니다. (필수)</span>
                 </label>
             </div>
             <button class="submit-btn" type="submit">회원가입</button>
@@ -665,6 +671,12 @@
         if (agreePrivacy && !agreePrivacy.checked) {
             e.preventDefault();
             alert('개인정보 처리방침에 동의해 주세요.');
+            return;
+        }
+        var agreeTerms = document.getElementById('agreeTerms');
+        if (agreeTerms && !agreeTerms.checked) {
+            e.preventDefault();
+            alert('이용약관에 동의해 주세요.');
             return;
         }
         var road = document.getElementById('sample4RoadAddress').value;

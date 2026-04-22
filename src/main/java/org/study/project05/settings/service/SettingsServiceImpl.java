@@ -38,6 +38,15 @@ public class SettingsServiceImpl implements SettingsService {
         return result;
     }
 
+    @Override
+    public String getSettingValue(String key) {
+        if (key == null || key.isBlank()) {
+            return "";
+        }
+        String value = settingsMapper.getSettingValue(key.strip());
+        return value == null ? "" : value;
+    }
+
     /** 단일 설정 저장 */
     @Override
     public int saveSetting(String key, String value) {

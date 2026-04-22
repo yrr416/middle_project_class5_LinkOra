@@ -13,6 +13,7 @@ public interface SettingsService {
 
     // ── 설정 키-값 ──────────────────────────────────────────────
     Map<String, String> getAllSettings();
+    String getSettingValue(String key);
     int saveSetting(String key, String value);
     int saveSettings(Map<String, String> settingsMap);
 
