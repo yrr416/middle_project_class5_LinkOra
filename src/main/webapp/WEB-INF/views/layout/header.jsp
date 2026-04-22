@@ -21,6 +21,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Link Ora - Premium Workspace</title>
 
+    <%-- 파비콘 404 에러 방지용 --%>
+    <link rel="icon" href="data:,">
+
     <%-- 공통 스타일 --%>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/layout.css">

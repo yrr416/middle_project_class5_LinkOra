@@ -8,7 +8,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.study.project05.branch.service.SpaceBranchService;
 import org.study.project05.branch.vo.BranchVO;
@@ -16,8 +15,9 @@ import org.study.project05.member.service.UserProfileService;
 import org.study.project05.member.vo.UserProfileVO;
 import org.study.project05.reservation.user.mapper.UserReservationMapper;
 
+// ... 상단 import 생략 ...
+
 @Controller
-@RequestMapping("/detail")
 public class BranchDetailController {
 
     @Value("${kakao.map.key}")
@@ -27,30 +27,33 @@ public class BranchDetailController {
     @Autowired private UserReservationMapper reservationMapper;
     @Autowired private UserProfileService userProfileService;
 
-    @GetMapping("/list")
+    // 1. 목록 페이지
+    @GetMapping("/detail/list")
     public String list(Model model) {
         model.addAttribute("branchList", branchService.getAllBranches());
         return "detail/list";
     }
 
-    @GetMapping("/detail")
-    public String detail(@RequestParam int brnIdx, Model model,
+    // 2. 상세 페이지 (다중 매핑 유지)
+    @GetMapping({"/detail/detail", "/branch/detail"})
+    public String detail(@RequestParam("brnIdx") int brnIdx, Model model,
                          HttpSession session, Authentication authentication) {
+
         BranchVO branch = branchService.getBranchWithSpaces(brnIdx);
+        if (branch == null) {
+            return "redirect:/error/404"; // 지점 정보가 없을 때의 방어 로직
+        }
+
         model.addAttribute("branch", branch);
         model.addAttribute("kakaoMapKey", kakaoMapKey);
 
-        // 세션에서 UserProfileVO 꺼냄 (팀원 Spring Security 로그인 시 저장됨)
         UserProfileVO loginUser = (UserProfileVO) session.getAttribute("loginUser");
 
-        // 세션에 없으면 authentication(u_id)으로 DB 조회 후 세션에 저장
-        if (loginUser == null
-                && authentication != null
-                && authentication.isAuthenticated()
+        if (loginUser == null && authentication != null && authentication.isAuthenticated()
                 && !(authentication instanceof AnonymousAuthenticationToken)) {
             loginUser = userProfileService.getByUserId(authentication.getName());
             if (loginUser != null) {
-                loginUser.setPassword(null); // 세션에 비밀번호 저장 방지
+                loginUser.setPassword(null);
                 session.setAttribute("loginUser", loginUser);
             }
         }
@@ -59,13 +62,12 @@ public class BranchDetailController {
                 reservationMapper.countByUserAndBranch(loginUser.getUserIdx(), brnIdx) > 0;
         model.addAttribute("hasReservation", hasReservation);
 
-        boolean isAdmin = authentication != null
-                && authentication.isAuthenticated()
+        boolean isAdmin = authentication != null && authentication.isAuthenticated()
                 && !(authentication instanceof AnonymousAuthenticationToken)
                 && authentication.getAuthorities().stream()
-                   .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         model.addAttribute("isAdmin", isAdmin);
 
-        return "detail/detail";
+        return "detail/detail"; // WEB-INF/views/detail/detail.jsp를 호출
     }
 }

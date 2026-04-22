@@ -226,78 +226,79 @@
         </div>
     </section>
 
-    <div class="container" id="promoWrapper">
-        <div class="promo-slider-container" id="promoContainer">
+    <div class="container">
 
-            <button type="button" class="promo-close" onclick="closePromoBanner()" title="닫기">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+        <div id="promoWrapper">
+            <div class="promo-slider-container" id="promoContainer">
 
-            <div class="promo-track" id="promoTrack">
-                <c:choose>
-                    <c:when test="${not empty eventList}">
-                        <c:forEach var="ev" items="${eventList}">
-                            <a href="${pageContext.request.contextPath}/notice/detail?ntcIdx=${ev.ntcIdx}"
-                               class="promo-slide">
-                                <c:if test="${not empty ev.ntcImg}">
-                                    <div class="promo-slide-img-col">
-                                        <c:choose>
-                                            <c:when test="${fn:startsWith(ev.ntcImg, 'http')}">
-                                                <img src="${ev.ntcImg}" alt="${ev.ntcTitle}" class="promo-slide-img">
-                                            </c:when>
-                                            <c:otherwise>
-                                                <c:set var="fullName" value="${ev.ntcImg}" />
-                                                <c:set var="fileName" value="${fn:contains(fullName, '/') ? fn:split(fullName, '/')[fn:length(fn:split(fullName, '/'))-1] : fullName}" />
-                                                <img src="${pageContext.request.contextPath}/static/upload/notice/${fileName}" alt="${ev.ntcTitle}" class="promo-slide-img">
-                                            </c:otherwise>
-                                        </c:choose>
+                <button type="button" class="promo-close" onclick="closePromoBanner()" title="닫기">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+                <div class="promo-track" id="promoTrack">
+                    <c:choose>
+                        <c:when test="${not empty eventList}">
+                            <c:forEach var="ev" items="${eventList}">
+                                <a href="${pageContext.request.contextPath}/notice/detail?ntcIdx=${ev.ntcIdx}"
+                                   class="promo-slide">
+                                    <c:if test="${not empty ev.ntcImg}">
+                                        <div class="promo-slide-img-col">
+                                            <c:choose>
+                                                <c:when test="${fn:startsWith(ev.ntcImg, 'http')}">
+                                                    <img src="${ev.ntcImg}" alt="${ev.ntcTitle}" class="promo-slide-img">
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <c:set var="fullName" value="${ev.ntcImg}" />
+                                                    <c:set var="fileName" value="${fn:contains(fullName, '/') ? fn:split(fullName, '/')[fn:length(fn:split(fullName, '/'))-1] : fullName}" />
+                                                    <img src="${pageContext.request.contextPath}/static/upload/notice/${fileName}" alt="${ev.ntcTitle}" class="promo-slide-img">
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
+                                    </c:if>
+
+                                    <div class="promo-slide-text">
+                                        <span class="promo-slide-badge">EVENT</span>
+                                        <h3 class="promo-slide-title">${ev.ntcTitle}</h3>
+                                        <p class="promo-slide-date">
+                                            <c:if test="${not empty ev.ntcCreated and fn:length(ev.ntcCreated) >= 10}">
+                                                ${fn:substring(ev.ntcCreated, 0, 10)}
+                                            </c:if>
+                                        </p>
                                     </div>
-                                </c:if>
-
-                                <div class="promo-slide-text">
+                                </a>
+                            </c:forEach>
+                        </c:when>
+                        <c:otherwise>
+                            <a href="${pageContext.request.contextPath}/notice/list?activeFilter=1" class="promo-slide">
+                                <div>
                                     <span class="promo-slide-badge">EVENT</span>
-                                    <h3 class="promo-slide-title">${ev.ntcTitle}</h3>
-                                    <p class="promo-slide-date">
-                                        <c:if test="${not empty ev.ntcCreated and fn:length(ev.ntcCreated) >= 10}">
-                                            ${fn:substring(ev.ntcCreated, 0, 10)}
-                                        </c:if>
-                                    </p>
+                                    <h3 class="promo-slide-title">진행 중인 이벤트를 확인하세요</h3>
+                                    <p class="promo-slide-date">Link Ora 공지/이벤트 페이지</p>
                                 </div>
                             </a>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+
+                <button class="promo-nav prev" id="promoPrev">&#8249;</button>
+                <button class="promo-nav next" id="promoNext">&#8250;</button>
+
+            </div>
+
+            <div class="promo-dots-bar" id="promoDots">
+                <c:choose>
+                    <c:when test="${not empty eventList}">
+                        <c:forEach var="ev" items="${eventList}" varStatus="st">
+                            <div class="promo-dot ${st.first ? 'active' : ''}"></div>
                         </c:forEach>
                     </c:when>
                     <c:otherwise>
-                        <a href="${pageContext.request.contextPath}/notice/list?activeFilter=1" class="promo-slide">
-                            <div>
-                                <span class="promo-slide-badge">EVENT</span>
-                                <h3 class="promo-slide-title">진행 중인 이벤트를 확인하세요</h3>
-                                <p class="promo-slide-date">Link Ora 공지/이벤트 페이지</p>
-                            </div>
-                        </a>
+                        <div class="promo-dot active"></div>
                     </c:otherwise>
                 </c:choose>
             </div>
-
-            <button class="promo-nav prev" id="promoPrev">&#8249;</button>
-            <button class="promo-nav next" id="promoNext">&#8250;</button>
-
-        </div>
-
-        <div class="promo-dots-bar" id="promoDots">
-            <c:choose>
-                <c:when test="${not empty eventList}">
-                    <c:forEach var="ev" items="${eventList}" varStatus="st">
-                        <div class="promo-dot ${st.first ? 'active' : ''}"></div>
-                    </c:forEach>
-                </c:when>
-                <c:otherwise>
-                    <div class="promo-dot active"></div>
-                </c:otherwise>
-            </c:choose>
-        </div>
-
-        <script>
-        /* 이벤트 배너 영역 숨김 처리 기능 */
+        </div> <script>
+        /* 이벤트 배너 영역 숨김 처리 기능 (이제 promoWrapper 안에 있는 배너만 숨겨요!) */
         function closePromoBanner() {
             document.getElementById('promoWrapper').style.display = 'none';
         }
@@ -467,6 +468,49 @@
     </div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabNear = document.getElementById('tabNear');
+            const tabFavorite = document.getElementById('tabFavorite');
+
+            // 세션에서 로그인 상태를 확인해요
+            const isLoggedIn = "${not empty sessionScope.userIdx || not empty sessionScope.user || not empty sessionScope.loginUser}";
+
+            if(tabFavorite) {
+                // 관심 지점 클릭 시 캡처링으로 먼저 가로채기
+                tabFavorite.addEventListener('click', (e) => {
+                    if (isLoggedIn === "false") {
+                        e.preventDefault();
+                        e.stopImmediatePropagation(); // 기존 맵 스크립트가 실행되는 걸 차단해요
+                        alert("로그인이 필요한 서비스입니다.");
+                        window.location.href = "${pageContext.request.contextPath}/loginPage"; // 로그인 창으로 이동
+                    }
+                }, true);
+            }
+
+            if(tabNear) {
+                // 주변 지점 클릭 시 지도가 꼬이는 현상을 막기 위해 새로고침으로 완벽히 초기화해요
+                tabNear.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+
+                    tabFavorite.classList.remove('active');
+                    tabFavorite.classList.add('inactive');
+                    tabFavorite.style.color = '#bbb';
+
+                    tabNear.classList.remove('inactive');
+                    tabNear.classList.add('active');
+                    tabNear.style.color = '#2F4F4F';
+
+                    // 0.05초 뒤에 메인 페이지로 다시 돌아오면서 지도를 초기 상태로 만들어요
+                    setTimeout(() => {
+                        window.location.href = "${pageContext.request.contextPath}/";
+                    }, 50);
+                }, true);
+            }
+        });
+    </script>
+
+    <script>
         function playTourVideo() {
             const video = document.getElementById('tourVideo');
             const container = document.getElementById('tourVideoContainer');
@@ -543,8 +587,8 @@
         });
     </script>
 
-    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=cd1f0f4ad9dcf4879bee2531dc5a0497&libraries=services&autoload=false"></script>
-    <script src="${pageContext.request.contextPath}/static/js/mp_script.js"></script>
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=f46b246e453c7ccbab5a79c4aa737bcc&libraries=services&autoload=false"></script>
+    <script src="${pageContext.request.contextPath}/static/js/mp_script.js?v=9999"></script>
 
 </main>
 

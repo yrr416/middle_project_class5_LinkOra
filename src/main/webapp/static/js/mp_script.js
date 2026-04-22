@@ -33,6 +33,15 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
+    document.querySelectorAll('.sidebar-nav a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            if (!link.classList.contains('accordion-toggle') && link.getAttribute('href') !== '#') {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+            }
+        });
+    });
+
     // 2. 프로모션(광고) 슬라이드 제어
     const promoContainer = document.getElementById('promoContainer');
     const promoTrack = document.getElementById('promoTrack');
@@ -228,7 +237,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (activeInfoOverlay) activeInfoOverlay.setMap(null);
         });
 
-        // 지점 데이터 로드 함수 수정
         window.loadBranches = function(keyword = "", type = "all") {
 
             markers.forEach(m => m.setMap(null));
@@ -236,8 +244,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (activeInfoOverlay) activeInfoOverlay.setMap(null);
             markers = []; overlays = [];
 
-            // [수정] contextPath를 동적으로 적용하여 경로 호환성 확보
             const cp = window.contextPath || "";
+            let fetchUrl = "";
 
             if (type === "favorite") {
                 fetchUrl = `${cp}/api/wishlist/my`;
@@ -245,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetchUrl = `${cp}/api/all-branches`;
             } else {
                 fetchUrl = `${cp}/api/branches?keyword=${encodeURIComponent(keyword)}`;
-                const iisMapPage = location.pathname.includes('/map');
+                const isMapPage = location.pathname.includes('/map');
                 if (centerLatLng && !isMapPage) {
                     fetchUrl += `&lat=${centerLatLng.getLat()}&lng=${centerLatLng.getLng()}`;
                 }
@@ -253,12 +261,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             fetch(fetchUrl)
                 .then(res => {
-                    // 서버 응답이 실패한 경우 에러 발생
                     if (!res.ok) throw new Error("API 서버 응답 에러: " + res.status);
                     return res.json();
                 })
                 .then(branches => {
-                    // 로그인 필요 알림 처리 방어 로직
                     if (branches.status === 'login_required') {
                         if (!window.isLoginAlertShown) {
                             alert("로그인이 필요한 서비스입니다.");
@@ -268,7 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         return;
                     }
 
-                    // 배열이 아닌 데이터가 넘어올 경우 forEach 에러 방지
                     if (!Array.isArray(branches)) {
                         console.warn("데이터 형식이 올바르지 않습니다.");
                         return;
@@ -303,6 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const contentWrap = document.createElement('div');
                                 const descText = branch.brnDescription ? branch.brnDescription : '프리미엄 공유 오피스';
 
+                                // 🚨 핵심 수정 부분! 올바른 주소 /linkora/detail/detail 로 100% 변경함!
                                 contentWrap.innerHTML = `
                                     <div style="background:white; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.2); width:210px; border:1px solid #eee; padding:15px; margin-bottom: 110px;">
                                         <div style="font-weight:800; font-size:15px; color:#2F4F4F; margin-bottom:5px;">${branch.brnName}</div>
@@ -316,8 +322,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                         </div>
                                     </div>`;
 
+                                // [수정된 부분] 알림창(alert)을 완전히 지우고 주소 이동만 남겼어!
                                 contentWrap.querySelector('.detailBtn').addEventListener('click', () => {
-                                    alert("아직 상세 페이지가 연결되지 않았습니다!");
+                                    const contextPath = "/linkora"; // 사용자님의 context-path 설정값
+                                    location.href = contextPath + "/detail/detail?brnIdx=" + branch.brnIdx;
                                 });
 
                                 const wishBtn = contentWrap.querySelector('.wishBtn');
@@ -371,8 +379,6 @@ window.toggleWish = function (target, brnIdx) {
     if (!btn) return;
 
     const icon = btn.querySelector('i');
-
-    // [수정] contextPath 동적 적용
     const cp = window.contextPath || "";
 
     fetch(`${cp}/api/wishlist/toggle`, {
@@ -396,7 +402,6 @@ window.toggleWish = function (target, brnIdx) {
                     window.isLoginAlertShown = true;
                     setTimeout(() => { window.isLoginAlertShown = false; }, 1500);
                 }
-                // 로그인 이동 경로 수정
                 location.href = `${cp}/login`;
             }
         })

@@ -46,9 +46,35 @@
     <sql id="branchFilters">
         b.b_active = 1
 
-        <if test="type != null and type != ''">
+        <if test="(type != null and type != '') or capacity != null">
             AND EXISTS (
-            SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_type = #{type}
+            SELECT 1 FROM space s
+            WHERE s.b_idx = b.b_idx
+            <if test="type != null and type != ''">
+                AND s.s_type = #{type}
+            </if>
+            <if test="capacity != null">
+                <choose>
+                    <when test="capacity == 1">
+                        AND CAST(s.s_max_capacity AS UNSIGNED) = 1
+                    </when>
+                    <when test="capacity == 5">
+                        AND CAST(s.s_max_capacity AS UNSIGNED) &gt; 1 AND CAST(s.s_max_capacity AS UNSIGNED) &lt;= 5
+                    </when>
+                    <when test="capacity == 10">
+                        AND CAST(s.s_max_capacity AS UNSIGNED) &gt; 5 AND CAST(s.s_max_capacity AS UNSIGNED) &lt;= 10
+                    </when>
+                    <when test="capacity == 20">
+                        AND CAST(s.s_max_capacity AS UNSIGNED) &gt; 10 AND CAST(s.s_max_capacity AS UNSIGNED) &lt;= 20
+                    </when>
+                    <when test="capacity == 21">
+                        AND CAST(s.s_max_capacity AS UNSIGNED) &gt;= 21
+                    </when>
+                    <otherwise>
+                        AND CAST(s.s_max_capacity AS UNSIGNED) &gt;= #{capacity}
+                    </otherwise>
+                </choose>
+            </if>
             )
         </if>
 
@@ -56,23 +82,20 @@
             AND (
             b.b_name LIKE CONCAT('%', #{keyword}, '%')
             OR b.b_address LIKE CONCAT('%', #{keyword}, '%')
-            OR b.b_description LIKE CONCAT('%', #{keyword}, '%')
             OR EXISTS (
-            SELECT 1 FROM space s WHERE s.b_idx = b.b_idx AND s.s_name LIKE CONCAT('%', #{keyword}, '%')
+            SELECT 1 FROM space s WHERE s.b_idx = b.b_idx
+            AND (
+            s.s_name LIKE CONCAT('%', #{keyword}, '%')
+            OR CONCAT(CAST(s.s_max_capacity AS CHAR), '인') = #{keyword}
+            OR CONCAT(CAST(s.s_max_capacity AS CHAR), '명') = #{keyword}
+            OR CAST(s.s_max_capacity AS CHAR) = #{keyword}
+            )
             )
             )
         </if>
 
         <if test="region != null and region != ''">
-            AND b.b_address LIKE CONCAT('%', #{region}, '%')
-        </if>
-
-        <if test="capacity != null">
-            AND EXISTS (
-            SELECT 1 FROM space s
-            WHERE s.b_idx = b.b_idx
-            AND CAST(s.s_max_capacity AS UNSIGNED) >= #{capacity}
-            )
+            AND b.b_address LIKE CONCAT('%', REPLACE(#{region}, ' ', '%'), '%')
         </if>
 
         <if test="facParking != null and facParking == 1"> AND EXISTS (SELECT 1 FROM space s JOIN facilities f ON s.s_idx = f.s_idx WHERE s.b_idx = b.b_idx AND f.f_parking = 1) </if>
