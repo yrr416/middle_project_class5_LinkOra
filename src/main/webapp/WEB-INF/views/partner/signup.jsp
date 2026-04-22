@@ -140,6 +140,16 @@
         .id-check-msg.ok { color: #16a34a; font-weight: 600; }
         .id-check-msg.fail { color: #dc2626; font-weight: 600; }
         .id-check-msg.wait { color: #64748b; }
+        .verify-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 8px;
+        }
+        .verify-row input {
+            flex: 1;
+            min-width: 0;
+        }
         .consent-block { margin-top: 12px; margin-bottom: 8px; }
         .consent-label {
             display: flex;
@@ -185,6 +195,8 @@
         <p class="msg error">전화번호 형식은 xxx-xxxx-xxxx 입니다.</p>
         <% } else if ("emailFormat".equals(errorParam)) { %>
         <p class="msg error">이메일에는 @와 .이 모두 포함되어야 합니다.</p>
+        <% } else if ("emailVerifyRequired".equals(errorParam)) { %>
+        <p class="msg error">이메일 인증을 완료해 주세요.</p>
         <% } else if ("bizNoFormat".equals(errorParam)) { %>
         <p class="msg error">사업자번호 형식은 xxx-xx-xxxxx 입니다.</p>
         <% } else if ("schema".equals(errorParam)) { %>
@@ -243,6 +255,13 @@
                     <button type="button" class="dup-check-btn" id="partnerEmailDupCheckBtn">중복 확인</button>
                 </div>
                 <p id="partnerEmailCheckMsg" class="id-check-msg" role="status" aria-live="polite"></p>
+                <div class="verify-row">
+                    <input type="text" id="partnerEmailVerifyCode" placeholder="인증번호 6자리" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+                    <button type="button" class="dup-check-btn" id="partnerSendEmailCodeBtn">인증번호 받기</button>
+                    <button type="button" class="dup-check-btn" id="partnerVerifyEmailCodeBtn">인증 확인</button>
+                </div>
+                <p id="partnerEmailVerifyMsg" class="id-check-msg" role="status" aria-live="polite"></p>
+                <input type="hidden" id="partnerEmailVerified" value="false">
             </div>
             <div class="form-group">
                 <label for="sample4Postcode">주소</label>
@@ -389,12 +408,29 @@
         var partnerEmailInput = document.getElementById('partnerEmail');
         var partnerEmailDupBtn = document.getElementById('partnerEmailDupCheckBtn');
         var partnerEmailMsg = document.getElementById('partnerEmailCheckMsg');
+        var partnerSendEmailCodeBtn = document.getElementById('partnerSendEmailCodeBtn');
+        var partnerVerifyEmailCodeBtn = document.getElementById('partnerVerifyEmailCodeBtn');
+        var partnerEmailVerifyCodeInput = document.getElementById('partnerEmailVerifyCode');
+        var partnerEmailVerifyMsg = document.getElementById('partnerEmailVerifyMsg');
+        var partnerEmailVerified = document.getElementById('partnerEmailVerified');
         if (partnerEmailInput && partnerEmailDupBtn && partnerEmailMsg) {
             function clearPartnerEmailMsg() {
                 partnerEmailMsg.textContent = '';
                 partnerEmailMsg.className = 'id-check-msg';
+                if (partnerEmailVerifyMsg) {
+                    partnerEmailVerifyMsg.textContent = '';
+                    partnerEmailVerifyMsg.className = 'id-check-msg';
+                }
+                if (partnerEmailVerified) {
+                    partnerEmailVerified.value = 'false';
+                }
             }
             partnerEmailInput.addEventListener('input', clearPartnerEmailMsg);
+            if (partnerEmailVerifyCodeInput) {
+                partnerEmailVerifyCodeInput.addEventListener('input', function () {
+                    partnerEmailVerifyCodeInput.value = (partnerEmailVerifyCodeInput.value || '').replace(/\D/g, '').substring(0, 6);
+                });
+            }
             partnerEmailDupBtn.addEventListener('click', function () {
                 var em = (partnerEmailInput.value || '').trim();
                 if (!em) {
@@ -425,6 +461,97 @@
                         partnerEmailDupBtn.disabled = false;
                     });
             });
+
+            function csrfInfo() {
+                var csrfName = '${_csrf.parameterName}';
+                var csrfToken = '${_csrf.token}';
+                return { name: csrfName, token: csrfToken };
+            }
+
+            if (partnerSendEmailCodeBtn) {
+                partnerSendEmailCodeBtn.addEventListener('click', function () {
+                    var em = (partnerEmailInput.value || '').trim();
+                    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) {
+                        partnerEmailVerifyMsg.className = 'id-check-msg fail';
+                        partnerEmailVerifyMsg.textContent = '올바른 이메일 형식을 입력해 주세요.';
+                        return;
+                    }
+                    var csrf = csrfInfo();
+                    partnerSendEmailCodeBtn.disabled = true;
+                    partnerEmailVerifyMsg.className = 'id-check-msg wait';
+                    partnerEmailVerifyMsg.textContent = '인증번호 발송 중…';
+                    fetch('${pageContext.request.contextPath}/api/signup/send-email-code', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': csrf.token
+                        },
+                        body: 'email=' + encodeURIComponent(em) + '&' + encodeURIComponent(csrf.name) + '=' + encodeURIComponent(csrf.token)
+                    })
+                        .then(function (res) { return res.json(); })
+                        .then(function (data) {
+                            var ok = data && data.success === true;
+                            partnerEmailVerifyMsg.className = ok ? 'id-check-msg ok' : 'id-check-msg fail';
+                            if (!ok && data && data.cooldownSeconds) {
+                                partnerEmailVerifyMsg.textContent = '재요청은 ' + data.cooldownSeconds + '초 후 가능합니다.';
+                            } else {
+                                partnerEmailVerifyMsg.textContent = (data && data.message) ? data.message : (ok ? '인증번호를 보냈습니다.' : '인증번호 발송에 실패했습니다.');
+                            }
+                            partnerEmailVerified.value = 'false';
+                        })
+                        .catch(function () {
+                            partnerEmailVerifyMsg.className = 'id-check-msg fail';
+                            partnerEmailVerifyMsg.textContent = '인증번호 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+                        })
+                        .finally(function () {
+                            partnerSendEmailCodeBtn.disabled = false;
+                        });
+                });
+            }
+
+            if (partnerVerifyEmailCodeBtn) {
+                partnerVerifyEmailCodeBtn.addEventListener('click', function () {
+                    var em = (partnerEmailInput.value || '').trim();
+                    var code = (partnerEmailVerifyCodeInput && partnerEmailVerifyCodeInput.value ? partnerEmailVerifyCodeInput.value : '').trim();
+                    if (!em || !code) {
+                        partnerEmailVerifyMsg.className = 'id-check-msg fail';
+                        partnerEmailVerifyMsg.textContent = '이메일과 인증번호를 입력해 주세요.';
+                        return;
+                    }
+                    var csrf = csrfInfo();
+                    partnerVerifyEmailCodeBtn.disabled = true;
+                    partnerEmailVerifyMsg.className = 'id-check-msg wait';
+                    partnerEmailVerifyMsg.textContent = '인증 확인 중…';
+                    fetch('${pageContext.request.contextPath}/api/signup/verify-email-code', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': csrf.token
+                        },
+                        body: 'email=' + encodeURIComponent(em) + '&code=' + encodeURIComponent(code)
+                            + '&' + encodeURIComponent(csrf.name) + '=' + encodeURIComponent(csrf.token)
+                    })
+                        .then(function (res) { return res.json(); })
+                        .then(function (data) {
+                            var ok = data && data.success === true;
+                            partnerEmailVerifyMsg.className = ok ? 'id-check-msg ok' : 'id-check-msg fail';
+                            partnerEmailVerifyMsg.textContent = (data && data.message) ? data.message : (ok ? '인증 완료' : '인증 실패');
+                            partnerEmailVerified.value = ok ? 'true' : 'false';
+                        })
+                        .catch(function () {
+                            partnerEmailVerifyMsg.className = 'id-check-msg fail';
+                            partnerEmailVerifyMsg.textContent = '인증 처리에 실패했습니다.';
+                            partnerEmailVerified.value = 'false';
+                        })
+                        .finally(function () {
+                            partnerVerifyEmailCodeBtn.disabled = false;
+                        });
+                });
+            }
         }
 
         document.querySelector('form').addEventListener('submit', function (e) {
@@ -447,6 +574,11 @@
             if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
                 e.preventDefault();
                 alert('이메일에는 @와 .이 모두 포함되어야 합니다.');
+                return;
+            }
+            if (!partnerEmailVerified || partnerEmailVerified.value !== 'true') {
+                e.preventDefault();
+                alert('이메일 인증을 완료해 주세요.');
                 return;
             }
             var agreePrivacyEl = document.getElementById('agreePrivacy');
