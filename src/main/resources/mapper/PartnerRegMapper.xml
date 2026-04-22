@@ -37,7 +37,7 @@
 
     <!-- 지점 대표 이미지 URL 업데이트 -->
     <update id="updateBranchImgUrl">
-        UPDATE branch SET b_url = #{brnUrl} WHERE b_idx = #{brnIdx}
+        UPDATE branch SET b_url = #{brnUrl}, b_file = #{brnUrl} WHERE b_idx = #{brnIdx}
     </update>
 
     <!-- 지점 이미지 INSERT -->

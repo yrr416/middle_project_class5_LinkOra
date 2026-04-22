@@ -6,21 +6,26 @@ package org.study.project05.common.controller;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.study.project05.settings.service.SettingsService;
 
 @Controller
 public class CommonWebController {
 
     private final JdbcTemplate jdbcTemplate;
     private final String datasourceUrl;
+    private final SettingsService settingsService;
 
     public CommonWebController(
             JdbcTemplate jdbcTemplate,
-            @Value("${spring.datasource.url:}") String datasourceUrl
+            @Value("${spring.datasource.url:}") String datasourceUrl,
+            SettingsService settingsService
     ) {
         this.jdbcTemplate = jdbcTemplate;
         this.datasourceUrl = datasourceUrl;
+        this.settingsService = settingsService;
     }
 
     @GetMapping("/root-home")
@@ -50,8 +55,30 @@ public class CommonWebController {
 
     /** 회원가입 동의용 개인정보 처리방침 안내 페이지. */
     @GetMapping("/privacy")
-    public String privacyPage() {
+    public String privacyPage(Model model) {
+        String content = settingsService.getSettingValue("privacy_content");
+        if (content == null || content.isBlank()) {
+            content = """
+                    <p>개인정보 처리방침 내용이 아직 등록되지 않았습니다.</p>
+                    <p>관리자 설정에서 <strong>privacy_content</strong> 값을 등록해 주세요.</p>
+                    """;
+        }
+        model.addAttribute("privacyContent", content);
         return "common/privacy";
+    }
+
+    /** 회원가입 동의용 이용약관 안내 페이지. */
+    @GetMapping("/terms")
+    public String termsPage(Model model) {
+        String content = settingsService.getSettingValue("terms_content");
+        if (content == null || content.isBlank()) {
+            content = """
+                    <p>이용약관 내용이 아직 등록되지 않았습니다.</p>
+                    <p>관리자 설정에서 <strong>terms_content</strong> 값을 등록해 주세요.</p>
+                    """;
+        }
+        model.addAttribute("termsContent", content);
+        return "common/terms";
     }
 
     @GetMapping("/db-check")

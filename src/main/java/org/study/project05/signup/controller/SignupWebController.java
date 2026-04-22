@@ -3,6 +3,7 @@
  */
 package org.study.project05.signup.controller;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +13,7 @@ import org.study.project05.common.service.ProfileImageStorageService;
 import org.study.project05.common.util.PasswordPolicy;
 import org.study.project05.member.service.UserProfileService;
 import org.study.project05.signup.service.PartnerSignupService;
+import org.study.project05.signup.service.SignupEmailVerificationService;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -23,15 +25,18 @@ public class SignupWebController {
     private final UserProfileService userProfileService;
     private final PartnerSignupService partnerSignupService;
     private final ProfileImageStorageService profileImageStorage;
+    private final SignupEmailVerificationService signupEmailVerificationService;
 
     public SignupWebController(
             UserProfileService userProfileService,
             PartnerSignupService partnerSignupService,
-            ProfileImageStorageService profileImageStorage
+            ProfileImageStorageService profileImageStorage,
+            SignupEmailVerificationService signupEmailVerificationService
     ) {
         this.userProfileService = userProfileService;
         this.partnerSignupService = partnerSignupService;
         this.profileImageStorage = profileImageStorage;
+        this.signupEmailVerificationService = signupEmailVerificationService;
     }
 
     @GetMapping("/signup")
@@ -54,10 +59,15 @@ public class SignupWebController {
             @RequestParam("userEmail") String email,
             @RequestParam("userAddr") String address,
             @RequestParam(value = "agreePrivacy", required = false) String agreePrivacy,
-            @RequestParam(value = "profileImage", required = false) MultipartFile profileImage
+            @RequestParam(value = "agreeTerms", required = false) String agreeTerms,
+            @RequestParam(value = "profileImage", required = false) MultipartFile profileImage,
+            HttpSession session
     ) {
         if (!"true".equals(agreePrivacy)) {
             return "redirect:/signup?error=privacyRequired";
+        }
+        if (!"true".equals(agreeTerms)) {
+            return "redirect:/signup?error=termsRequired";
         }
         if (!Objects.equals(password, passwordConfirm)) {
             return "redirect:/signup?error=passwordMismatch";
@@ -74,6 +84,9 @@ public class SignupWebController {
         String trimmedEmail = normalizeEmail(email);
         if (trimmedEmail.isEmpty() || !trimmedEmail.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
             return "redirect:/signup?error=emailFormat";
+        }
+        if (!signupEmailVerificationService.isVerified(session, trimmedEmail)) {
+            return "redirect:/signup?error=emailVerifyRequired";
         }
         String trimmedUserId = normalizeUserId(userId);
         if (trimmedUserId.isEmpty()) {
@@ -119,10 +132,15 @@ public class SignupWebController {
             @RequestParam("partnerEmail") String email,
             @RequestParam("partnerAddr") String address,
             @RequestParam(value = "agreePrivacy", required = false) String agreePrivacy,
-            @RequestParam(value = "partnerProfileImage", required = false) MultipartFile profileImage
+            @RequestParam(value = "agreeTerms", required = false) String agreeTerms,
+            @RequestParam(value = "partnerProfileImage", required = false) MultipartFile profileImage,
+            HttpSession session
     ) {
         if (!"true".equals(agreePrivacy)) {
             return "redirect:/partner-signup?error=privacyRequired";
+        }
+        if (!"true".equals(agreeTerms)) {
+            return "redirect:/partner-signup?error=termsRequired";
         }
         if (!Objects.equals(password, passwordConfirm)) {
             return "redirect:/partner-signup?error=passwordMismatch";
@@ -149,6 +167,9 @@ public class SignupWebController {
         }
         if (trimmedPartnerEmail.isEmpty() || !trimmedPartnerEmail.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
             return "redirect:/partner-signup?error=emailFormat";
+        }
+        if (!signupEmailVerificationService.isVerified(session, trimmedPartnerEmail)) {
+            return "redirect:/partner-signup?error=emailVerifyRequired";
         }
         if (businessNo == null || !businessNo.matches("\\d{3}-\\d{2}-\\d{5}")) {
             return "redirect:/partner-signup?error=bizNoFormat";
