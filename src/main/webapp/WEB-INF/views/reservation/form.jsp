@@ -1,4 +1,4 @@
-g<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.time.LocalDate" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <% String today = LocalDate.now().toString(); %>
@@ -72,8 +72,6 @@ g<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
             <input type="hidden" name="spcIdx"        value="${space.spcIdx}">
             <input type="hidden" name="resStartTime" id="startTimeInput">
             <input type="hidden" name="resEndTime"   id="endTimeInput">
-            <%-- 영업시간 파싱용: JS 문자열 직접 주입 시 줄바꿈 오류가 생겨 hidden 요소로 전달 --%>
-            <div id="branchHoursData" class="hidden">${branch.brnHours}</div>
 
             <%-- 날짜 선택 --%>
             <div class="mb-6">
@@ -252,55 +250,12 @@ g<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
     let selStart = null;
     let selEnd   = null;
 
-    /* ── 영업시간 파싱 → 오늘의 openHour / closeHour 계산 ──
-       반환값: { open: 0~23, close: 0~24 }
-       파싱 실패 시 { open: 0, close: 24 } (제한 없음)
-    */
-    function parseBranchHours() {
-        const el = document.getElementById('branchHoursData');
-        if (!el) return { open: 0, close: 24 };
-        const text = el.textContent || '';
-        if (!text.trim()) return { open: 0, close: 24 };
-
-        // 24시간 연중무휴
-        if (text.indexOf('24시간') !== -1) return { open: 0, close: 24 };
-
-        const day = new Date().getDay(); // 0=일, 1~5=평일, 6=토
-
-        // 오늘 요일 → 검색 키워드 (우선순위 순)
-        let keywords;
-        if      (day === 0)            keywords = ['일요일', '주말'];
-        else if (day >= 1 && day <= 5) keywords = ['평일'];
-        else                           keywords = ['토요일', '주말'];
-
-        const lines = text.split('\n');
-        let matched = null;
-
-        // 키워드 우선순위 순서로 매칭
-        for (const kw of keywords) {
-            matched = lines.find(l => l.indexOf(kw) !== -1) || null;
-            if (matched) break;
-        }
-
-        // 키워드 없이 시간만 있는 줄 (예: "09:00 ~ 22:00") — 전체 적용
-        if (!matched) {
-            matched = lines.find(l => /^\s*\d{2}:\d{2}\s*~\s*\d{2}:\d{2}\s*$/.test(l)) || null;
-        }
-
-        if (!matched) return { open: 0, close: 24 };
-
-        // 휴무 → 종일 예약 불가
-        if (matched.indexOf('휴무') !== -1) return { open: 0, close: 0 };
-
-        // "HH:MM ~ HH:MM" 파싱
-        const m = matched.match(/(\d{2}):(\d{2})\s*~\s*(\d{2}):(\d{2})/);
-        if (!m) return { open: 0, close: 24 };
-
-        return { open: parseInt(m[1]), close: parseInt(m[3]) };
-    }
-
-    // 페이지 로드 시 1회 계산 (요일이 바뀌지 않으므로 캐싱)
-    const BIZ_HOURS = parseBranchHours();
+    // 서버에서 파싱한 오늘 영업시간 (Java: parseBizHours)
+    // open=-1 은 정보 없음(제한 없음)으로 처리
+    const BIZ_HOURS = (function() {
+        const o = ${bizOpen}, c = ${bizClose};
+        return (o === -1) ? { open: 0, close: 24 } : { open: o, close: c };
+    })();
 
     /* ── 날짜 변경 → AJAX ── */
     async function onDateChange(date) {

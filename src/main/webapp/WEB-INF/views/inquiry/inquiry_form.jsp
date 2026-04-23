@@ -114,5 +114,22 @@
     </div>
 </main>
 
+<script>
+(function() {
+    const params = new URLSearchParams(window.location.search);
+    const branch = params.get('reportBranch');
+    if (!branch) return;
+    // 카테고리 "불편 사항" 선택
+    const sel = document.querySelector('select[name="inqCategory"]');
+    if (sel) sel.value = '불편 사항';
+    // 제목 자동 입력
+    const titleInput = document.querySelector('input[name="inqTitle"]');
+    if (titleInput) titleInput.value = '[신고] ' + branch;
+    // 내용 placeholder 변경
+    const contentArea = document.querySelector('textarea[name="inqContent"]');
+    if (contentArea) contentArea.placeholder = branch + ' 지점에 대한 불편사항이나 문제 내용을 상세히 적어주세요.';
+})();
+</script>
+
 <%@ include file="../layout/footer.jsp" %>
 
