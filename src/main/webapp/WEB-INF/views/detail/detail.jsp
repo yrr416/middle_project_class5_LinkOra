@@ -66,12 +66,17 @@
     <a href="${pageContext.request.contextPath}/detail/list"
        class="text-sm text-indigo-600 hover:underline mb-4 inline-block">← 목록으로</a>
 
-    <%-- 헤더: 지점명 + 파트너 배지 --%>
+    <%-- 헤더: 지점명 + 파트너 배지 + 신고 버튼 --%>
     <div class="mb-2 flex items-center gap-3 flex-wrap">
       <h1 class="text-2xl font-bold text-gray-800">${branch.brnName}</h1>
       <span class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
         ${branch.partnerName}
       </span>
+      <a href="${pageContext.request.contextPath}/inquiry?reportBranch=${branch.brnName}"
+         class="ml-auto text-xs text-red-400 hover:text-red-600 border border-red-200 hover:border-red-400
+                px-3 py-1 rounded-full transition flex items-center gap-1">
+        ⚠ 신고하기
+      </a>
     </div>
 
     <%-- 이미지 슬라이더 --%>
@@ -162,13 +167,21 @@
         </c:if>
 
         <c:if test="${not empty branch.brnHours}">
-          <%-- 줄바꿈 포함 텍스트를 JS에 안전하게 전달: 요소의 textContent로 읽음 --%>
-          <div id="branchHoursData" class="hidden">${branch.brnHours}</div>
           <div class="bg-white rounded-2xl p-6 shadow-sm">
             <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
               <span class="text-indigo-500">🕐</span> 영업시간
-                <%-- JS가 채워 넣을 영업중/종료 뱃지 --%>
-              <span id="hoursStatusBadge"></span>
+              <%-- 서버에서 계산한 오늘 영업 상태 배지 --%>
+              <c:choose>
+                <c:when test="${bizStatus == '영업중'}">
+                  <span class="text-xs font-semibold text-green-600 bg-green-50 border border-green-200 rounded-full px-2 py-0.5">영업중</span>
+                </c:when>
+                <c:when test="${bizStatus == '영업종료'}">
+                  <span class="text-xs font-semibold text-red-500 bg-red-50 border border-red-200 rounded-full px-2 py-0.5">영업종료</span>
+                </c:when>
+                <c:when test="${bizStatus == '오늘 휴무'}">
+                  <span class="text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded-full px-2 py-0.5">오늘 휴무</span>
+                </c:when>
+              </c:choose>
             </h3>
             <p class="text-base text-gray-700 whitespace-pre-line leading-loose">${branch.brnHours}</p>
           </div>
@@ -1568,87 +1581,7 @@
       });
     }
 
-    /* ────────────────────────────────────────────
-       영업시간 파싱 → 현재 영업중/종료 뱃지 표시
-       ──────────────────────────────────────────── */
-    (function () {
-      var badge = document.getElementById('hoursStatusBadge');
-      if (!badge) return;
-
-      // brnHours는 줄바꿈 포함 텍스트라 JS 문자열에 직접 주입하면 문법 오류 발생
-      // → hoursStatusBadge의 data 속성에서 읽지 않고, 별도 hidden 요소의 textContent로 전달
-      var dataEl = document.getElementById('branchHoursData');
-      if (!dataEl) return;
-      var hoursText = dataEl.textContent;
-      if (!hoursText.trim()) return;
-
-      var now   = new Date();
-      var day   = now.getDay();          // 0=일, 1=월~5=금, 6=토
-      var hhmm  = now.getHours() * 100 + now.getMinutes(); // e.g. 1430 = 14:30
-
-      // ① 24시간 연중무휴 처리
-      if (hoursText.indexOf('24시간') !== -1) {
-        badge.innerHTML = '<span class="text-xs font-semibold text-green-600 bg-green-50 border border-green-200 rounded-full px-2 py-0.5">영업중</span>';
-        return;
-      }
-
-      // ② 오늘 요일에 해당하는 줄을 찾아 시간 범위 파싱
-      // 우선순위: 구체적 요일(토요일/일요일) > 평일/주말 > 접두어 없는 단독 시간
-      var lines = hoursText.split('\n');
-
-      // 오늘 요일 → 한글 키워드 매핑 (우선순위 순서)
-      var keywords;
-      if (day === 0)                       keywords = ['일요일', '주말'];
-      else if (day >= 1 && day <= 5)       keywords = ['평일'];
-      else                                 keywords = ['토요일', '주말'];
-
-      var matched = null;
-
-      // 우선순위 키워드 순서대로 매칭 시도
-      for (var ki = 0; ki < keywords.length; ki++) {
-        for (var li = 0; li < lines.length; li++) {
-          if (lines[li].indexOf(keywords[ki]) !== -1) {
-            matched = lines[li];
-            break;
-          }
-        }
-        if (matched) break;
-      }
-
-      // 키워드 매칭 실패 시, 요일 접두어 없이 시간만 있는 줄 시도 (예: "09:00 ~ 22:00")
-      if (!matched) {
-        var timeOnlyRe = /^\s*\d{2}:\d{2}\s*~\s*\d{2}:\d{2}\s*$/;
-        for (var li2 = 0; li2 < lines.length; li2++) {
-          if (timeOnlyRe.test(lines[li2])) {
-            matched = lines[li2];
-            break;
-          }
-        }
-      }
-
-      if (!matched) return; // 매칭 실패 → 뱃지 없음
-
-      // ③ 휴무 체크
-      if (matched.indexOf('휴무') !== -1) {
-        badge.innerHTML = '<span class="text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded-full px-2 py-0.5">오늘 휴무</span>';
-        return;
-      }
-
-      // ④ 시간 범위 추출: "HH:MM ~ HH:MM"
-      var timeRe = /(\d{2}):(\d{2})\s*~\s*(\d{2}):(\d{2})/;
-      var m = matched.match(timeRe);
-      if (!m) return;
-
-      var openTime  = parseInt(m[1]) * 100 + parseInt(m[2]);
-      var closeTime = parseInt(m[3]) * 100 + parseInt(m[4]);
-      var isOpen    = hhmm >= openTime && hhmm < closeTime;
-
-      if (isOpen) {
-        badge.innerHTML = '<span class="text-xs font-semibold text-green-600 bg-green-50 border border-green-200 rounded-full px-2 py-0.5">영업중</span>';
-      } else {
-        badge.innerHTML = '<span class="text-xs font-semibold text-red-500 bg-red-50 border border-red-200 rounded-full px-2 py-0.5">영업종료</span>';
-      }
-    })();
+    /* 영업시간 배지는 서버(BizHoursUtil.getBizStatus)에서 렌더링 — JS 파싱 제거됨 */
 
   </script>
 
