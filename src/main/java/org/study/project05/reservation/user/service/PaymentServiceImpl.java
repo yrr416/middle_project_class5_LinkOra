@@ -10,7 +10,11 @@ import org.study.project05.reservation.user.mapper.PaymentMapper;
 import org.study.project05.reservation.user.mapper.UserReservationMapper;
 import org.study.project05.reservation.user.vo.PaymentVO;
 import org.study.project05.reservation.user.vo.UserReservationVO;
+import org.study.project05.settings.service.SettingsService;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -84,6 +88,51 @@ public class PaymentServiceImpl implements PaymentService {
                 reservation.getResStartTime(),
                 reservation.getResEndTime(),
                 amount
+        );
+    }
+
+    /**
+     * 토스페이먼츠 환불 처리
+     * 1. 결제 정보 조회 (paymentKey)
+     * 2. 토스 취소 API 호출
+     * 3. payment 테이블 환불 금액 + 상태 업데이트
+     */
+    @Override
+    @Transactional
+    public int cancelPayment(int resIdx, int refundAmount, String cancelReason) {
+        PaymentVO payment = paymentMapper.selectByResIdx(resIdx);
+        if (payment == null || !"DONE".equals(payment.getPayStatus())) {
+            return 0; // 결제 내역 없거나 이미 취소됨
+        }
+
+        // 환불 금액이 0원이면 토스 API 호출 없이 DB만 취소 처리
+        if (refundAmount > 0) {
+            callTossCancelApi(payment.getPaymentKey(), cancelReason, refundAmount);
+        }
+        paymentMapper.updateRefundAmount(resIdx, refundAmount);
+        return refundAmount;
+    }
+
+    /**
+     * 토스페이먼츠 취소 API 호출
+     * POST /v1/payments/{paymentKey}/cancel
+     */
+    private void callTossCancelApi(String paymentKey, String cancelReason, int refundAmount) {
+        String encoded = Base64.getEncoder()
+                .encodeToString((secretKey + ":").getBytes());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Basic " + encoded);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("cancelReason", cancelReason);
+        body.put("cancelAmount", refundAmount);
+
+        restTemplate.postForEntity(
+                "https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel",
+                new HttpEntity<>(body, headers),
+                String.class
         );
     }
 

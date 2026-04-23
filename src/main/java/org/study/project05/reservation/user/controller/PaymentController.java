@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.study.project05.member.vo.UserProfileVO;
 import org.study.project05.reservation.user.service.PaymentService;
+import org.study.project05.reservation.user.service.UserReservationService;
+import org.study.project05.reservation.user.vo.UserReservationVO;
+import org.study.project05.branch.service.SpaceBranchService;
 
 import java.util.UUID;
 
@@ -23,6 +26,12 @@ public class PaymentController {
 
     @Autowired
     private PaymentService paymentService;
+
+    @Autowired
+    private UserReservationService reservationService;
+
+    @Autowired
+    private SpaceBranchService branchService;
 
     /**
      * 결제 페이지
@@ -54,6 +63,8 @@ public class PaymentController {
         model.addAttribute("amount",     amount);
         model.addAttribute("spaceName",  spaceName);
         model.addAttribute("resIdx",     resIdx);
+        model.addAttribute("startTime",  session.getAttribute("pendingStartTime"));
+        model.addAttribute("endTime",    session.getAttribute("pendingEndTime"));
 
         return "reservation/checkout";
     }
@@ -89,13 +100,41 @@ public class PaymentController {
             session.removeAttribute("pendingAmount");
             session.removeAttribute("pendingSpaceName");
             session.removeAttribute("pendingOrderId");
+            session.removeAttribute("pendingStartTime");
+            session.removeAttribute("pendingEndTime");
 
+            redirectAttributes.addFlashAttribute("paymentType", "ONLINE");
             return "redirect:/reservation/complete";
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMsg", e.getMessage());
             return "redirect:/payment/fail";
         }
+    }
+
+    /**
+     * 결제 재시도 — 내 예약 목록에서 PENDING+ONLINE 예약의 결제하기 버튼
+     * DB에서 예약 정보를 다시 읽어 세션에 채운 뒤 checkout으로 리다이렉트
+     */
+    @GetMapping("/retry")
+    public String retry(@RequestParam int resIdx, HttpSession session) {
+        UserReservationVO reservation = reservationService.getReservationById(resIdx);
+
+        if (reservation == null
+                || !"PENDING".equals(reservation.getResStatus())
+                || !"ONLINE".equals(reservation.getPaymentType())) {
+            return "redirect:/reservation/mylist";
+        }
+
+        String spaceName = branchService.getSpaceById(reservation.getSpcIdx()).getSpcName();
+
+        session.setAttribute("pendingResIdx",    reservation.getResIdx());
+        session.setAttribute("pendingAmount",    Integer.parseInt(reservation.getResTotalPrice()));
+        session.setAttribute("pendingSpaceName", spaceName);
+        session.setAttribute("pendingStartTime", reservation.getResStartTime());
+        session.setAttribute("pendingEndTime",   reservation.getResEndTime());
+
+        return "redirect:/payment/checkout";
     }
 
     /**

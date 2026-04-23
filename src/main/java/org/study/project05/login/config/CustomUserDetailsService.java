@@ -5,10 +5,12 @@ package org.study.project05.login.config;
 
 
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.study.project05.login.service.TemporaryPasswordWindowService;
 import org.study.project05.member.service.UserProfileService;
 import org.study.project05.member.vo.UserProfileVO;
 import org.study.project05.partner.service.PartnerService;
@@ -22,11 +24,18 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final UserProfileService userProfileService;
     private final PartnerService partnerService;
     private final SettingsMapper settingsMapper;
+    private final TemporaryPasswordWindowService temporaryPasswordWindowService;
 
-    public CustomUserDetailsService(UserProfileService userProfileService, PartnerService partnerService, SettingsMapper settingsMapper) {
+    public CustomUserDetailsService(
+            UserProfileService userProfileService,
+            PartnerService partnerService,
+            SettingsMapper settingsMapper,
+            TemporaryPasswordWindowService temporaryPasswordWindowService
+    ) {
         this.userProfileService = userProfileService;
         this.partnerService = partnerService;
         this.settingsMapper = settingsMapper;
+        this.temporaryPasswordWindowService = temporaryPasswordWindowService;
     }
 
     @Override
@@ -62,6 +71,9 @@ public class CustomUserDetailsService implements UserDetailsService {
             if (Integer.valueOf(0).equals(user.getActive())) {
                 throw new DisabledException("탈퇴 처리된 회원 계정입니다.");
             }
+            if (temporaryPasswordWindowService.isMemberTemporaryPasswordExpired(user.getUserId())) {
+                throw new CredentialsExpiredException("임시 비밀번호가 만료되었습니다.");
+            }
             return new CustomUserDetails(
                     user.getUserId(),
                     userEncoded,
@@ -78,6 +90,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         if (partner != null && !partnerEncoded.isEmpty()) {
             if (Integer.valueOf(0).equals(partner.getActive())) {
                 throw new DisabledException("탈퇴 처리된 사업자 계정입니다.");
+            }
+            if (temporaryPasswordWindowService.isPartnerTemporaryPasswordExpired(partner.getPartnerId())) {
+                throw new CredentialsExpiredException("임시 비밀번호가 만료되었습니다.");
             }
             return new CustomUserDetails(
                     partner.getPartnerId(),

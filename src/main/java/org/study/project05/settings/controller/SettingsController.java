@@ -10,6 +10,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.study.project05.settings.service.SettingsService;
+import org.study.project05.settings.vo.RefundPolicyVO;
 import org.study.project05.settings.vo.TemplateVO;
 
 import java.util.HashMap;
@@ -78,6 +79,9 @@ public class SettingsController {
 
         // 답변 템플릿 목록
         model.addAttribute("templateList", settingsService.getTemplateList());
+
+        // 환불 정책 목록
+        model.addAttribute("refundPolicyList", settingsService.getRefundPolicyList());
 
         // 활동 로그 페이징
         int totalLog   = settingsService.getLogCount();
@@ -272,5 +276,43 @@ public class SettingsController {
         return settingsService.getTemplateList().stream()
                 .filter(t -> t.getTplIdx().equals(tplIdx))
                 .findFirst().orElse(null);
+    }
+
+    // ── 환불 정책 CRUD ────────────────────────────────────────────
+
+    /** 환불 정책 등록 */
+    @PostMapping("/refund/insert")
+    public String insertRefundPolicy(RefundPolicyVO vo,
+                                     HttpServletRequest request,
+                                     RedirectAttributes rttr) {
+        settingsService.insertRefundPolicy(vo);
+        settingsService.writeLog(currentAdminIdx(), "", "환불 정책 등록",
+                vo.getHoursBefore() + "시간 전 → " + vo.getRefundRate() + "%", request.getRemoteAddr());
+        rttr.addFlashAttribute("msg", "환불 정책이 등록되었습니다.");
+        return "redirect:/admin/settings?tab=refund";
+    }
+
+    /** 환불 정책 수정 */
+    @PostMapping("/refund/update")
+    public String updateRefundPolicy(RefundPolicyVO vo,
+                                     HttpServletRequest request,
+                                     RedirectAttributes rttr) {
+        settingsService.updateRefundPolicy(vo);
+        settingsService.writeLog(currentAdminIdx(), "", "환불 정책 수정",
+                "policyIdx=" + vo.getPolicyIdx(), request.getRemoteAddr());
+        rttr.addFlashAttribute("msg", "환불 정책이 수정되었습니다.");
+        return "redirect:/admin/settings?tab=refund";
+    }
+
+    /** 환불 정책 삭제 */
+    @PostMapping("/refund/delete")
+    public String deleteRefundPolicy(@RequestParam int policyIdx,
+                                     HttpServletRequest request,
+                                     RedirectAttributes rttr) {
+        settingsService.deleteRefundPolicy(policyIdx);
+        settingsService.writeLog(currentAdminIdx(), "", "환불 정책 삭제",
+                "policyIdx=" + policyIdx, request.getRemoteAddr());
+        rttr.addFlashAttribute("msg", "환불 정책이 삭제되었습니다.");
+        return "redirect:/admin/settings?tab=refund";
     }
 }

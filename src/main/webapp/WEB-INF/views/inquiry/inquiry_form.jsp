@@ -81,6 +81,7 @@
                         <option value="제휴 및 광고">제휴 및 광고 문의</option>
                         <option value="장애/오류">장애 / 오류 신고</option>
                         <option value="건의 사항">건의 사항</option>
+                        <option value="불편 사항">불편 사항</option>
                         <option value="기타">기타</option>
                     </select>
                 </div>

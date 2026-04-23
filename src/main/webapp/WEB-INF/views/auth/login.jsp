@@ -300,6 +300,8 @@
                         out.print("카카오 로그인 처리 중 오류가 발생했습니다.");
                     } else if ("inactive".equals(errorParam)) {
                         out.print("탈퇴 처리된 계정입니다. 관리자에게 문의해주세요.");
+                    } else if ("tempExpired".equals(errorParam)) {
+                        out.print("임시 비밀번호의 사용 시간이 만료되었습니다. 비밀번호 찾기를 다시 진행해주세요.");
                     } else {
                         out.print("아이디 또는 비밀번호를 확인해주세요.");
                     }

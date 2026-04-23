@@ -114,6 +114,12 @@
                     <i class="bi bi-cpu"></i>시스템
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link ${tab == 'refund' ? 'active' : ''}"
+                   href="${ctx}/admin/settings?tab=refund">
+                    <i class="bi bi-arrow-counterclockwise"></i>환불 정책
+                </a>
+            </li>
         </ul>
 
         <!-- ══════════════════════════════════════════════════════
@@ -529,6 +535,77 @@
             </div>
         </c:if>
 
+        <!-- ══════════════════════════════════════════════════════
+             TAB 5: 환불 정책
+             ══════════════════════════════════════════════════════ -->
+        <c:if test="${tab == 'refund'}">
+
+            <!-- 환불 정책 목록 -->
+            <div class="set-card">
+                <h6><i class="bi bi-arrow-counterclockwise me-2"></i>환불 정책 관리</h6>
+                <p class="text-muted small mb-3">예약 시작 시간까지 남은 시간 기준으로 환불율을 설정합니다. 취소 시점의 정책이 적용됩니다.</p>
+                <div class="table-responsive mb-4">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>취소 기준 (시간 전)</th>
+                                <th>환불율 (%)</th>
+                                <th>설명</th>
+                                <th style="width:120px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="p" items="${refundPolicyList}">
+                            <tr>
+                                <td><strong>${p.hoursBefore}시간 전</strong></td>
+                                <td><span class="badge bg-${p.refundRate == 100 ? 'success' : p.refundRate == 0 ? 'danger' : 'warning'} fs-6">${p.refundRate}%</span></td>
+                                <td>${p.description}</td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                            onclick="openEditModal(${p.policyIdx}, ${p.hoursBefore}, ${p.refundRate}, '${p.description}')">
+                                        수정
+                                    </button>
+                                    <form method="post" action="${ctx}/admin/settings/refund/delete" class="d-inline"
+                                          onsubmit="return confirm('삭제하시겠습니까?')">
+                                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                                        <input type="hidden" name="policyIdx" value="${p.policyIdx}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </c:forEach>
+                            <c:if test="${empty refundPolicyList}">
+                            <tr><td colspan="4" class="text-center text-muted py-3">등록된 환불 정책이 없습니다.</td></tr>
+                            </c:if>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 정책 추가 폼 -->
+                <h6 class="mt-2 mb-3 text-secondary small fw-bold">새 정책 추가</h6>
+                <form method="post" action="${ctx}/admin/settings/refund/insert">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small">시간 기준 (시간 전)</label>
+                            <input type="number" name="hoursBefore" class="form-control" min="0" placeholder="예: 24" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small">환불율 (%)</label>
+                            <input type="number" name="refundRate" class="form-control" min="0" max="100" placeholder="예: 100" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">설명</label>
+                            <input type="text" name="description" class="form-control" placeholder="예: 24시간 전 취소">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">추가</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </c:if>
+
     </div><!-- /.main-content -->
 </div><!-- /.row -->
 </div><!-- /.container-fluid -->
@@ -599,6 +676,49 @@
         document.querySelector('form[action="${ctx}/admin/settings/system"]').submit();
     }
     </c:if>
+</script>
+<!-- 환불 정책 수정 모달 -->
+<div class="modal fade" id="refundEditModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">환불 정책 수정</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="${ctx}/admin/settings/refund/update">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                <input type="hidden" name="policyIdx" id="editPolicyIdx">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">시간 기준 (시간 전)</label>
+                        <input type="number" name="hoursBefore" id="editHoursBefore" class="form-control" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">환불율 (%)</label>
+                        <input type="number" name="refundRate" id="editRefundRate" class="form-control" min="0" max="100" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">설명</label>
+                        <input type="text" name="description" id="editDescription" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="submit" class="btn btn-primary">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openEditModal(policyIdx, hoursBefore, refundRate, description) {
+    document.getElementById('editPolicyIdx').value   = policyIdx;
+    document.getElementById('editHoursBefore').value = hoursBefore;
+    document.getElementById('editRefundRate').value  = refundRate;
+    document.getElementById('editDescription').value = description;
+    new bootstrap.Modal(document.getElementById('refundEditModal')).show();
+}
 </script>
 </body>
 </html>

@@ -36,7 +36,7 @@
                 AND u_idx = #{userIdx}
             </when>
             <otherwise>
-                AND c_http_session = #{httpSessionId} AND u_idx = 0
+                AND c_http_session = #{httpSessionId} AND u_idx IS NULL
             </otherwise>
         </choose>
         ORDER BY c_idx ASC

@@ -7,6 +7,7 @@ import org.study.project05.reservation.user.mapper.UserReservationMapper;
 import org.study.project05.reservation.user.vo.UserReservationVO;
 import org.study.project05.branch.mapper.BranchDetailSpaceMapper;
 import org.study.project05.branch.vo.BranchSpaceVO;
+import org.study.project05.settings.service.SettingsService;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,6 +22,15 @@ public class UserReservationServiceImpl implements UserReservationService {
 
     @Autowired
     private BranchDetailSpaceMapper spaceMapper;
+
+    @Autowired
+    private PaymentService paymentService;
+
+    @Autowired
+    private SettingsService settingsService;
+
+    @Autowired
+    private ReservationMailService mailService;
     //DB용 타임포멧과 자바에서 시간처리를 위한 타임포멧 사전 선언
     private static final DateTimeFormatter FORM_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     private static final DateTimeFormatter DB_FMT   = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -97,10 +107,47 @@ public class UserReservationServiceImpl implements UserReservationService {
         return reservationMapper.selectByUser(userIdx);
     }
 
-    /** 예약 취소 (본인 PENDING 예약만) */
+    @Override
+    public UserReservationVO getReservationById(int resIdx) {
+        return reservationMapper.selectById(resIdx);
+    }
+
+    /** 예약 취소 — ONLINE 결제 완료(CONFIRMED) 예약은 환불율 계산 후 토스 환불 처리 + 취소 메일 발송 */
     @Transactional
     @Override
-    public void cancelReservation(int resIdx, int userIdx) {
+    public void cancelReservation(int resIdx, int userIdx, String email, String name) {
+        UserReservationVO reservation = reservationMapper.selectById(resIdx);
+
+        if (reservation != null
+                && "ONLINE".equals(reservation.getPaymentType())
+                && "CONFIRMED".equals(reservation.getResStatus())) {
+
+            // 예약 시작까지 남은 시간 계산
+            LocalDateTime startTime = LocalDateTime.parse(
+                    reservation.getResStartTime().replace(" ", "T").substring(0, 16),
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")
+            );
+            long hoursLeft = ChronoUnit.HOURS.between(LocalDateTime.now(), startTime);
+            if (hoursLeft < 0) hoursLeft = 0;
+
+            // 환불율 조회 → 환불 금액 계산
+            int refundRate   = settingsService.getRefundRate((int) hoursLeft);
+            int totalPrice   = Integer.parseInt(reservation.getResTotalPrice());
+            int refundAmount = totalPrice * refundRate / 100;
+
+            // 토스 환불 API 호출
+            paymentService.cancelPayment(resIdx, refundAmount, "사용자 취소");
+
+            // 취소 안내 메일 발송 (이메일 정보가 없으면 생략)
+            if (email != null && !email.isBlank()) mailService.sendReservationCancelled(
+                    email, name,
+                    reservation.getSpaceName(),
+                    reservation.getResStartTime(),
+                    reservation.getResEndTime(),
+                    totalPrice, refundAmount
+            );
+        }
+
         reservationMapper.cancel(resIdx, userIdx);
     }
 

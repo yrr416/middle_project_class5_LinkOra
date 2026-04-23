@@ -1,0 +1,96 @@
+/* [mp_style.css] 최종 통합본 (찜하기 포함)임. */
+
+/* 1. Luxury Label (마커 이름표 디자인임) */
+.luxury-label {
+    display: flex !important;
+    align-items: center !important;
+    background: linear-gradient(to bottom, #ffffff, #fcfcfc) !important;
+    color: #2F4F4F !important;
+    padding: 2px 18px 2px 2px !important;
+    border-radius: 8px !important;
+    border: 2px solid #2F4F4F !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important;
+    white-space: nowrap !important;
+    position: relative !important;
+    z-index: 100 !important;
+    transition: all 0.2s ease-in-out;
+}
+.luxury-label::before {
+    content: ''; width: 6px; height: 34px; background: #d4af37;
+    border-radius: 4px 0 0 4px; margin-right: 12px; flex-shrink: 0;
+}
+.luxury-label::after {
+    content: ''; position: absolute; bottom: -11px; left: 50%;
+    transform: translateX(-50%); border-left: 10px solid transparent;
+    border-right: 10px solid transparent; border-top: 12px solid #2F4F4F;
+}
+
+/* 2. 메뉴 아코디언 (쫀득한 가속도 적용 버전임) */
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #f8f9f9;
+}
+.accordion-item.active .accordion-content {
+    max-height: 200px; /* 버벅임 방지를 위해 200px로 최적화함. */
+}
+.accordion-item.active .acc-arrow {
+    transform: rotate(180deg);
+    color: #2F4F4F;
+}
+
+/* 3. 지도 상세 정보창 (디자인 보강 버전임) */
+.info-window-card {
+    background: white; border-radius: 15px; padding: 18px; width: 230px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    border: 1px solid #eee;
+}
+.card-title { font-weight: 800; font-size: 17px; color: #2F4F4F; margin-bottom: 8px; }
+.card-addr { font-size: 13px; color: #666; margin: 10px 0 18px 0; white-space: normal; word-break: keep-all; line-height: 1.5; }
+
+/* ============================================================ */
+/* 4. [신규] 찜하기(Wishlist) 버튼 스타일 (Luxury Edition임) */
+/* ============================================================ */
+.wish-btn {
+    width: 42px;
+    height: 42px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    color: #bbb; /* 기본 상태: 회색 하트임. */
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    padding: 0;
+}
+
+/* 찜하기 버튼 마우스 호버 효과임. */
+.wish-btn:hover {
+    background: #fff1f2;
+    border-color: #ff4757;
+    color: #ff4757;
+    transform: scale(1.1);
+}
+
+/* 찜하기 활성화 상태 (Active) 디자인임. ★ */
+.wish-btn.active {
+    background: #fff;
+    border-color: #ff4757;
+    color: #ff4757; /* 빨간 하트로 변함. */
+    box-shadow: 0 4px 10px rgba(255, 71, 87, 0.2);
+}
+
+/* 하트 클릭 시 톡톡 튀는 애니메이션 효과임. */
+.wish-btn.active i {
+    animation: heartBeat 0.4s ease-in-out;
+}
+
+@keyframes heartBeat {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}

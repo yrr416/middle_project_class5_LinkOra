@@ -22,11 +22,7 @@ public class ReservationScheduler {
      * 스케줄러가 CANCELLED로 UPDATE하는 행을 결제 승인이 동시에 건드리려 하면
      * SELECT FOR UPDATE 락 덕분에 둘 중 하나가 먼저 처리되고 나머지는 상태를 보고 포기함
      */
-    /* ── 결제 기능 보류 중 — 스케줄러 일시 중단 ──────────────────────────
-     * 팀 합치기 완료 후 @Scheduled 주석을 해제할 것
-     *
-     * @Scheduled(fixedDelay = 60000)
-     * ─────────────────────────────────────────────────────────────────── */
+    @Scheduled(fixedDelay = 60000)
     @Transactional
     public void cancelExpiredPending() {
         reservationMapper.cancelExpiredPending();

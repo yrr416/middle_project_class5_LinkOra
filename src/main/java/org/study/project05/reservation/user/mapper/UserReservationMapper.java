@@ -30,6 +30,9 @@ public interface UserReservationMapper {
      */
     void lockSpace(int spcIdx);
 
+    /** 예약 단건 조회 (취소 전 환불 계산용) */
+    UserReservationVO selectById(int resIdx);
+
     /**
      * 결제 승인 시 사용 — 행 락(SELECT FOR UPDATE)을 걸고 예약 조회
      * 스케줄러의 자동 취소와 동시에 실행될 때 충돌을 방지함

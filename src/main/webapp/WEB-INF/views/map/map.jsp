@@ -95,9 +95,24 @@
   footer, .footer, #footer {
     display: none !important;
   }
+
+  /* 검색 결과 패널의 스크롤바를 스마트폰 앱처럼 얇고 둥글게 꾸미는 디자인 */
+  #searchResultPanel::-webkit-scrollbar {
+    width: 6px; /* 스크롤바의 두께를 얇게 설정 */
+  }
+  #searchResultPanel::-webkit-scrollbar-track {
+    background: transparent; /* 스크롤바가 움직이는 길은 투명하게 설정 */
+  }
+  #searchResultPanel::-webkit-scrollbar-thumb {
+    background: #cccccc; /* 평소 스크롤바 색상은 눈에 띄지 않는 연한 회색 */
+    border-radius: 10px; /* 모서리를 둥글게 깎음 */
+  }
+  #searchResultPanel::-webkit-scrollbar-thumb:hover {
+    background: #007A8A; /* 마우스를 올리면 우리 홈페이지 브랜드 색상으로 진해짐 */
+  }
 </style>
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/map.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/map.css">
 
 <main class="map-container">
   <div class="map-search-overlay">
@@ -116,7 +131,7 @@
 
 </main>
 
-<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=f46b246e453c7ccbab5a79c4aa737bcc&libraries=services&autoload=false"></script>
+<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=cd1f0f4ad9dcf4879bee2531dc5a0497&libraries=services&autoload=false"></script>
 
 <script type="text/javascript">
   /**
@@ -126,7 +141,7 @@
     if (window.kakao && window.kakao.maps) {
       kakao.maps.load(function() {
         const mapScript = document.createElement('script');
-        mapScript.src = "${pageContext.request.contextPath}/js/map.js";
+        mapScript.src = "${pageContext.request.contextPath}/static/js/map.js";
         document.body.appendChild(mapScript);
       });
     } else {

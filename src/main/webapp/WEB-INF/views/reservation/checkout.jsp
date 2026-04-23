@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="c"  uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <jsp:include page="/WEB-INF/views/layout/header.jsp" />
 
@@ -38,6 +39,8 @@
 
         <div class="text-left bg-gray-50 rounded-xl p-5 text-sm text-gray-700 mb-8 space-y-2">
             <p><span class="font-medium">공간명:</span> ${spaceName}</p>
+            <p><span class="font-medium">이용 시작:</span> ${fn:substring(startTime, 0, 16)}</p>
+            <p><span class="font-medium">이용 종료:</span> ${fn:substring(endTime, 0, 16)}</p>
             <p><span class="font-medium">결제 금액:</span>
                 <span class="text-indigo-600 font-bold">${amount}원</span>
             </p>

@@ -26,20 +26,34 @@
         )
     </insert>
 
-    <!-- 특정 사용자의 전체 문의 개수 조회 (페이징용) -->
-    <select id="countInquiriesByUser" parameterType="long" resultType="int">
+    <!-- 특정 사용자의 전체 문의 개수 조회 (페이징용 + 필터 추가) -->
+    <select id="countInquiriesByUser" resultType="int">
         SELECT COUNT(*)
         FROM inquiries 
         WHERE u_idx = #{userIdx} AND i_active = 1
+        <if test="status != null and status != ''">
+            AND i_status = CASE #{status}
+                WHEN 'PENDING'  THEN '대기중'
+                WHEN 'COMPLETE' THEN '답변완료'
+                ELSE #{status}
+            END
+        </if>
     </select>
 
-    <!-- 특정 사용자의 문의 내역 리스트 조회 (페이징 적용) -->
+    <!-- 특정 사용자의 문의 내역 리스트 조회 (페이징 + 필터 적용) -->
     <select id="selectInquiryListByUser" resultMap="inquiryResultMap">
         SELECT 
             i_idx, u_idx, i_category, i_title, i_status, 
             DATE_FORMAT(i_created, '%Y.%m.%d') AS i_created
         FROM inquiries 
         WHERE u_idx = #{userIdx} AND i_active = 1
+        <if test="status != null and status != ''">
+            AND i_status = CASE #{status}
+                WHEN 'PENDING'  THEN '대기중'
+                WHEN 'COMPLETE' THEN '답변완료'
+                ELSE #{status}
+            END
+        </if>
         ORDER BY i_idx DESC
         LIMIT #{limit} OFFSET #{offset}
     </select>
