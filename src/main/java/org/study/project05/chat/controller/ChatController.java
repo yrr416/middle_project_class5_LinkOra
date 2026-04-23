@@ -5,7 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.study.project05.chat.service.ChatService;
 import org.study.project05.chat.vo.ChatVO;
+import org.study.project05.reservation.user.service.UserReservationService;
+import org.study.project05.reservation.user.vo.UserReservationVO;
+import org.study.project05.branch.service.SpaceBranchService;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Slf4j
 @RestController
@@ -14,6 +19,8 @@ import java.util.List;
 public class ChatController {
 
     private final ChatService chatService;
+    private final UserReservationService userReservationService;
+    private final SpaceBranchService branchService;
 
     /**
      * 클라이언트로부터 메시지를 받아 실시간 응답 반환
@@ -104,5 +111,68 @@ public class ChatController {
             userIdx = 1L; // 비회원 또는 초기 상태 시 테스트용 기본 데이터 조회
         }
         return chatService.getRecentUserHistory(userIdx);
+    }
+
+    /** 챗봇을 통한 실시간 예약 선점 (1단계) - 기본을 ONLINE으로 설정하여 이탈 시 자동취소 환경 구축 */
+    @PostMapping("/reserve")
+    public Map<String, Object> chatbotReserve(@RequestBody UserReservationVO vo, jakarta.servlet.http.HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Object uIdxObj = session.getAttribute("userIdx");
+            if (uIdxObj == null) {
+                response.put("success", false);
+                response.put("message", "로그인 후 이용 가능합니다.");
+                return response;
+            }
+            Long uIdx = 0L;
+            if (uIdxObj instanceof Long) uIdx = (Long) uIdxObj;
+            else if (uIdxObj instanceof Integer) uIdx = ((Integer) uIdxObj).longValue();
+            else uIdx = Long.parseLong(String.valueOf(uIdxObj));
+            
+            vo.setUserIdx(uIdx.intValue());
+            vo.setPaymentType("ONLINE"); // [안전장치] 기본을 ONLINE으로 생성하여 미결제 이탈 시 10분 후 자동취소되게 함
+            
+            userReservationService.reserve(vo);
+            
+            response.put("success", true);
+            response.put("resIdx", vo.getResIdx());
+        } catch (Exception e) {
+            log.error("챗봇 예약 생성 오류: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", e.getMessage());
+        }
+        return response;
+    }
+
+    /** 결제 수단 선택 시 DB 동기화 및 일반 결제 시스템 세션 주입 (2단계) */
+    @PostMapping("/payment-ready")
+    public Map<String, Object> chatbotPaymentReady(@RequestBody Map<String, Object> payload, jakarta.servlet.http.HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            int resIdx = Integer.parseInt(String.valueOf(payload.get("resIdx")));
+            String type = (String) payload.get("paymentType");
+            
+            // 1. DB 업데이트 (ONLINE 또는 OFFLINE)
+            userReservationService.updatePaymentType(resIdx, type);
+            
+            // 2. 온라인 결제의 경우, 기존 PaymentController가 요구하는 세션값 사전 주입 (중요)
+            if ("ONLINE".equals(type)) {
+                UserReservationVO vo = userReservationService.getReservationById(resIdx);
+                if (vo != null) {
+                    session.setAttribute("pendingResIdx",     vo.getResIdx());
+                    session.setAttribute("pendingAmount",     Integer.parseInt(vo.getResTotalPrice()));
+                    session.setAttribute("pendingSpaceName",  branchService.getSpaceById(vo.getSpcIdx()).getSpcName());
+                    session.setAttribute("pendingStartTime",  vo.getResStartTime());
+                    session.setAttribute("pendingEndTime",    vo.getResEndTime());
+                    log.info("[Chatbot] Online payment session primed for ResIdx: {}", resIdx);
+                }
+            }
+            
+            response.put("success", true);
+        } catch (Exception e) {
+            log.error("챗봇 결제 동기화 오류: {}", e.getMessage());
+            response.put("success", false);
+        }
+        return response;
     }
 }

@@ -623,34 +623,95 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // 2단계: 최종 확정 -> 전송
+            // 2단계: 최종 확정 → /chat/reserve 직접 API 호출
             const startTime = `${date}T${startTimeVal}`;
-            const endTime = `${date}T${endTimeVal}`;
-            const reserveMsg = `[[COMMIT_BOOKING:${spcIdx}|${startTime}|${endTime}|${count}]]`;
+            const endTime   = `${date}T${endTimeVal}`;
             
             this.disabled = true;
             this.innerText = "예약 처리 중...";
             appendMessage('user', `${spcName} 예약 요청 (인원: ${count}명, ${total.toLocaleString()}원)`);
             
             setTimeout(() => {
-                fetch(`${contextPath}/chat/send`, {
+                fetch(`${contextPath}/chat/reserve`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chatMessage: reserveMsg, chatSession: sessionId, chatPage: currentPage })
+                    body: JSON.stringify({ 
+                        spcIdx: parseInt(spcIdx), 
+                        resStartTime: startTime, 
+                        resEndTime: endTime, 
+                        resHeadcount: parseInt(count),
+                        resTotalPrice: String(total)
+                    })
                 })
                 .then(r => r.json())
                 .then(data => {
-                    formDiv.remove();
-                    prefillData = { date: '', startTime: '', endTime: '' }; // 데이터 초기화
-                    appendMessage('bot', data.chatResponse);
+                    if(data.success) {
+                        formDiv.remove();
+                        prefillData = { date: '', startTime: '', endTime: '' }; 
+                        renderPaymentChoice(data.resIdx, spcName, total);
+                    } else {
+                        alert(data.message || "예약에 실패했습니다.");
+                        this.disabled = false;
+                        this.innerText = "위 정보로 최종 확정하기";
+                    }
                 })
                 .catch(err => { 
-                    alert("오류가 발생했습니다. 다시 시도해 주세요."); 
+                    alert("통신 오류가 발생했습니다."); 
                     this.disabled = false; 
-                    this.innerText = "최종 확정하기";
+                    this.innerText = "위 정보로 최종 확정하기";
                 });
             }, 600);
         };
+    };
+
+    /** 결제 방식 선택 UI 렌더링 */
+    const renderPaymentChoice = (resIdx, spcName, total) => {
+        const choiceDiv = document.createElement('div');
+        choiceDiv.className = 'payment-choice-container rich-content';
+        choiceDiv.innerHTML = `
+            <div class="payment-header">
+                <div class="payment-title">🎉 예약이 신청되었습니다!</div>
+                <div class="payment-desc">결제 방식을 선택하시면 예약이 완료됩니다.</div>
+            </div>
+            <div class="payment-info">
+                <span>신청 공간: <strong>${spcName}</strong></span>
+                <span>총 결제금액: <strong>${total.toLocaleString()}원</strong></span>
+            </div>
+            <div class="payment-btns">
+                <button class="btn-pay online" id="pay-online">
+                    <span class="icon">💳</span> 카드 / 간편결제
+                </button>
+                <button class="btn-pay offline" id="pay-offline">
+                    <span class="icon">🏠</span> 현장 결제
+                </button>
+            </div>
+        `;
+        chatMessages.appendChild(choiceDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // 결제 수단 확정 API 호출 및 이동
+        const finalizePayment = (type) => {
+            fetch(`${contextPath}/chat/payment-ready`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ resIdx: resIdx, paymentType: type })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    if (type === 'ONLINE') {
+                        location.href = `${contextPath}/payment/checkout`;
+                    } else {
+                        location.href = `${contextPath}/reservation/complete`;
+                    }
+                } else {
+                    alert("처리 중 오류가 발생했습니다.");
+                }
+            });
+        };
+
+        choiceDiv.querySelector('#pay-online').onclick = () => finalizePayment('ONLINE');
+        choiceDiv.querySelector('#pay-offline').onclick = () => finalizePayment('OFFLINE');
     };
 
 
