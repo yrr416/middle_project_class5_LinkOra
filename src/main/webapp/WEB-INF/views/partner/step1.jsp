@@ -71,6 +71,8 @@
                 </div>
                 <input type="text" name="detailAddress" class="form-control"
                        placeholder="상세 주소를 입력하세요" value="${branchVO.detailAddress}">
+                <input type="hidden" id="brnLatitude"  name="brnLatitude"  value="${branchVO.brnLatitude}">
+                <input type="hidden" id="brnLongitude" name="brnLongitude" value="${branchVO.brnLongitude}">
             </div>
 
             <!-- 연락처 -->
@@ -101,6 +103,8 @@
 
 <!-- 카카오 주소 API -->
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<!-- 카카오맵 SDK (Geocoder - 주소→좌표 변환용) -->
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=f46b246e453c7ccbab5a79c4aa737bcc&libraries=services&autoload=false"></script>
 <!-- CKEditor 5 -->
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -145,11 +149,23 @@
         .then(editor => { editorInstance = editor; })
         .catch(console.error);
 
-    // 카카오 주소 검색
+    // 카카오 주소 검색 + Geocoder로 좌표 자동 추출
     function searchAddress() {
         new daum.Postcode({
             oncomplete: function(data) {
-                document.getElementById('roadAddress').value = data.roadAddress || data.jibunAddress;
+                var addr = data.roadAddress || data.jibunAddress;
+                document.getElementById('roadAddress').value = addr;
+
+                // 카카오맵 Geocoder로 주소 → 위도/경도 변환
+                kakao.maps.load(function() {
+                    var geocoder = new kakao.maps.services.Geocoder();
+                    geocoder.addressSearch(addr, function(result, status) {
+                        if (status === kakao.maps.services.Status.OK) {
+                            document.getElementById('brnLatitude').value  = result[0].y;
+                            document.getElementById('brnLongitude').value = result[0].x;
+                        }
+                    });
+                });
             }
         }).open();
     }

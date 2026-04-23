@@ -7,8 +7,8 @@
     <!-- 지점 INSERT (useGeneratedKeys 로 PK 자동 반환) -->
     <insert id="insertBranch" parameterType="org.study.project05.partner.vo.BranchRegVO"
             useGeneratedKeys="true" keyProperty="brnIdx">
-        INSERT INTO branch (p_idx, b_name, b_description, b_file, b_address, b_phone, b_sns, b_hours, b_active, b_created)
-        VALUES (#{ptnIdx}, #{brnName}, #{brnDescription}, '', #{brnAddress}, #{brnPhone}, #{brnSns}, '', 0, NOW())
+        INSERT INTO branch (p_idx, b_name, b_description, b_file, b_address, b_latitude, b_altitude, b_phone, b_sns, b_hours, b_active, b_created)
+        VALUES (#{ptnIdx}, #{brnName}, #{brnDescription}, '', #{brnAddress}, #{brnLatitude}, #{brnLongitude}, #{brnPhone}, #{brnSns}, '', 0, NOW())
     </insert>
 
     <!-- 운영 정보 UPDATE (Step2) -->

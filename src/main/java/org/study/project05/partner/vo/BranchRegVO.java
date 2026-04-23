@@ -28,6 +28,10 @@ public class BranchRegVO {
     private String roadAddress;     // 도로명 주소
     private String detailAddress;   // 상세 주소
 
+    // 좌표
+    private double brnLatitude;     // 위도 (b_latitude)
+    private double brnLongitude;    // 경도 (b_altitude)
+
     // 관리 페이지용 (DB 저장 안 함)
     private int spaceCount;                     // 소속 공간 수
     private int currentHeadcount;               // 현재 이용중 총 인원
