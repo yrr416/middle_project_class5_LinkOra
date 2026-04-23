@@ -55,6 +55,7 @@ public interface ReviewMapper {
     /** 관리자용: 특정 리뷰의 신고 목록 + 신고자 인적사항 조회 */
     List<ReviewReportVO> selectReportsByRevIdx(@Param("revIdx") int revIdx);
 
+
     /** 관리자 리뷰 강제 삭제 전 신고 기록 삭제 */
     int deleteReportsByRevIdx(@Param("revIdx") int revIdx);
 

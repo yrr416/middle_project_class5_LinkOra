@@ -587,7 +587,7 @@
         });
     </script>
 
-    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=f46b246e453c7ccbab5a79c4aa737bcc&libraries=services&autoload=false"></script>
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=d20150f1426d32396d497433ec786c62&libraries=services&autoload=false"></script>
     <script src="${pageContext.request.contextPath}/static/js/mp_script.js?v=9999"></script>
 
 </main>
