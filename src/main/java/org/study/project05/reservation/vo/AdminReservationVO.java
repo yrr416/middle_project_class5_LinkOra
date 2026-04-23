@@ -49,6 +49,9 @@ public class AdminReservationVO {
     private String revActive;      // 블라인드 상태
     private String revImg;         // 리뷰 이미지
 
+    /* 결제 방식 */
+    private String paymentType;     // ONLINE(웹결제) / OFFLINE(현장결제)
+
     /* 검색·필터 파라미터 */
     private String startDate;      // 검색 시작일
     private String endDate;        // 검색 종료일

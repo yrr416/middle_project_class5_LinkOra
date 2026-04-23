@@ -85,7 +85,7 @@
                 <div class="stats-card">
                     <c:set var="activeCnt" value="0"/>
                     <c:forEach var="c" items="${customerList}">
-                        <c:if test="${c.userActive == '0'}"><c:set var="activeCnt" value="${activeCnt+1}"/></c:if>
+                        <c:if test="${c.userActive == '1'}"><c:set var="activeCnt" value="${activeCnt+1}"/></c:if>
                     </c:forEach>
                     <div class="number text-success">${activeCnt}</div>
                     <div class="text-muted small mt-1">정상 (이 페이지)</div>
@@ -95,7 +95,7 @@
                 <div class="stats-card">
                     <c:set var="hiddenCnt" value="0"/>
                     <c:forEach var="c" items="${customerList}">
-                        <c:if test="${c.userActive != '0'}"><c:set var="hiddenCnt" value="${hiddenCnt+1}"/></c:if>
+                        <c:if test="${c.userActive != '1'}"><c:set var="hiddenCnt" value="${hiddenCnt+1}"/></c:if>
                     </c:forEach>
                     <div class="number text-danger">${hiddenCnt}</div>
                     <div class="text-muted small mt-1">숨김 (이 페이지)</div>
@@ -112,8 +112,8 @@
                     <label class="form-label small mb-1">상태</label>
                     <select name="statusFilter" class="form-select form-select-sm">
                         <option value="">전체</option>
-                        <option value="0" ${customerVO.statusFilter == '0' ? 'selected' : ''}>정상</option>
-                        <option value="1" ${customerVO.statusFilter == '1' ? 'selected' : ''}>숨김</option>
+                        <option value="1" ${customerVO.statusFilter == '1' ? 'selected' : ''}>정상</option>
+                        <option value="0" ${customerVO.statusFilter == '0' ? 'selected' : ''}>숨김</option>
                     </select>
                 </div>
                 <!-- 검색 유형 -->
@@ -215,7 +215,7 @@
                                 </td>
                                 <td>
                                     <c:choose>
-                                        <c:when test="${c.userActive == '0'}">
+                                        <c:when test="${c.userActive == '1'}">
                                             <span class="badge badge-active px-2 py-1 rounded-pill">정상</span>
                                         </c:when>
                                         <c:otherwise>

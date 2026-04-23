@@ -237,6 +237,7 @@
                             <th>예약 시간</th>
                             <th>인원</th>
                             <th>금액</th>
+                            <th>결제방식</th>
                             <th>상태</th>
                             <th class="text-center">상세</th>
                         </tr>
@@ -244,7 +245,7 @@
                     <tbody>
                         <c:if test="${empty reservationList}">
                             <tr>
-                                <td colspan="9" class="text-center py-5 text-muted">
+                                <td colspan="10" class="text-center py-5 text-muted">
                                     <i class="bi bi-calendar-x fs-3 d-block mb-2"></i>
                                     조회된 예약이 없습니다.
                                 </td>
@@ -273,6 +274,16 @@
                                     <strong>
                                         ₩ <fmt:formatNumber value="${r.resTotalPrice}" type="number"/>
                                     </strong>
+                                </td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${r.paymentType == 'ONLINE'}">
+                                            <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill">온라인</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary px-2 py-1 rounded-pill">현장</span>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </td>
                                 <td>
                                     <%-- 예약 상태 배지 --%>
@@ -404,6 +415,10 @@
                                 <div class="detail-row">
                                     <span class="detail-label">예약 금액</span>
                                     <span class="detail-value fw-bold text-primary" id="d_r_total_price"></span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">결제 방식</span>
+                                    <span class="detail-value" id="d_payment_type"></span>
                                 </div>
                                 <div class="detail-row">
                                     <span class="detail-label">메모/사유</span>
@@ -607,6 +622,12 @@ function renderModal(d) {
     document.getElementById('d_r_end_time').textContent   = d.resEndTime   || '-';
     document.getElementById('d_r_headcount').textContent  = (d.resHeadcount || 0) + '명';
     document.getElementById('d_r_total_price').textContent = '₩ ' + fmtNum(d.resTotalPrice);
+
+    /* 결제 방식 */
+    const ptLabel = d.paymentType === 'ONLINE' ? '온라인결제' : '현장결제';
+    const ptCss   = d.paymentType === 'ONLINE' ? 'text-primary' : 'text-secondary';
+    document.getElementById('d_payment_type').innerHTML =
+        '<span class="' + ptCss + '">' + ptLabel + '</span>';
 
     /* 취소 상태일 때는 resContent 를 "취소 사유"로 표시 */
     const contentLabel = d.resStatus === 'CANCELLED' ? '[취소 사유] ' : '';

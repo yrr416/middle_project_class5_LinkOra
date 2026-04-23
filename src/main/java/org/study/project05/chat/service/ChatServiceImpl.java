@@ -31,7 +31,7 @@ public class ChatServiceImpl implements ChatService {
         String currentPage = chatVO.getChatPage() != null ? chatVO.getChatPage() : "/";
 
         if (chatVO.getUserIdx() == null || chatVO.getUserIdx() <= 0L) {
-            chatVO.setUserIdx(0L);
+            chatVO.setUserIdx(null);
         }
         if (chatVO.getChatSession() == null || chatVO.getChatSession() == 0) {
             chatVO.setChatSession(1001);
@@ -100,7 +100,7 @@ public class ChatServiceImpl implements ChatService {
                         "\n[공간 정보 컨텍스트]\n" +
                         reservationContext + "\n" +
                         "[현재 사용자 상태]\n" +
-                        (chatVO.getUserIdx() == 0L ? "현재 비로그인(Guest) 상태입니다. 예약 시 로그인이 필요함을 안내하세요." : "로그인된 회원(ID:" + chatVO.getUserIdx() + ")입니다.") + "\n" +
+                        (chatVO.getUserIdx() == null ? "현재 비로그인(Guest) 상태입니다. 예약 시 로그인이 필요함을 안내하세요." : "로그인된 회원(ID:" + chatVO.getUserIdx() + ")입니다.") + "\n" +
                         "[사용자 예약 현황]\n" +
                         getUserReservationsContext(chatVO.getUserIdx()) + "\n" +
                         "환불 규정: 3일 전 100%, 1일 전 50%.\n" +
@@ -307,7 +307,7 @@ public class ChatServiceImpl implements ChatService {
             vo.setResIdx(resIdx);
             vo.setUserIdx(userIdx.intValue());
 
-            reservationService.cancelReservation(resIdx, userIdx.intValue());
+            reservationService.cancelReservation(resIdx, userIdx.intValue(), null, null);
 
             String successMsg = "\n\n✔️ 예약이 취소되었습니다. (예약번호: #" + resIdx + ")\n환불 규정에 따라 처리가 진행됩니다.";
             return botResponse.replace(tag, successMsg);
@@ -386,8 +386,8 @@ public class ChatServiceImpl implements ChatService {
                     String spcImg = s.getSpcImg();
                     if (spcImg != null) {
                         spcImg = spcImg.trim();
-                        // 경로가 포함되어 있을 경우 파일명만 추출
-                        if (spcImg.contains("/")) {
+                        // [수정] 이미 /static으로 시작하는 정식 경로라면 자르지 않고 그대로 사용함 (DB 최신화 대응)
+                        if (spcImg.contains("/") && !spcImg.startsWith("/static")) {
                             spcImg = spcImg.substring(spcImg.lastIndexOf("/") + 1);
                         }
                     }
@@ -396,7 +396,7 @@ public class ChatServiceImpl implements ChatService {
                         org.study.project05.branch.vo.BranchImgVO mainImg = branchImgMapper.selectMainByBranch(b.getBrnIdx());
                         if (mainImg != null && mainImg.getBiUrl() != null) {
                             String biUrl = mainImg.getBiUrl().trim();
-                            if (biUrl.contains("/")) {
+                            if (biUrl.contains("/") && !biUrl.startsWith("/static")) {
                                 biUrl = biUrl.substring(biUrl.lastIndexOf("/") + 1);
                             }
                             spcImg = biUrl;

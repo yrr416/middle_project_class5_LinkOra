@@ -71,6 +71,8 @@
                 </div>
                 <input type="text" name="detailAddress" class="form-control"
                        placeholder="상세 주소를 입력하세요" value="${branchVO.detailAddress}">
+                <input type="hidden" id="brnLatitude"  name="brnLatitude"  value="${branchVO.brnLatitude}">
+                <input type="hidden" id="brnLongitude" name="brnLongitude" value="${branchVO.brnLongitude}">
             </div>
 
             <!-- 연락처 -->
@@ -135,9 +137,9 @@
         toolbar: {
             items: [
                 'heading', '|',
-                'bold', 'italic', 'underline', 'strikethrough', '|',
+                'bold', 'italic', '|',
                 'bulletedList', 'numberedList', '|',
-                'link', 'uploadImage', 'blockQuote', 'insertTable', '|',
+                'link', 'uploadImage', 'blockQuote', '|',
                 'undo', 'redo'
             ]
         }
@@ -145,21 +147,32 @@
         .then(editor => { editorInstance = editor; })
         .catch(console.error);
 
-    // 카카오 주소 검색
+    // 카카오 주소 검색 + 서버 geocode API로 좌표 자동 추출
     function searchAddress() {
         new daum.Postcode({
             oncomplete: function(data) {
-                document.getElementById('roadAddress').value = data.roadAddress || data.jibunAddress;
+                var addr = data.roadAddress || data.jibunAddress;
+                document.getElementById('roadAddress').value = addr;
+
+                fetch('${ctx}/partner/register/geocode?address=' + encodeURIComponent(addr))
+                    .then(function(res) { return res.json(); })
+                    .then(function(json) {
+                        console.log('[geocode 응답]', json);
+                        document.getElementById('brnLatitude').value  = json.lat;
+                        document.getElementById('brnLongitude').value = json.lng;
+                    })
+                    .catch(function(err) { console.error('[geocode 실패]', err); });
             }
         }).open();
     }
 
-    // 폼 제출 시 CKEditor 내용을 textarea로 동기화 (CKEditor5 는 자동 동기화 안 함)
+    // 폼 제출 시 CKEditor 동기화
     document.getElementById('step1Form').addEventListener('submit', function(e) {
         if (editorInstance) {
             document.querySelector('#brnDescription').value = editorInstance.getData();
         }
     });
+
 </script>
 </body>
 </html>

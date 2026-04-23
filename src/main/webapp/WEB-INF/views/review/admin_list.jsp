@@ -132,13 +132,14 @@
                                         <span class="text-muted small">(${r.revRating})</span>
                                     </td>
                                     <td class="content-cell" title="${r.revContent}">${r.revContent}</td>
-                                    <td class="text-center">
+                                    <td class="text-center" onclick="event.stopPropagation()">
                                         <c:choose>
-                                            <c:when test="${r.reportCount >= 3}">
-                                                <span class="badge report-badge">${r.reportCount}회</span>
+                                            <c:when test="${r.reportCount >= 1}">
+                                                <span class="badge report-badge" style="cursor:pointer;"
+                                                      onclick="openReportsModal(${r.revIdx}, ${r.reportCount})">${r.reportCount}회</span>
                                             </c:when>
                                             <c:otherwise>
-                                                <span class="text-muted small">${r.reportCount}</span>
+                                                <span class="text-muted small">0</span>
                                             </c:otherwise>
                                         </c:choose>
                                     </td>
@@ -195,6 +196,49 @@
     </div><!-- /main-content -->
 </div>
 </div>
+<!-- 신고 상세 모달 -->
+<div class="modal fade" id="reportsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title fw-bold">
+                    <i class="bi bi-flag-fill me-2 text-danger"></i>신고 내역
+                    <span class="text-muted small fw-normal ms-1" id="rpt_revIdx"></span>
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="rpt_loading" class="text-center py-5 text-muted">
+                    <div class="spinner-border spinner-border-sm me-2"></div>불러오는 중...
+                </div>
+                <div id="rpt_empty" class="text-center py-5 text-muted" style="display:none;">
+                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>신고 내역이 없습니다.
+                </div>
+                <div id="rpt_list" style="display:none;">
+                    <table class="table table-bordered mb-0" style="font-size:.88rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="width:40px;">#</th>
+                                <th style="width:90px;">아이디</th>
+                                <th style="width:80px;">이름</th>
+                                <th style="width:140px;">이메일</th>
+                                <th style="width:120px;">연락처</th>
+                                <th>신고 사유</th>
+                                <th class="text-center" style="width:80px;">상태</th>
+                                <th class="text-center" style="width:110px;">신고일시</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rpt_tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">닫기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- 리뷰 상세 모달 -->
@@ -262,6 +306,49 @@
 
 <script>
     const CTX = '${ctx}';
+
+    /* ── 신고 목록 모달 ── */
+    function openReportsModal(revIdx, cnt) {
+        document.getElementById('rpt_revIdx').textContent = '리뷰 #' + revIdx + ' (' + cnt + '건)';
+        document.getElementById('rpt_loading').style.display = '';
+        document.getElementById('rpt_empty').style.display   = 'none';
+        document.getElementById('rpt_list').style.display    = 'none';
+
+        new bootstrap.Modal(document.getElementById('reportsModal')).show();
+
+        fetch(CTX + '/admin/review/reports?revIdx=' + revIdx)
+            .then(function(r) { return r.json(); })
+            .then(function(list) {
+                document.getElementById('rpt_loading').style.display = 'none';
+                if (!list || list.length === 0) {
+                    document.getElementById('rpt_empty').style.display = '';
+                    return;
+                }
+                const statusLabel = { PENDING:'접수', BLINDED:'블라인드', DISMISSED:'반려' };
+                const statusClass = { PENDING:'bg-warning text-dark', BLINDED:'bg-danger', DISMISSED:'bg-secondary' };
+                const tbody = document.getElementById('rpt_tbody');
+                tbody.innerHTML = '';
+                list.forEach(function(r, i) {
+                    const tr = document.createElement('tr');
+                    const st = r.rvrStatus || 'PENDING';
+                    tr.innerHTML =
+                        '<td class="text-center text-muted">' + (i + 1) + '</td>' +
+                        '<td><strong>' + (r.userId   || '-') + '</strong></td>' +
+                        '<td>' + (r.userName || '-') + '</td>' +
+                        '<td class="small">' + (r.userEmail || '-') + '</td>' +
+                        '<td class="small">' + (r.userPhone || '-') + '</td>' +
+                        '<td style="white-space:pre-wrap;">' + (r.rvrReason || '-') + '</td>' +
+                        '<td class="text-center"><span class="badge ' + (statusClass[st] || 'bg-secondary') + '">' + (statusLabel[st] || st) + '</span></td>' +
+                        '<td class="text-center small text-muted">' + (r.rvrCreated ? r.rvrCreated.substring(0, 16).replace('T', ' ') : '-') + '</td>';
+                    tbody.appendChild(tr);
+                });
+                document.getElementById('rpt_list').style.display = '';
+            })
+            .catch(function() {
+                document.getElementById('rpt_loading').style.display = 'none';
+                document.getElementById('rpt_empty').style.display   = '';
+            });
+    }
 
     // 별점을 ★ 문자로 변환
     function starsHtml(rating) {

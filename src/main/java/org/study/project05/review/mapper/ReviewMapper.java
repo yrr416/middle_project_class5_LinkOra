@@ -2,6 +2,7 @@ package org.study.project05.review.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.study.project05.review.vo.ReviewReportVO;
 import org.study.project05.review.vo.ReviewVO;
 
 import java.util.List;
@@ -50,6 +51,13 @@ public interface ReviewMapper {
     List<ReviewVO> selectAllForAdmin(@Param("searchWord") String searchWord,
                                      @Param("offset")     int    offset,
                                      @Param("limit")      int    limit);
+
+    /** 관리자용: 특정 리뷰의 신고 목록 + 신고자 인적사항 조회 */
+    List<ReviewReportVO> selectReportsByRevIdx(@Param("revIdx") int revIdx);
+
+
+    /** 관리자 리뷰 강제 삭제 전 신고 기록 삭제 */
+    int deleteReportsByRevIdx(@Param("revIdx") int revIdx);
 
     /** 관리자 리뷰 강제 삭제 */
     int deleteByAdmin(@Param("revIdx") int revIdx);

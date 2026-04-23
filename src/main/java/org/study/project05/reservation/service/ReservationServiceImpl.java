@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.study.project05.reservation.mapper.ReservationMapper;
 import org.study.project05.reservation.vo.AdminReservationVO;
+import org.study.project05.reservation.user.service.PaymentService;
 import org.study.project05.reservation.user.service.ReservationMailService;
 
 import java.util.*;
@@ -13,6 +14,9 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Autowired
     private ReservationMapper reservationMapper;
+
+    @Autowired
+    private PaymentService paymentService;
 
     @Autowired
     private ReservationMailService mailService;
@@ -65,6 +69,12 @@ public class ReservationServiceImpl implements ReservationService {
     }
     @Override public void completeReservation(int resIdx) { reservationMapper.completeReservation(resIdx); }
     @Override public void cancelReservation(int resIdx, String reason) {
+        // ONLINE 결제 예약이면 토스 전액 환불 처리 (관리자 귀책 → 100%)
+        AdminReservationVO detail = reservationMapper.getReservationDetail(resIdx);
+        if (detail != null && "ONLINE".equals(detail.getPaymentType())) {
+            paymentService.cancelPayment(resIdx, detail.getResTotalPrice(), reason);
+        }
+
         Map<String, Object> p = new HashMap<>();
         p.put("resIdx", resIdx); p.put("cancelReason", reason);
         reservationMapper.cancelReservation(p);

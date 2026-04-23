@@ -14,8 +14,16 @@
 <div class="max-w-xl mx-auto px-4 py-20 text-center">
     <div class="bg-white rounded-2xl shadow p-10">
         <div class="text-5xl mb-4">✅</div>
-        <h1 class="text-2xl font-bold text-gray-800 mb-2">예약이 신청되었습니다</h1>
-        <p class="text-gray-500 text-sm mb-8">담당자 확인 후 CONFIRMED 상태로 변경됩니다.</p>
+        <c:choose>
+            <c:when test="${paymentType eq 'ONLINE'}">
+                <h1 class="text-2xl font-bold text-gray-800 mb-2">결제가 완료되었습니다</h1>
+                <p class="text-gray-500 text-sm mb-8">예약이 확정되었습니다.</p>
+            </c:when>
+            <c:otherwise>
+                <h1 class="text-2xl font-bold text-gray-800 mb-2">예약이 신청되었습니다</h1>
+                <p class="text-gray-500 text-sm mb-8">담당자 확인 후 예약이 확정됩니다.</p>
+            </c:otherwise>
+        </c:choose>
 
         <c:if test="${not empty reservation}">
             <div class="text-left bg-gray-50 rounded-xl p-5 text-sm text-gray-700 mb-8 space-y-2">

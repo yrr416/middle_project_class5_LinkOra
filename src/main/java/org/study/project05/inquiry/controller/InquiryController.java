@@ -69,7 +69,8 @@ public class InquiryController {
     }
 
     @GetMapping("/mylist")
-    public String myInquiryList(@RequestParam(value = "page", defaultValue = "1") int page, 
+    public String myInquiryList(@RequestParam(value = "page", defaultValue = "1") int page,
+                                @RequestParam(value = "status", required = false) String status,
                                 HttpSession session, Model model) {
         Integer userIdx = SessionUtil.getUserIdx(session);
         if (userIdx == null) {
@@ -79,9 +80,10 @@ public class InquiryController {
             return "common/alert";
         }
 
-        Map<String, Object> result = inquiryService.getInquiryList(userIdx.longValue(), page);
+        Map<String, Object> result = inquiryService.getInquiryList(userIdx.longValue(), page, status);
         model.addAttribute("inquiryList", result.get("inquiryList"));
         model.addAttribute("paging", result.get("paging"));
+        model.addAttribute("currentStatus", status);
         return "inquiry/my_inquiries";
     }
 

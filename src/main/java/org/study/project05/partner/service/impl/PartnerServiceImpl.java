@@ -6,6 +6,7 @@ package org.study.project05.partner.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.study.project05.login.service.TemporaryPasswordWindowService;
 import org.study.project05.partner.mapper.PartnerMapper;
 import org.study.project05.partner.service.PartnerService;
 import org.study.project05.partner.vo.PartnerVO;
@@ -15,10 +16,16 @@ import org.study.project05.partner.vo.PartnerVO;
 public class PartnerServiceImpl implements PartnerService {
     private final PartnerMapper partnerMapper;
     private final PasswordEncoder passwordEncoder;
+    private final TemporaryPasswordWindowService temporaryPasswordWindowService;
 
-    public PartnerServiceImpl(PartnerMapper partnerMapper, PasswordEncoder passwordEncoder) {
+    public PartnerServiceImpl(
+            PartnerMapper partnerMapper,
+            PasswordEncoder passwordEncoder,
+            TemporaryPasswordWindowService temporaryPasswordWindowService
+    ) {
         this.partnerMapper = partnerMapper;
         this.passwordEncoder = passwordEncoder;
+        this.temporaryPasswordWindowService = temporaryPasswordWindowService;
     }
 
     public PartnerVO getByPartnerId(String partnerId) {
@@ -132,6 +139,7 @@ public class PartnerServiceImpl implements PartnerService {
                 log.warn("[changePassword] 업데이트 실패 (0 rows) - partnerId={}", partnerId);
                 return PasswordChangeResult.partnerNotFound;
             }
+            temporaryPasswordWindowService.clearPartnerTemporaryPassword(partnerId);
             return PasswordChangeResult.SUCCESS;
         } catch (Exception e) {
             log.error("[changePassword] DB 업데이트 실패 - partnerId={}", partnerId, e);

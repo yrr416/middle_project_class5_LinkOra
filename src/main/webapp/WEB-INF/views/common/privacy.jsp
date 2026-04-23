@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
-<%-- 회원가입 동의용 개인정보 처리방침 안내(교육·데모 목적의 요약 문구). --%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%-- 회원가입 동의용 개인정보 처리방침: settings.privacy_content를 렌더링한다. --%>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -26,24 +27,9 @@
 <body>
 <div class="wrap">
     <h1>개인정보 처리방침</h1>
-    <p>본 방침은 서비스 회원가입 시 수집·이용되는 개인정보에 대한 안내를 위해 제공됩니다. 실제 서비스 운영 시에는 법령에 맞게 보완·게시해야 합니다.</p>
-
-    <h2>수집 항목</h2>
-    <ul>
-        <li>회원: 아이디, 비밀번호, 이름, 이메일, 전화번호, 주소, 선택 시 프로필 이미지</li>
-        <li>사업자 회원: 위 정보 및 사업자등록번호 등 사업자 식별 정보</li>
-    </ul>
-
-    <h2>이용 목적</h2>
-    <ul>
-        <li>회원 식별, 서비스 제공·이용 기록, 본인 확인, 고객 문의 대응</li>
-    </ul>
-
-    <h2>보관 및 파기</h2>
-    <p>관련 법령 또는 내부 방침에 따라 보관이 필요한 경우를 제외하고, 이용 목적 달성 후 지체 없이 파기합니다.</p>
-
-    <h2>문의</h2>
-    <p>개인정보 관련 문의는 서비스 운영자에게 연락해 주세요.</p>
+    <div>
+        <c:out value="${privacyContent}" escapeXml="false"/>
+    </div>
 
     <div class="actions">
         <a class="primary" href="javascript:window.close();">창 닫기</a>

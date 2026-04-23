@@ -12,6 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <style>
         body { background-color: #f4f6f9; }
 
@@ -986,6 +987,13 @@ function renderRevenue(data) {
                         callbacks: {
                             label: function(item) { return ' ' + fmtNum(item.parsed.y); }
                         }
+                    },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'start',
+                        formatter: function(v) { return v === 0 ? '' : fmtNum(v); },
+                        font: { size: 10, weight: 'bold' },
+                        color: '#fff'
                     }
                 },
                 scales: {
@@ -994,7 +1002,8 @@ function renderRevenue(data) {
                         ticks: { callback: function(v) { return fmtNum(v); } }
                     }
                 }
-            }
+            },
+            plugins: [ChartDataLabels]
         });
     }
 
@@ -1036,6 +1045,13 @@ function renderRevenue(data) {
                         callbacks: {
                             label: function(item) { return ' ' + fmtNum(item.parsed.x); }
                         }
+                    },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'start',
+                        formatter: function(v) { return v === 0 ? '' : fmtNum(v); },
+                        font: { size: 10, weight: 'bold' },
+                        color: '#fff'
                     }
                 },
                 scales: {
@@ -1044,7 +1060,8 @@ function renderRevenue(data) {
                         ticks: { callback: function(v) { return fmtNum(v); } }
                     }
                 }
-            }
+            },
+            plugins: [ChartDataLabels]
         });
     }
 

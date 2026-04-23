@@ -110,14 +110,18 @@ public class CustomerController {
     @PostMapping("/statusChange")
     public String statusChange(CustomerVO vo,
                                @RequestParam(defaultValue = "") String memberType,
-                               @RequestParam(defaultValue = "1") int nowPage) {
+                               @RequestParam(defaultValue = "1") int nowPage,
+                               @RequestParam(defaultValue = "list") String from) {
         if ("partner".equals(memberType)) {
             customerService.updatePartnerStatus(vo);
         } else {
             customerService.updateCustomerStatus(vo);
         }
-        return "redirect:/admin/customer/detail?userIdx=" + vo.getUserIdx()
-                + "&memberType=" + memberType + "&nowPage=" + nowPage;
+        if ("detail".equals(from)) {
+            return "redirect:/admin/customer/detail?userIdx=" + vo.getUserIdx()
+                    + "&memberType=" + memberType + "&nowPage=" + nowPage;
+        }
+        return "redirect:/admin/customer/list?nowPage=" + nowPage;
     }
 
     /* 고객/파트너 삭제 (소프트) */

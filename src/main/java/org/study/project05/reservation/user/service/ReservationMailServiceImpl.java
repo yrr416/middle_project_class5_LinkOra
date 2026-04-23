@@ -125,6 +125,55 @@ public class ReservationMailServiceImpl implements ReservationMailService {
         }
     }
 
+    @Override
+    public void sendReservationCancelled(String toEmail, String name,
+                                         String spaceName,
+                                         String startTime, String endTime,
+                                         int paidAmount, int refundAmount) {
+        if (mockEnabled) {
+            log.info("[MAIL MOCK] 예약취소 to={}, name={}, space={}, 결제={}, 환불={}",
+                    toEmail, name, spaceName, paidAmount, refundAmount);
+            return;
+        }
+
+        if (mailUsername == null || mailUsername.isBlank()
+                || mailPassword == null || mailPassword.isBlank()) {
+            log.warn("[MAIL] 메일 설정이 없어 발송을 건너뜁니다.");
+            return;
+        }
+
+        try {
+            String displayName = (name == null || name.isBlank()) ? "고객" : name.trim();
+            String refundLine  = refundAmount > 0
+                    ? "환불금액: " + String.format("%,d", refundAmount) + "원 (영업일 기준 3~5일 내 처리)\n"
+                    : "환불금액: 환불 불가 (취소 정책에 따라 환불되지 않습니다)\n";
+
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(resolveFromAddress());
+            message.setTo(toEmail);
+            message.setSubject("[LinkOra] 예약이 취소되었습니다");
+            message.setText(
+                    displayName + "님, 안녕하세요.\n\n"
+                    + "예약이 취소되었습니다.\n\n"
+                    + "━━━━━━━━━━━━━━━━━━━━\n"
+                    + "공간명  : " + spaceName + "\n"
+                    + "시작    : " + startTime + "\n"
+                    + "종료    : " + endTime   + "\n"
+                    + "결제금액: " + String.format("%,d", paidAmount) + "원\n"
+                    + refundLine
+                    + "━━━━━━━━━━━━━━━━━━━━\n\n"
+                    + "문의사항이 있으시면 고객센터로 연락 주세요.\n"
+                    + "본 메일은 발신 전용입니다."
+            );
+
+            createSender().send(message);
+            log.info("[MAIL] 예약취소 메일 발송 완료 → {}", toEmail);
+
+        } catch (Exception e) {
+            log.error("[MAIL] 예약취소 메일 발송 실패 → {}, 사유: {}", toEmail, e.getMessage());
+        }
+    }
+
     /**
      * JavaMailSender 생성 — 이메일 도메인으로 SMTP 서버 자동 감지
      * Gmail, 네이버, 다음, 네이트, Outlook, iCloud 지원

@@ -12,6 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <style>
         body { background-color:#f4f6f9; }
         .sidebar { height:100vh; background:linear-gradient(180deg,#1a3a5c 0%,#0d2137 100%); position:sticky; top:0; align-self:flex-start; overflow-y:auto; }
@@ -34,8 +35,8 @@
         .chart-card .card-title { font-size:.95rem; font-weight:600; margin-bottom:16px; color:#212529; }
         .heatmap-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
         .heatmap-day-label { text-align:center; font-size:.75rem; font-weight:600; color:#6c757d; padding:4px 0; }
-        .heatmap-cell { aspect-ratio:1; border-radius:4px; cursor:default; }
-        .heat-0{background:#e9ecef;} .heat-mid{background:#4b9be3;} .heat-high{background:#0d5fad;}
+        .heatmap-cell { aspect-ratio:1; border-radius:4px; cursor:default; display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:700; }
+        .heat-0{background:#e9ecef; color:#adb5bd;} .heat-mid{background:#4b9be3; color:#fff;} .heat-high{background:#0d5fad; color:#fff;}
         .list-card { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.06); overflow:hidden; }
         .list-card .list-header { padding:16px 20px; border-bottom:1px solid #f0f0f0; font-weight:600; font-size:.95rem; }
         .list-item { padding:12px 20px; border-bottom:1px solid #f8f9fa; display:flex; align-items:center; gap:12px; }
@@ -227,10 +228,7 @@
                         <div class="d-flex align-items-center gap-2"><i class="bi bi-chat-left-dots text-info fs-5"></i><span>미처리 문의</span></div>
                         <span class="badge bg-info text-white rounded-pill px-3">${summary.pendingInquiryCnt}건</span>
                     </div>
-                    <div class="alert-item">
-                        <div class="d-flex align-items-center gap-2"><i class="bi bi-flag text-danger fs-5"></i><span>대기 중인 신고</span></div>
-                        <span class="badge bg-danger rounded-pill px-3">${summary.pendingReportCnt}건</span>
-                    </div>
+                    <%-- 대기 중인 신고: 추후 구현 예정 (보류) --%>
                 </div>
                 <div class="list-card">
                     <div class="list-header d-flex justify-content-between align-items-center">
@@ -287,19 +285,46 @@ new Chart(document.getElementById('monthlySalesChart'),{
     data:{ labels:${monthLabelsJson}, datasets:[{ label:'매출 (₩)', data:${monthRevenuesJson},
         backgroundColor:'rgba(13,110,253,0.7)', borderColor:'rgba(13,110,253,1)', borderWidth:1, borderRadius:6 }] },
     options:{ responsive:true, maintainAspectRatio:false,
-        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>'₩ '+c.parsed.y.toLocaleString('ko-KR')}} },
-        scales:{ y:{ beginAtZero:true, ticks:{callback:v=>'₩ '+v.toLocaleString('ko-KR')} } } }
+        plugins:{
+            legend:{display:false},
+            tooltip:{callbacks:{label:c=>'₩ '+c.parsed.y.toLocaleString('ko-KR')}},
+            datalabels:{
+                anchor:'end', align:'start',
+                formatter:v=>v===0?'':('₩ '+v.toLocaleString('ko-KR')),
+                font:{size:11, weight:'bold'}, color:'#fff'
+            }
+        },
+        scales:{ y:{ beginAtZero:true, ticks:{callback:v=>'₩ '+v.toLocaleString('ko-KR')} } }
+    },
+    plugins:[ChartDataLabels]
 });
 
 /* 공간별 이용률 도넛 */
 (function(){
     const labels=${spaceLabelsJson}, counts=${spaceCountsJson};
     const pal=['#0d6efd','#198754','#fd7e14','#6f42c1','#0dcaf0','#ffc107','#d63384','#20c997'];
+    const total=counts.reduce((a,b)=>a+b,0)||1;
     new Chart(document.getElementById('spaceUsageChart'),{
         type:'doughnut',
         data:{ labels, datasets:[{ data:counts, backgroundColor:labels.map((_,i)=>pal[i%pal.length]), borderWidth:2, borderColor:'#fff' }] },
-        options:{ responsive:true, plugins:{ legend:{position:'bottom',labels:{font:{size:11},padding:8}},
-            tooltip:{callbacks:{label:c=>c.label+': '+c.parsed+'건'}} }, cutout:'60%' }
+        options:{ responsive:true,
+            plugins:{
+                legend:{position:'bottom',labels:{font:{size:11},padding:8}},
+                tooltip:{callbacks:{label:c=>c.label+': '+c.parsed+'건'}},
+                datalabels:{
+                    formatter:(v,ctx)=>{
+                        if(v===0) return '';
+                        const pct=Math.round(v/total*100);
+                        return pct+'%\n'+v+'건';
+                    },
+                    color:'#fff', font:{size:11, weight:'bold'},
+                    textAlign:'center',
+                    display:ctx=>counts[ctx.dataIndex]>0
+                }
+            },
+            cutout:'60%'
+        },
+        plugins:[ChartDataLabels]
     });
 })();
 
@@ -318,7 +343,7 @@ new Chart(document.getElementById('monthlySalesChart'),{
         html+='<div class="heatmap-grid mb-1">';
         for(let d=1;d<=7;d++){
             const cnt=map[w+'-'+d]||0;
-            html+='<div class="heatmap-cell heat-'+heatLevel(cnt)+'" title="'+w+'주차 '+dayNames[d]+'요일: '+cnt+'건 '+(cnt===0?'없음':cnt<=5?'중간':'많음')+'"></div>';
+            html+='<div class="heatmap-cell heat-'+heatLevel(cnt)+'" title="'+w+'주차 '+dayNames[d]+'요일: '+cnt+'건 '+(cnt===0?'없음':cnt<=5?'중간':'많음')+'">'+(cnt>0?cnt:'')+'</div>';
         }
         html+='</div>';
     }

@@ -340,7 +340,7 @@
                            onerror="this.parentElement.innerHTML='<div class=\'no-img-box\'>WS</div>'">
                     </c:when>
                     <c:otherwise>
-                      <img src="${pageContext.request.contextPath}/static/upload/branch/${branch.mainImgUrl}"
+                      <img src="${pageContext.request.contextPath}/static/upload/partner/${branch.mainImgUrl}"
                            alt="${branch.brnName}"
                            style="width:100%; height:100%; object-fit:cover;"
                            onerror="this.parentElement.innerHTML='<div class=\'no-img-box\'>WS</div>'">
@@ -478,7 +478,7 @@
     recent.forEach(b => {
       let imgSrc = '';
       if (b.mainImgUrl) {
-        imgSrc = b.mainImgUrl.startsWith('/') ? ctxPath + b.mainImgUrl : ctxPath + '/static/upload/branch/' + b.mainImgUrl;
+        imgSrc = b.mainImgUrl.startsWith('/') ? ctxPath + b.mainImgUrl : ctxPath + '/static/upload/partner/' + b.mainImgUrl;
       }
 
       /* [핵심 수정] 최근 본 지점에서도 onerror 처리를 해서 사진이 깨지면 WS 박스가 나오게 했어요 */

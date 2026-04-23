@@ -10,21 +10,23 @@ let currentLat = null;
 let currentLng = null;
 let isWishFilterActive = false;
 
-// [핵심 해결] 새로고침해도 하트가 절대 풀리지 않도록 내 찜 목록을 기억하는 공간
+// 사용자 찜 목록 저장소
 let myWishlist = new Set();
 
+// 브랜드별 마커 색상 매핑
 const brandColors = {
     "링크오라": "%23FF9500",
     "알파오피스": "%234682B4",
     "패스트파이브": "%23FF3B30"
 };
 
+// 검색 결과 페이징 변수
 let searchGroupedData = {};
 let searchRegionPage = {};
 let searchRegionOpen = {};
 const ITEMS_PER_PAGE = 3;
 
-// [핵심 해결] 엉뚱하게 나뉘는 지역명(서울시, 서울광역시 등)을 깔끔하게 하나로 통일!
+// 지역명 정규화
 function normalizeRegionName(address) {
     if (!address) return "기타 지역";
     let region = address.split(' ')[0];
@@ -36,10 +38,10 @@ function normalizeRegionName(address) {
     return region;
 }
 
-// 초기화: 내 찜 목록을 먼저 기억하고, 그 다음 지도를 그립니다.
+// 카카오맵 API 초기화
 function initKakaoMapApp() {
     if (typeof kakao === 'undefined' || !kakao.maps) {
-        console.error("카카오 지도 SDK가 로드되지 않았습니다.");
+        console.error("카카오 지도 SDK 로드 실패");
         return;
     }
 
@@ -49,13 +51,13 @@ function initKakaoMapApp() {
     geocoder = new kakao.maps.services.Geocoder();
     ps = new kakao.maps.services.Places();
 
-    // [수정] URL 파라미터 체크 로직: 메인페이지에서 'mode=wish'로 넘어왔는지 확인
+    // 찜 목록 필터 모드 확인
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('mode') === 'wish') {
         isWishFilterActive = true;
     }
 
-    // 1. 서버에서 내 찜 목록을 가져와서 기억장에 쏙쏙 넣음
+    // 서버에서 찜 목록 조회
     fetch('/linkora/api/wishlist/my')
         .then(res => res.json())
         .then(data => {
@@ -65,10 +67,11 @@ function initKakaoMapApp() {
             startMapCreation(container);
         })
         .catch(err => {
-            console.warn("찜 목록 동기화 실패. 지도를 먼저 엽니다.");
+            console.warn("찜 목록 동기화 실패");
             startMapCreation(container);
         });
 
+    // 검색 이벤트 리스너 등록
     const searchBtn = document.getElementById('mapSearchBtn');
     const searchInput = document.getElementById('mapSearchInput');
 
@@ -89,13 +92,14 @@ function initKakaoMapApp() {
     }
 }
 
+// 지도 생성 시작
 function startMapCreation(container) {
-    // 찜 모드(?mode=wish)일 때는 내 위치를 찾는 GPS 로직을 건너뜁니다.
     if (isWishFilterActive) {
         createMapAndLoadData(container, 37.3947, 127.1111);
         return;
     }
 
+    // 현재 위치 기반 지도 로드
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
             currentLat = position.coords.latitude;
@@ -109,6 +113,7 @@ function startMapCreation(container) {
     }
 }
 
+// 지도 객체 생성 및 데이터 로드
 function createMapAndLoadData(container, lat, lng) {
     if (map) return;
 
@@ -117,21 +122,21 @@ function createMapAndLoadData(container, lat, lng) {
         level: 4
     });
 
-    // [강력 추가] 연동 로직: 하트 버튼이 로딩될 때까지 감시했다가 준비되면 즉시 활성화
+    // 찜 필터 UI 상태 동기화
     const syncWishTab = setInterval(() => {
         const wishFilterBtn = document.getElementById('wishFilterBtn');
         if (wishFilterBtn) {
             if (isWishFilterActive) {
-                wishFilterBtn.classList.add('active'); // 탭 색상 변경
-                loadMapData(); // 데이터 로드 및 범위 조절
+                wishFilterBtn.classList.add('active');
+                loadMapData();
             }
-            clearInterval(syncWishTab); // 연동 완료 후 감시 종료
+            clearInterval(syncWishTab);
         }
     }, 100);
 
-    // 3초 후에는 무한 루프 방지를 위해 감시 강제 종료
     setTimeout(() => clearInterval(syncWishTab), 3000);
 
+    // 맵 클릭 시 오버레이 닫기
     kakao.maps.event.addListener(map, 'click', () => {
         if (activeOverlay) activeOverlay.setMap(null);
     });
@@ -145,7 +150,7 @@ if (document.readyState === 'loading') {
     initKakaoMapApp();
 }
 
-// 검색 로직 완벽 분리: 지역/이름 검색 vs 주소/지하철역 검색
+// 통합 검색 실행
 function executeSearch() {
     if (!map) return;
 
@@ -155,23 +160,21 @@ function executeSearch() {
         return;
     }
 
-    // 1. 오피스 이름이나 지역이 DB에 있는지 먼저 확인
+    // DB 기반 지점 검색
     fetch(`/linkora/api/branches?keyword=${encodeURIComponent(keyword)}`)
         .then(res => res.json())
         .then(data => {
             let branches = Array.isArray(data) ? data : [];
 
-            // [백엔드 버그 방어막] 이름이나 주소에 검색어가 진짜 들어간 것만 남김 (엉뚱한 결과 차단)
             let matchedBranches = branches.filter(b =>
                 (b.brnName && b.brnName.includes(keyword)) ||
                 (b.brnAddress && b.brnAddress.includes(keyword))
             );
 
+            // 결과 존재 여부에 따른 처리
             if (matchedBranches.length > 0) {
-                // 오피스명 or 지역 검색 성공! -> 패널을 띄우는 함수로 연결
                 handleKeywordMatch(keyword, matchedBranches);
             } else {
-                // 2. DB에 없으면 지하철역이나 주소 검색으로 간주하고 카카오 API 출동!
                 ps.keywordSearch(keyword, (data, status) => {
                     if (status === kakao.maps.services.Status.OK && map) {
                         handleLocationSearch(data[0].y, data[0].x);
@@ -180,7 +183,6 @@ function executeSearch() {
                             if (status === kakao.maps.services.Status.OK && map) {
                                 handleLocationSearch(result[0].y, result[0].x);
                             } else {
-                                // 찜 모드일 때 아무것도 못 찾으면
                                 if (isWishFilterActive) {
                                     alert("해당 검색어에 저장된 오피스가 없습니다. 전체 지도로 전환합니다.");
                                     isWishFilterActive = false;
@@ -199,10 +201,9 @@ function executeSearch() {
         .catch(err => console.error("검색 오류"));
 }
 
-// 지역 또는 오피스명 검색 시 결과 처리 (패널 O)
+// DB 검색 결과 처리
 function handleKeywordMatch(keyword, branches) {
     if (isWishFilterActive) {
-        // 관심 지도 모드면 찜한 오피스만 걸러냄
         let wishedOnly = branches.filter(b => myWishlist.has(b.brnIdx) || b.isWish);
 
         if (wishedOnly.length === 0) {
@@ -210,8 +211,6 @@ function handleKeywordMatch(keyword, branches) {
             isWishFilterActive = false;
             const wishBtn = document.querySelector('#wishFilterBtn');
             if (wishBtn) wishBtn.classList.remove('active');
-
-            // 찜 모드 풀고 전체 검색 결과로 보여줌
             showPanelAndMarkers(keyword, branches);
         } else {
             showPanelAndMarkers(keyword, wishedOnly);
@@ -221,7 +220,7 @@ function handleKeywordMatch(keyword, branches) {
     }
 }
 
-// 결과 패널을 띄우고 지도 범위를 맞추는 함수
+// 검색 결과 마커 표시 및 지도 이동
 function showPanelAndMarkers(keyword, branches) {
     closeResultPanel();
     removeMarkers();
@@ -241,7 +240,7 @@ function showPanelAndMarkers(keyword, branches) {
     }
 }
 
-// 지하철, 구청, 상세주소 검색 시 결과 처리 (패널 X, 위치만 이동)
+// 장소 검색 결과 지도 이동
 function handleLocationSearch(lat, lng) {
     if (isWishFilterActive) {
         alert("해당 위치에는 저장된 오피스가 없어 전체 지도로 전환합니다.");
@@ -250,15 +249,13 @@ function handleLocationSearch(lat, lng) {
         if (wishBtn) wishBtn.classList.remove('active');
     }
 
-    closeResultPanel(); // 목록 패널은 무조건 닫음
+    closeResultPanel();
     map.setCenter(new kakao.maps.LatLng(lat, lng));
-    map.setLevel(4); // 위치를 딱 보기 좋은 줌 레벨로 이동
-
-    // 이동한 상태에서 주변 핀들이 보이도록 기본 데이터만 로드 (지도 범위는 고정)
+    map.setLevel(4);
     loadMapData();
 }
 
-// 핀과 기본 데이터를 불러오는 공통 함수
+// 마커 데이터 로드 및 렌더링
 function loadMapData() {
     let fetchUrl = isWishFilterActive ? `/linkora/api/wishlist/my` : `/linkora/api/all-branches`;
     closeResultPanel();
@@ -289,7 +286,6 @@ function loadMapData() {
             removeMarkers();
             displayMarkers(branches);
 
-            // [핵심] 관심 지도 모드일 때만 지도가 찜한 지점들을 다 보이게 알아서 줄어들거나 늘어남
             if (isWishFilterActive && branches.length > 0) {
                 const bounds = new kakao.maps.LatLngBounds();
                 let hasValidBounds = false;
@@ -300,26 +296,27 @@ function loadMapData() {
                     }
                 });
                 if (hasValidBounds && map) {
-                    map.setBounds(bounds); // 찜한 오피스들 위주로 화면 범위를 재설정함
+                    map.setBounds(bounds);
                 }
             }
         })
         .catch(err => console.error("데이터 로드 중 에러 발생", err));
 }
 
+// 브랜드 색상 추출
 function getBrandColor(brnName) {
     if (!brnName) return "%232F4F4F";
     const brand = brnName.split(' ')[0].trim();
     return brandColors[brand] || "%232F4F4F";
 }
 
+// 마커 및 오버레이 렌더링
 function displayMarkers(branches) {
     if (!map) return;
 
     branches.forEach(branch => {
         if (!branch.brnLatitude || !branch.brnLongitude) return;
 
-        // [핵심] 서버 데이터와 상관없이 내 번호장(myWishlist)을 믿고 하트에 불을 켬
         const isWished = myWishlist.has(branch.brnIdx) || branch.isWish === true;
 
         const pos = new kakao.maps.LatLng(branch.brnLatitude, branch.brnLongitude);
@@ -351,7 +348,6 @@ function displayMarkers(branches) {
             if (activeOverlay) activeOverlay.setMap(null);
 
             const content = document.createElement('div');
-            // isWished 값에 따라 하트 색상(빨간색/회색) 지정
             content.innerHTML = `
                 <div class="info-window" style="background:white; border-radius:15px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,0.2); width:240px; position:relative; margin-bottom:100px;">
                     <button class="close-btn" style="position:absolute; top:15px; right:15px; background:transparent; border:none; font-size:18px; color:#999; cursor:pointer;">
@@ -360,7 +356,7 @@ function displayMarkers(branches) {
                     <div style="font-weight:900; font-size:18px; color:#2F4F4F; margin-bottom:8px; padding-right:20px;">${branch.brnName}</div>
                     <div style="font-size:13px; color:#666; line-height:1.5; white-space:normal; word-break:keep-all; margin-bottom:15px;">${branch.brnAddress}</div>
                     <div style="display:flex; gap:10px;">
-                        <button onclick="location.href='/linkora/branch/detail?brnIdx=${branch.brnIdx}'"
+                        <button onclick="location.href='/linkora/detail/detail?brnIdx=${branch.brnIdx}'"
                             style="flex:1; background:#2F4F4F; color:white; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer;">
                             상세보기
                         </button>
@@ -404,6 +400,7 @@ function displayMarkers(branches) {
     });
 }
 
+// 기존 마커 및 오버레이 제거
 function removeMarkers() {
     markers.forEach(m => m.setMap(null));
     labelOverlays.forEach(o => o.setMap(null));
@@ -412,18 +409,25 @@ function removeMarkers() {
     labelOverlays = [];
 }
 
+// 검색 패널 닫기
 window.closeResultPanel = function() {
     const panel = document.getElementById('searchResultPanel');
     if (panel) panel.style.display = 'none';
 };
 
+// 검색 패널 초기화 및 생성
 function initResultList(branches, keyword) {
     let panel = document.getElementById('searchResultPanel');
     if (!panel) {
         panel = document.createElement('div');
         panel.id = 'searchResultPanel';
-        panel.style.cssText = 'position:absolute; top:70px; left:50%; transform:translateX(-50%); width:340px; max-height:70vh; overflow-y:auto; background:white; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.2); z-index:10; display:none; flex-direction:column; padding:20px;';
+        panel.style.cssText = 'position:absolute; top:110px; left:50%; transform:translateX(-50%); width:340px; max-height:calc(100vh - 150px); overflow-y:auto; background:white; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.2); z-index:10; display:none; overflow-x:hidden;';
         document.querySelector('.map-container').appendChild(panel);
+    } else {
+        // 새 검색 시 패널 위치 초기화
+        panel.style.top = '110px';
+        panel.style.left = '50%';
+        panel.style.transform = 'translateX(-50%)';
     }
 
     searchGroupedData = {};
@@ -436,23 +440,32 @@ function initResultList(branches, keyword) {
         if (!searchGroupedData[region]) {
             searchGroupedData[region] = [];
             searchRegionPage[region] = 0;
-            searchRegionOpen[region] = true;
+            searchRegionOpen[region] = false;
         }
         searchGroupedData[region].push(b);
     });
 
+    const regions = Object.keys(searchGroupedData);
+    if(regions.length > 0) {
+        searchRegionOpen[regions[0]] = true;
+    }
+
     renderResultPanel(keyword, branches.length);
-    panel.style.display = 'flex';
+    panel.style.display = 'block';
 }
 
+// 검색 결과 리스트 HTML 렌더링
 function renderResultPanel(keyword, totalCount) {
     const panel = document.getElementById('searchResultPanel');
     if (!panel) return;
 
-    let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; position:sticky; top:-20px; background:white; padding-top:20px; z-index:2;">
+    // 상단 드래그 핸들 영역
+    let html = `<div id="panelDragHandle" style="display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:white; padding:20px; z-index:10; border-bottom: 1px solid #eee; cursor:grab;" title="마우스로 꾹 눌러 이동할 수 있습니다.">
                     <strong style="color:#2F4F4F; font-size:16px;">'${keyword}' 검색 결과 (${totalCount}개)</strong>
                     <button onclick="closeResultPanel()" style="background:none; border:none; font-size:22px; cursor:pointer; color:#999;"><i class="fa-solid fa-xmark"></i></button>
                 </div>`;
+
+    html += `<div style="padding:20px; padding-top:15px;">`;
 
     for (const region in searchGroupedData) {
         const branches = searchGroupedData[region];
@@ -509,14 +522,59 @@ function renderResultPanel(keyword, totalCount) {
         html += `</div>`;
     }
 
+    html += `</div>`;
+
     panel.innerHTML = html;
+
+    // 패널 드래그 기능 이벤트 적용
+    const dragHandle = document.getElementById('panelDragHandle');
+    if (dragHandle) {
+        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+        dragHandle.onmousedown = function(e) {
+            e.preventDefault();
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+
+            document.onmouseup = function() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+                dragHandle.style.cursor = 'grab';
+            };
+
+            document.onmousemove = function(e) {
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+
+                // transform 속성 해제 후 자유 이동
+                panel.style.transform = 'none';
+                panel.style.top = (panel.offsetTop - pos2) + "px";
+                panel.style.left = (panel.offsetLeft - pos1) + "px";
+            };
+            dragHandle.style.cursor = 'grabbing';
+        };
+    }
 }
 
+// 지역별 아코디언 토글
 window.toggleRegion = function(region, keyword, totalCount) {
-    searchRegionOpen[region] = !searchRegionOpen[region];
+    const isCurrentlyOpen = searchRegionOpen[region];
+
+    for (let key in searchRegionOpen) {
+        searchRegionOpen[key] = false;
+    }
+
+    if (!isCurrentlyOpen) {
+        searchRegionOpen[region] = true;
+    }
+
     renderResultPanel(keyword, totalCount);
 };
 
+// 지역별 페이징 이동
 window.changePage = function(region, step, keyword, totalCount) {
     const branches = searchGroupedData[region];
     const totalPages = Math.ceil(branches.length / ITEMS_PER_PAGE);
@@ -528,15 +586,19 @@ window.changePage = function(region, step, keyword, totalCount) {
     }
 };
 
+// 선택 지점 지도 포커스 이동 및 패널 닫기
 window.moveToBranch = function(lat, lng) {
     if (map) {
         const pos = new kakao.maps.LatLng(lat, lng);
         map.setCenter(pos);
         map.setLevel(3);
+
+        // 지점 클릭 시 화면 가림 방지를 위해 패널 닫기
+        closeResultPanel();
     }
 };
 
-// 메인 하트 버튼 누를 때
+// 찜 필터 토글
 window.toggleWishFilter = function(isActive) {
     if (!map) return;
 
@@ -548,7 +610,7 @@ window.toggleWishFilter = function(isActive) {
     loadMapData();
 };
 
-// 하트(찜) 클릭 시 DB 연동 및 번호장(myWishlist) 업데이트
+// 개별 지점 찜하기 토글
 window.toggleWish = function (target, brnIdx) {
     const icon = target.querySelector('i');
     const bIdx = parseInt(brnIdx, 10);
@@ -562,19 +624,18 @@ window.toggleWish = function (target, brnIdx) {
         .then(data => {
             if (data.status === 'success') {
                 if (data.isAdded) {
-                    myWishlist.add(bIdx); // 내 번호장에도 추가!
+                    myWishlist.add(bIdx);
                     target.style.borderColor = '#ff4757';
                     target.style.color = '#ff4757';
                     if (icon) icon.className = 'fa-solid fa-heart';
                     target.classList.add('active');
                 } else {
-                    myWishlist.delete(bIdx); // 찜 해제 시 번호장에서도 삭제!
+                    myWishlist.delete(bIdx);
                     target.style.borderColor = '#eee';
                     target.style.color = '#ccc';
                     if (icon) icon.className = 'fa-regular fa-heart';
                     target.classList.remove('active');
 
-                    // 찜 모드에서 취소했다면 바로 화면 갱신
                     if (isWishFilterActive) {
                         loadMapData();
                     }
