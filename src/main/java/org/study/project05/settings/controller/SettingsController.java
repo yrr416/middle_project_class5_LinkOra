@@ -289,7 +289,7 @@ public class SettingsController {
         settingsService.writeLog(currentAdminIdx(), "", "환불 정책 등록",
                 vo.getHoursBefore() + "시간 전 → " + vo.getRefundRate() + "%", request.getRemoteAddr());
         rttr.addFlashAttribute("msg", "환불 정책이 등록되었습니다.");
-        return "redirect:/admin/settings?tab=refund";
+        return "redirect:/admin/settings?tab=policy";
     }
 
     /** 환불 정책 수정 */
@@ -301,7 +301,7 @@ public class SettingsController {
         settingsService.writeLog(currentAdminIdx(), "", "환불 정책 수정",
                 "policyIdx=" + vo.getPolicyIdx(), request.getRemoteAddr());
         rttr.addFlashAttribute("msg", "환불 정책이 수정되었습니다.");
-        return "redirect:/admin/settings?tab=refund";
+        return "redirect:/admin/settings?tab=policy";
     }
 
     /** 환불 정책 삭제 */
@@ -313,6 +313,6 @@ public class SettingsController {
         settingsService.writeLog(currentAdminIdx(), "", "환불 정책 삭제",
                 "policyIdx=" + policyIdx, request.getRemoteAddr());
         rttr.addFlashAttribute("msg", "환불 정책이 삭제되었습니다.");
-        return "redirect:/admin/settings?tab=refund";
+        return "redirect:/admin/settings?tab=policy";
     }
 }
