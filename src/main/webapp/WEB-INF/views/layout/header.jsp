@@ -193,9 +193,9 @@
 
     <%-- 사이드바 하단 고정 영역 --%>
     <div class="sidebar-bottom-links">
-        <a href="${pageContext.request.contextPath}/common/privacy">개인정보처리방침</a>
+        <a href="${pageContext.request.contextPath}/privacy" target="_blank">개인정보처리방침</a>
         <span class="divider">|</span>
-        <a href="${pageContext.request.contextPath}/common/terms">이용약관</a>
+        <a href="${pageContext.request.contextPath}/terms" target="_blank">이용약관</a>
     </div>
 </aside>
 

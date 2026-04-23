@@ -79,8 +79,8 @@
 <%--        /* 상단: 정책 링크 및 SNS 연결 */--%>
         <div class="custom-footer-top">
             <div class="footer-links">
-                <a href="${pageContext.request.contextPath}/common/privacy">개인정보처리방침</a>
-                <a href="${pageContext.request.contextPath}/common/terms">이용약관</a>
+                <a href="${pageContext.request.contextPath}/privacy" target="_blank">개인정보처리방침</a>
+                <a href="${pageContext.request.contextPath}/terms" target="_blank">이용약관</a>
             </div>
             <div class="footer-sns">
 <%--                /* SNS 아이콘에 기본 링크 연결 */--%>

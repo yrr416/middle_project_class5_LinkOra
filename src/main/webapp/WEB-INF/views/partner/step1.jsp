@@ -103,8 +103,6 @@
 
 <!-- 카카오 주소 API -->
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
-<!-- 카카오맵 SDK (Geocoder - 주소→좌표 변환용) -->
-<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=f46b246e453c7ccbab5a79c4aa737bcc&libraries=services&autoload=false"></script>
 <!-- CKEditor 5 -->
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -139,9 +137,9 @@
         toolbar: {
             items: [
                 'heading', '|',
-                'bold', 'italic', 'underline', 'strikethrough', '|',
+                'bold', 'italic', '|',
                 'bulletedList', 'numberedList', '|',
-                'link', 'uploadImage', 'blockQuote', 'insertTable', '|',
+                'link', 'uploadImage', 'blockQuote', '|',
                 'undo', 'redo'
             ]
         }
@@ -149,33 +147,32 @@
         .then(editor => { editorInstance = editor; })
         .catch(console.error);
 
-    // 카카오 주소 검색 + Geocoder로 좌표 자동 추출
+    // 카카오 주소 검색 + 서버 geocode API로 좌표 자동 추출
     function searchAddress() {
         new daum.Postcode({
             oncomplete: function(data) {
                 var addr = data.roadAddress || data.jibunAddress;
                 document.getElementById('roadAddress').value = addr;
 
-                // 카카오맵 Geocoder로 주소 → 위도/경도 변환
-                kakao.maps.load(function() {
-                    var geocoder = new kakao.maps.services.Geocoder();
-                    geocoder.addressSearch(addr, function(result, status) {
-                        if (status === kakao.maps.services.Status.OK) {
-                            document.getElementById('brnLatitude').value  = result[0].y;
-                            document.getElementById('brnLongitude').value = result[0].x;
-                        }
-                    });
-                });
+                fetch('${ctx}/partner/register/geocode?address=' + encodeURIComponent(addr))
+                    .then(function(res) { return res.json(); })
+                    .then(function(json) {
+                        console.log('[geocode 응답]', json);
+                        document.getElementById('brnLatitude').value  = json.lat;
+                        document.getElementById('brnLongitude').value = json.lng;
+                    })
+                    .catch(function(err) { console.error('[geocode 실패]', err); });
             }
         }).open();
     }
 
-    // 폼 제출 시 CKEditor 내용을 textarea로 동기화 (CKEditor5 는 자동 동기화 안 함)
+    // 폼 제출 시 CKEditor 동기화
     document.getElementById('step1Form').addEventListener('submit', function(e) {
         if (editorInstance) {
             document.querySelector('#brnDescription').value = editorInstance.getData();
         }
     });
+
 </script>
 </body>
 </html>

@@ -35,8 +35,8 @@
         .chart-card .card-title { font-size:.95rem; font-weight:600; margin-bottom:16px; color:#212529; }
         .heatmap-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
         .heatmap-day-label { text-align:center; font-size:.75rem; font-weight:600; color:#6c757d; padding:4px 0; }
-        .heatmap-cell { aspect-ratio:1; border-radius:4px; cursor:default; }
-        .heat-0{background:#e9ecef;} .heat-mid{background:#4b9be3;} .heat-high{background:#0d5fad;}
+        .heatmap-cell { aspect-ratio:1; border-radius:4px; cursor:default; display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:700; }
+        .heat-0{background:#e9ecef; color:#adb5bd;} .heat-mid{background:#4b9be3; color:#fff;} .heat-high{background:#0d5fad; color:#fff;}
         .list-card { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.06); overflow:hidden; }
         .list-card .list-header { padding:16px 20px; border-bottom:1px solid #f0f0f0; font-weight:600; font-size:.95rem; }
         .list-item { padding:12px 20px; border-bottom:1px solid #f8f9fa; display:flex; align-items:center; gap:12px; }
@@ -343,7 +343,7 @@ new Chart(document.getElementById('monthlySalesChart'),{
         html+='<div class="heatmap-grid mb-1">';
         for(let d=1;d<=7;d++){
             const cnt=map[w+'-'+d]||0;
-            html+='<div class="heatmap-cell heat-'+heatLevel(cnt)+'" title="'+w+'주차 '+dayNames[d]+'요일: '+cnt+'건 '+(cnt===0?'없음':cnt<=5?'중간':'많음')+'"></div>';
+            html+='<div class="heatmap-cell heat-'+heatLevel(cnt)+'" title="'+w+'주차 '+dayNames[d]+'요일: '+cnt+'건 '+(cnt===0?'없음':cnt<=5?'중간':'많음')+'">'+(cnt>0?cnt:'')+'</div>';
         }
         html+='</div>';
     }

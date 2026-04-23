@@ -102,11 +102,11 @@
                     </c:choose>
                     <br>
                     <c:choose>
-                        <c:when test="${cvo.userActive == '0'}">
-                            <span class="status-active">정상 이용중</span>
+                        <c:when test="${cvo.userActive == '1'}">
+                            <span class="status-active">정상</span>
                         </c:when>
                         <c:otherwise>
-                            <span class="status-inactive">숨김 처리됨</span>
+                            <span class="status-inactive">숨김</span>
                         </c:otherwise>
                     </c:choose>
                     <hr>
@@ -142,15 +142,15 @@
                         <input type="hidden" name="nowPage"    value="${nowPage}">
                         <input type="hidden" name="userActive" id="statusInput">
                         <div class="d-grid gap-2">
-                            <c:if test="${cvo.userActive == '1'}">
+                            <c:if test="${cvo.userActive == '0'}">
                                 <button type="button" class="btn btn-success btn-sm"
-                                        onclick="changeStatus('0','정상 상태로 복구하시겠습니까?')">
+                                        onclick="changeStatus('1','정상 상태로 복구하시겠습니까?')">
                                     <i class="bi bi-check-circle me-1"></i>정상 복구
                                 </button>
                             </c:if>
-                            <c:if test="${cvo.userActive == '0'}">
+                            <c:if test="${cvo.userActive == '1'}">
                                 <button type="button" class="btn btn-warning btn-sm"
-                                        onclick="changeStatus('1','이 계정을 숨김 처리하시겠습니까?')">
+                                        onclick="changeStatus('0','이 계정을 숨김 처리하시겠습니까?')">
                                     <i class="bi bi-slash-circle me-1"></i>숨김 처리
                                 </button>
                             </c:if>
@@ -162,7 +162,7 @@
                 <div class="info-card">
                     <div class="card-title text-danger"><i class="bi bi-eye-slash me-2"></i>계정 숨김 처리</div>
                     <p class="small text-muted mb-2">
-                        숨김 처리 시 active 값이 1로 변경됩니다.<br>
+                        숨김 처리 시 active 값이 0으로 변경됩니다.<br>
                         데이터는 보존되며 복구 가능합니다.
                     </p>
                     <form method="post" action="${ctx}/admin/customer/delete"
@@ -172,7 +172,7 @@
                         <input type="hidden" name="memberType" value="${memberType}">
                         <input type="hidden" name="nowPage"    value="${nowPage}">
                         <button type="submit" class="btn btn-outline-danger btn-sm w-100"
-                                ${cvo.userActive == '1' ? 'disabled' : ''}>
+                                ${cvo.userActive == '0' ? 'disabled' : ''}>
                             <i class="bi bi-eye-slash me-1"></i>숨김 처리
                         </button>
                     </form>
@@ -241,11 +241,11 @@
                         <span class="info-label">활성여부</span>
                         <span class="info-value">
                             <c:choose>
-                                <c:when test="${cvo.userActive == '0'}">
-                                    <span class="status-active">정상 (0)</span>
+                                <c:when test="${cvo.userActive == '1'}">
+                                    <span class="status-active">정상</span>
                                 </c:when>
                                 <c:otherwise>
-                                    <span class="status-inactive">숨김 (1)</span>
+                                    <span class="status-inactive">숨김</span>
                                 </c:otherwise>
                             </c:choose>
                         </span>
