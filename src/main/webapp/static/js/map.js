@@ -13,12 +13,22 @@ let isWishFilterActive = false;
 // 사용자 찜 목록 저장소
 let myWishlist = new Set();
 
-// 브랜드별 마커 색상 매핑
-const brandColors = {
-    "링크오라": "%23FF9500",
-    "알파오피스": "%234682B4",
-    "패스트파이브": "%23FF3B30"
-};
+// 브랜드별 마커 색상 동적 저장소
+let dynamicBrandColors = {};
+
+// 사용할 색상 팔레트 모음
+const colorPalette = [
+    "%23FF9500", // 주황
+    "%234682B4", // 파랑
+    "%23FF3B30", // 빨강
+    "%2332CD32", // 초록
+    "%239370DB", // 보라
+    "%23FF1493", // 핑크
+    "%2300CED1", // 청록
+    "%23FFD700"  // 노랑
+];
+// 색상 팔레트 인덱스
+let paletteIndex = 0;
 
 // 검색 결과 페이징 변수
 let searchGroupedData = {};
@@ -303,11 +313,20 @@ function loadMapData() {
         .catch(err => console.error("데이터 로드 중 에러 발생", err));
 }
 
-// 브랜드 색상 추출
+// 동적 브랜드 색상 추출
 function getBrandColor(brnName) {
     if (!brnName) return "%232F4F4F";
+
+    // 오피스명의 첫 단어를 브랜드로 인식
     const brand = brnName.split(' ')[0].trim();
-    return brandColors[brand] || "%232F4F4F";
+
+    // 처음 보는 브랜드면 새 색상 할당
+    if (!dynamicBrandColors[brand]) {
+        dynamicBrandColors[brand] = colorPalette[paletteIndex % colorPalette.length];
+        paletteIndex++;
+    }
+
+    return dynamicBrandColors[brand];
 }
 
 // 마커 및 오버레이 렌더링

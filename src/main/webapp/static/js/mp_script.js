@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!document.querySelector('script[src*="dapi.kakao.com"]')) {
             const script = document.createElement('script');
             script.type = 'text/javascript';
-            script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=cd1f0f4ad9dcf4879bee2531dc5a0497&libraries=services&autoload=false';
+            script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=d20150f1426d32396d497433ec786c62&libraries=services&autoload=false';
             script.onload = () => { window.kakao.maps.load(initMapProcess); };
             document.head.appendChild(script);
         } else {
