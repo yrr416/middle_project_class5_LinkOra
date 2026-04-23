@@ -785,6 +785,23 @@
     color: white;
 }
 
+.btn-goto {
+    border-color: #38b2ac !important;
+    color: #2c7a7b !important;
+    margin-top: 5px;
+}
+
+.btn-goto:hover {
+    background: #38b2ac !important;
+    color: white !important;
+    border-color: #38b2ac !important;
+}
+
+.btn-goto .icon {
+    margin-right: 5px;
+}
+
+
 /* 결제 수단 선택 컨테이너 */
 .payment-choice-container {
     align-self: flex-start;

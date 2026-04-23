@@ -134,6 +134,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const hasCompleteLink = text.includes('[[COMPLETE_LINK]]');
         text = text.replace('[[COMPLETE_LINK]]', '');
 
+        // --- 1-1. 범용 링크 태그 처리: [[GOTO:이름|URL]] ---
+        const gotoMatches = [...text.matchAll(/\[\[GOTO:(.*?)\|(.*?)\]\]/g)];
+        text = text.replace(/\[\[GOTO:.*?\]\]/g, '');
+
         // --- 2. 카드 및 일반 텍스트 렌더링 ---
         const welcomeMenuMatch = text.match(/\[\[WELCOME_MENU:([\s\S]*?)\]\]/);
         const actionMatches = [...text.matchAll(/\[\[ACTIONS:([\s\S]*?)\]\]/g)];
@@ -276,8 +280,24 @@ document.addEventListener('DOMContentLoaded', function() {
             linkBtn.className = 'btn-complete';
             if (position === 'prepend') linkBtn.style.opacity = '0.7';
             linkBtn.innerText = '내 예약 내역 확인하기';
-            linkBtn.onclick = () => { window.location.href = `${contextPath}/reservation/user/mylist`; };
+            linkBtn.onclick = () => { window.location.href = `${contextPath}/reservation/mylist`; };
             insertElement(linkBtn);
+        }
+
+        // 범용 이동 버튼 추가
+        if (gotoMatches.length > 0) {
+            gotoMatches.forEach(match => {
+                const label = match[1].trim();
+                const url = match[2].trim();
+                const gotoBtn = document.createElement('button');
+                gotoBtn.className = 'btn-complete btn-goto';
+                gotoBtn.innerHTML = `<span class="icon">🔗</span> ${label} 이동하기`;
+                gotoBtn.onclick = () => { 
+                    const targetUrl = url.startsWith('/') ? `${contextPath}${url}` : url;
+                    window.location.href = targetUrl; 
+                };
+                insertElement(gotoBtn);
+            });
         }
 
         if (position === 'append') chatMessages.scrollTop = chatMessages.scrollHeight;
