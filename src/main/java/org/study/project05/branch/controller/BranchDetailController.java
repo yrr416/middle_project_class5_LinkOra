@@ -3,6 +3,7 @@ package org.study.project05.branch.controller;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.study.project05.common.util.BizHoursUtil;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -46,6 +47,7 @@ public class BranchDetailController {
 
         model.addAttribute("branch", branch);
         model.addAttribute("kakaoMapKey", kakaoMapKey);
+        model.addAttribute("bizStatus", BizHoursUtil.getBizStatus(branch.getBrnHours()));
 
         UserProfileVO loginUser = (UserProfileVO) session.getAttribute("loginUser");
 

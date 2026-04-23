@@ -13,6 +13,7 @@ import org.study.project05.member.vo.UserProfileVO;
 
 import java.util.List;
 import java.util.Map;
+import org.study.project05.common.util.BizHoursUtil;
 
 // 관리자용 ReservationController와 빈 이름 충돌을 피하기 위해 UserReservationController로 명명
 @Controller
@@ -27,8 +28,14 @@ public class  UserReservationController {
     /** 예약 폼 — spcIdx 기반 */
     @GetMapping("/form")
     public String form(@RequestParam int spcIdx, Model model) {
-        model.addAttribute("space",  branchService.getSpaceById(spcIdx));
-        model.addAttribute("branch", branchService.getBranchBySpaceIdx(spcIdx));
+        var space  = branchService.getSpaceById(spcIdx);
+        var branch = branchService.getBranchBySpaceIdx(spcIdx);
+        model.addAttribute("space",  space);
+        model.addAttribute("branch", branch);
+
+        int[] biz = BizHoursUtil.parseBizHours(branch != null ? branch.getBrnHours() : null);
+        model.addAttribute("bizOpen",  biz[0]);
+        model.addAttribute("bizClose", biz[1]);
         return "reservation/form";
     }
 
@@ -59,9 +66,14 @@ public class  UserReservationController {
             return "redirect:/reservation/complete";
 
         } catch (IllegalArgumentException e) {
+            var space  = branchService.getSpaceById(vo.getSpcIdx());
+            var branch = branchService.getBranchBySpaceIdx(vo.getSpcIdx());
             model.addAttribute("errorMsg", e.getMessage());
-            model.addAttribute("space",  branchService.getSpaceById(vo.getSpcIdx()));
-            model.addAttribute("branch", branchService.getBranchBySpaceIdx(vo.getSpcIdx()));
+            model.addAttribute("space",  space);
+            model.addAttribute("branch", branch);
+            int[] biz = BizHoursUtil.parseBizHours(branch != null ? branch.getBrnHours() : null);
+            model.addAttribute("bizOpen",  biz[0]);
+            model.addAttribute("bizClose", biz[1]);
             return "reservation/form";
         }
     }
