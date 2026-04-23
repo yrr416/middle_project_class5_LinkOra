@@ -171,6 +171,12 @@
           AND  payment_type = 'ONLINE'
           AND  TIMESTAMPDIFF(MINUTE, r_created, NOW()) >= 10
     </update>
-
+    
+    <update id="updatePaymentType">
+        UPDATE reservation
+        SET    payment_type = #{type},
+               r_updated    = NOW()
+        WHERE  r_idx        = #{resIdx}
+    </update>
+    
 </mapper>
-

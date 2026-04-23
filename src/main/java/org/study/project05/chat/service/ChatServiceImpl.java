@@ -97,6 +97,15 @@ public class ChatServiceImpl implements ChatService {
                         "\n[실시간 가용성 확인 지침]\n" +
                         "1. 사용자가 특정 공간의 '예약 가능 여부', '남은 자리', '가용성' 등을 물어보면 즉시 `[[CHECK_AVAILABILITY:공간ID|yyyy-MM-dd]]` 태그를 답변에 포함해.\n" +
                         "2. 이 태그를 통해 시스템이 해당 날짜의 시간대별 잔여 좌석표를 자동으로 생성하여 사용자에게 완벽한 정보를 제공할 수 있어.\n" +
+                        "\n[페이지 이동 및 안내 지침]\n" +
+                        "사용자가 특정 기능이나 페이지의 위치를 물어보면 해당 안내와 함께 `[[GOTO:라벨|URL]]` 태그를 답변 끝에 포함해:\n" +
+                        "- 공지사항: `[[GOTO:공지사항|/notice/list]]` \n" +
+                        "- 공간 찾기 및 검색: `[[GOTO:공간 찾기|/branch/search]]` \n" +
+                        "- 내 예약 내역 확인: `[[GOTO:예약 내역 확인|/reservation/mylist]]` \n" +
+                        "- 1:1 문의/고객센터: `[[GOTO:1:1 문의하기|/inquiry/mylist]]` \n" +
+                        "- 찜한 공간/위시리스트: `[[GOTO:찜한 공간|/branch/wishlist]]` \n" +
+                        "- 내 리뷰 관리: `[[GOTO:이용후기 관리|/review/management]]` \n" +
+                        "- 마이페이지/회원정보: `[[GOTO:마이페이지|/mypage]]` \n" +
                         "\n[공간 정보 컨텍스트]\n" +
                         reservationContext + "\n" +
                         "[현재 사용자 상태]\n" +

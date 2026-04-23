@@ -44,5 +44,8 @@ public interface UserReservationMapper {
 
     /** 생성된 지 10분이 지난 PENDING 예약을 일괄 CANCELLED 처리 — 스케줄러 전용 */
     void cancelExpiredPending();
+
+    /** 결제 수단 변경 (ONLINE / OFFLINE) */
+    void updatePaymentType(@Param("resIdx") int resIdx, @Param("type") String type);
 }
 

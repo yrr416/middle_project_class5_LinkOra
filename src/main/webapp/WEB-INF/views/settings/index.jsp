@@ -114,7 +114,7 @@
                     <i class="bi bi-cpu"></i>시스템
                 </a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item d-none">
                 <a class="nav-link ${tab == 'refund' ? 'active' : ''}"
                    href="${ctx}/admin/settings?tab=refund">
                     <i class="bi bi-arrow-counterclockwise"></i>환불 정책
@@ -275,37 +275,67 @@
                     </div>
                 </div>
 
-                <!-- 예약 취소 정책 -->
+                <!-- 환불 정책 -->
                 <div class="set-card">
-                    <h6><i class="bi bi-x-circle me-2"></i>예약 취소 정책</h6>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label small fw-semibold">취소 가능 기간</label>
-                            <div class="input-group">
-                                <input type="number" name="cancel_period" class="form-control"
-                                       value="${settings.cancel_period}" min="0">
-                                <span class="input-group-text">시간 전까지</span>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-semibold">전액 환불 비율</label>
-                            <div class="input-group">
-                                <input type="number" name="refund_rate_full" class="form-control"
-                                       value="${settings.refund_rate_full}" min="0" max="100">
-                                <span class="input-group-text">%</span>
-                            </div>
-                            <small class="text-muted">취소 가능 기간 내 취소 시</small>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-semibold">부분 환불 비율</label>
-                            <div class="input-group">
-                                <input type="number" name="refund_rate_half" class="form-control"
-                                       value="${settings.refund_rate_half}" min="0" max="100">
-                                <span class="input-group-text">%</span>
-                            </div>
-                            <small class="text-muted">취소 가능 기간 초과 시</small>
-                        </div>
+                    <h6><i class="bi bi-arrow-counterclockwise me-2"></i>환불 정책</h6>
+                    <p class="text-muted small mb-3">예약 시작 시간까지 남은 시간 기준으로 환불율을 설정합니다. 취소 시점의 정책이 적용됩니다.</p>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>취소 기준 (시간 전)</th>
+                                    <th>환불율 (%)</th>
+                                    <th>설명</th>
+                                    <th style="width:120px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:forEach var="p" items="${refundPolicyList}">
+                                <tr>
+                                    <td><strong>${p.hoursBefore}시간 전</strong></td>
+                                    <td><span class="badge bg-${p.refundRate == 100 ? 'success' : p.refundRate == 0 ? 'danger' : 'warning'} fs-6">${p.refundRate}%</span></td>
+                                    <td>${p.description}</td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                                onclick="openEditModal(${p.policyIdx}, ${p.hoursBefore}, ${p.refundRate}, '${p.description}')">
+                                            수정
+                                        </button>
+                                        <form method="post" action="${ctx}/admin/settings/refund/delete" class="d-inline"
+                                              onsubmit="return confirm('삭제하시겠습니까?')">
+                                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                                            <input type="hidden" name="policyIdx" value="${p.policyIdx}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                </c:forEach>
+                                <c:if test="${empty refundPolicyList}">
+                                <tr><td colspan="4" class="text-center text-muted py-3">등록된 환불 정책이 없습니다.</td></tr>
+                                </c:if>
+                            </tbody>
+                        </table>
                     </div>
+                    <h6 class="mt-2 mb-3 text-secondary small fw-bold">새 정책 추가</h6>
+                    <form method="post" action="${ctx}/admin/settings/refund/insert">
+                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold small">시간 기준 (시간 전)</label>
+                                <input type="number" name="hoursBefore" class="form-control" min="0" placeholder="예: 24" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold small">환불율 (%)</label>
+                                <input type="number" name="refundRate" class="form-control" min="0" max="100" placeholder="예: 100" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small">설명</label>
+                                <input type="text" name="description" class="form-control" placeholder="예: 24시간 전 취소">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">추가</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
 
                 <div class="d-flex justify-content-end">

@@ -206,5 +206,11 @@ public class UserReservationServiceImpl implements UserReservationService {
         }
         return remaining;
     }
+
+    @Transactional
+    @Override
+    public void updatePaymentType(int resIdx, String type) {
+        reservationMapper.updatePaymentType(resIdx, type);
+    }
 }
 

@@ -26,4 +26,7 @@ public interface UserReservationService {
 
     /** 예약 단건 조회 */
     UserReservationVO getReservationById(int resIdx);
+    
+    /** 결제 수단 업데이트 */
+    void updatePaymentType(int resIdx, String type);
 }

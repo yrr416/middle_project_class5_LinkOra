@@ -11,12 +11,12 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UserReservationVO {
 
-    private int    resIdx;
-    private int    spcIdx;
-    private int    userIdx;
-    private String resStartTime;
-    private String resEndTime;
-    private int    resHeadcount;
+    private Integer resIdx;
+    private Integer spcIdx;
+    private Integer userIdx;
+    private String  resStartTime;
+    private String  resEndTime;
+    private Integer resHeadcount;
     private String resTotalPrice;
     private String resStatus;
     private String paymentType;  // ONLINE: 웹결제, OFFLINE: 현장결제

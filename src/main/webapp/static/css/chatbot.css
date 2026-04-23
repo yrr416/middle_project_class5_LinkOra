@@ -784,3 +784,125 @@
     background: #2F4F4F;
     color: white;
 }
+
+.btn-goto {
+    border-color: #38b2ac !important;
+    color: #2c7a7b !important;
+    margin-top: 5px;
+}
+
+.btn-goto:hover {
+    background: #38b2ac !important;
+    color: white !important;
+    border-color: #38b2ac !important;
+}
+
+.btn-goto .icon {
+    margin-right: 5px;
+}
+
+
+/* 결제 수단 선택 컨테이너 */
+.payment-choice-container {
+    align-self: flex-start;
+    width: 280px;
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    margin: 10px 0;
+    animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.payment-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.payment-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: #1e3a34;
+    margin-bottom: 6px;
+}
+
+.payment-desc {
+    font-size: 12px;
+    color: #636e72;
+    line-height: 1.4;
+}
+
+.payment-info {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    border: 1px solid #edf2f7;
+}
+
+.payment-info span {
+    font-size: 12px;
+    color: #4a5568;
+    display: flex;
+    justify-content: space-between;
+}
+
+.payment-info strong {
+    color: #2F4F4F;
+}
+
+.payment-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-pay {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+    color: #2d3748;
+}
+
+.btn-pay .icon {
+    font-size: 18px;
+}
+
+.btn-pay.online {
+    background: #2F4F4F;
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(47, 79, 79, 0.2);
+}
+
+.btn-pay.online:hover {
+    background: #1e3333;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(47, 79, 79, 0.3);
+}
+
+.btn-pay.offline {
+    background: white;
+    color: #2F4F4F;
+    border: 1px solid #2F4F4F;
+}
+
+.btn-pay.offline:hover {
+    background: #f0f7f5;
+    transform: translateY(-2px);
+}
+
