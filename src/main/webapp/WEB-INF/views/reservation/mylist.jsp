@@ -95,6 +95,7 @@
                                           onsubmit="return confirm('예약을 취소하시겠습니까?${r.resStatus eq 'CONFIRMED' and r.paymentType eq 'ONLINE' ? ' 환불 정책에 따라 환불됩니다.' : ''}')">
                                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                                         <input type="hidden" name="resIdx" value="${r.resIdx}">
+                                        <input type="hidden" name="page" value="${currentPage}">
                                         <button type="submit"
                                                 class="text-sm text-red-500 hover:text-red-700 border border-red-300
                                                        hover:border-red-500 px-4 py-2 rounded-xl transition">
@@ -120,5 +121,32 @@
         </c:otherwise>
     </c:choose>
 </div>
+
+<%-- 페이징 --%>
+<c:if test="${totalPages > 1}">
+    <div class="flex justify-center gap-1 mt-8">
+        <c:if test="${currentPage > 1}">
+            <a href="?page=${currentPage - 1}"
+               class="px-3 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-100 transition">이전</a>
+        </c:if>
+
+        <c:forEach begin="1" end="${totalPages}" var="p">
+            <c:choose>
+                <c:when test="${p == currentPage}">
+                    <span class="px-3 py-1.5 rounded-lg border border-primary-600 bg-primary-600 text-white text-sm font-semibold">${p}</span>
+                </c:when>
+                <c:otherwise>
+                    <a href="?page=${p}"
+                       class="px-3 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-100 transition">${p}</a>
+                </c:otherwise>
+            </c:choose>
+        </c:forEach>
+
+        <c:if test="${currentPage < totalPages}">
+            <a href="?page=${currentPage + 1}"
+               class="px-3 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-100 transition">다음</a>
+        </c:if>
+    </div>
+</c:if>
 
 <jsp:include page="/WEB-INF/views/layout/footer.jsp" />

@@ -17,6 +17,14 @@ public interface UserReservationMapper {
     /** 내 예약 목록 (공간명·지점명 JOIN) */
     List<UserReservationVO> selectByUser(int userIdx);
 
+    /** 내 예약 목록 페이징 */
+    List<UserReservationVO> selectByUserPaged(@Param("userIdx") int userIdx,
+                                              @Param("offset") int offset,
+                                              @Param("limit") int limit);
+
+    /** 내 예약 총 건수 */
+    int countByUser(int userIdx);
+
     /** 예약 취소 (본인 예약만 — userIdx 검증 포함) */
     void cancel(@Param("resIdx") int resIdx, @Param("userIdx") int userIdx);
 
