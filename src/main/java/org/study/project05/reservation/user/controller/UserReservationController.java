@@ -103,22 +103,34 @@ public class  UserReservationController {
 
     /** 내 예약 목록 */
     @GetMapping("/mylist")
-    public String myList(HttpSession session, Model model) {
+    public String myList(@RequestParam(defaultValue = "1") int page,
+                         HttpSession session, Model model) {
         UserProfileVO loginUser = (UserProfileVO) session.getAttribute("loginUser");
+        int userIdx  = loginUser.getUserIdx();
+        int pageSize = 5;
+        int total    = reservationService.getMyReservationsCount(userIdx);
+        int totalPages = (int) Math.ceil((double) total / pageSize);
+        if (totalPages < 1) totalPages = 1;
+        if (page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+
         model.addAttribute("reservationList",
-                reservationService.getMyReservations(loginUser.getUserIdx()));
+                reservationService.getMyReservationsPaged(userIdx, page, pageSize));
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages",  totalPages);
         return "reservation/mylist";
     }
 
     /** 예약 취소 */
     @PostMapping("/cancel")
     public String cancel(@RequestParam int resIdx,
+                         @RequestParam(defaultValue = "1") int page,
                          HttpSession session,
                          RedirectAttributes redirectAttributes) {
         UserProfileVO loginUser = (UserProfileVO) session.getAttribute("loginUser");
         reservationService.cancelReservation(resIdx, loginUser.getUserIdx(),
                 loginUser.getEmail(), loginUser.getName());
         redirectAttributes.addFlashAttribute("cancelMsg", "예약이 취소되었습니다.");
-        return "redirect:/reservation/mylist";
+        return "redirect:/reservation/mylist?page=" + page;
     }
 }

@@ -108,6 +108,17 @@ public class UserReservationServiceImpl implements UserReservationService {
     }
 
     @Override
+    public List<UserReservationVO> getMyReservationsPaged(int userIdx, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        return reservationMapper.selectByUserPaged(userIdx, offset, pageSize);
+    }
+
+    @Override
+    public int getMyReservationsCount(int userIdx) {
+        return reservationMapper.countByUser(userIdx);
+    }
+
+    @Override
     public UserReservationVO getReservationById(int resIdx) {
         return reservationMapper.selectById(resIdx);
     }

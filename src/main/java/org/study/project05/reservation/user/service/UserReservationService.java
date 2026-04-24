@@ -14,6 +14,10 @@ public interface UserReservationService {
 
     List<UserReservationVO> getMyReservations(int userIdx);
 
+    List<UserReservationVO> getMyReservationsPaged(int userIdx, int page, int pageSize);
+
+    int getMyReservationsCount(int userIdx);
+
     void cancelReservation(int resIdx, int userIdx, String email, String name);
 
     List<Integer> getUnavailableSlots(int spaceIdx, String date);

@@ -86,6 +86,38 @@
     </select>
 
     <!--
+        [내 예약 목록 페이징 조회]
+    -->
+    <select id="selectByUserPaged" resultType="UserReservationVO">
+        SELECT r.r_idx          AS resIdx,
+               r.s_idx          AS spcIdx,
+               r.u_idx          AS userIdx,
+               DATE_FORMAT(r.r_start_time, '%Y-%m-%d %H:%i:%s') AS resStartTime,
+               DATE_FORMAT(r.r_end_time,   '%Y-%m-%d %H:%i:%s') AS resEndTime,
+               r.r_headcount    AS resHeadcount,
+               r.r_total_price  AS resTotalPrice,
+               r.r_status       AS resStatus,
+               r.payment_type   AS paymentType,
+               s.s_name         AS spaceName,
+               b.b_name         AS branchName
+        FROM reservation r
+        JOIN space  s ON r.s_idx = s.s_idx
+        JOIN branch b ON s.b_idx = b.b_idx
+        WHERE r.u_idx = #{userIdx}
+        ORDER BY r.r_idx DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!--
+        [내 예약 총 건수]
+    -->
+    <select id="countByUser" parameterType="int" resultType="int">
+        SELECT COUNT(*)
+        FROM reservation
+        WHERE u_idx = #{userIdx}
+    </select>
+
+    <!--
         [지점 예약 여부 확인] - 후기 작성 권한 체크용
     -->
     <select id="countByUserAndBranch" resultType="int">
