@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 전역 상태 관리 (스마트 프리필 데이터)
     let historyLoaded = false;
     let greetingRequested = false;
-    let prefillData = { date: '', startTime: '', endTime: '' };
+    let prefillData = { date: '', startTime: '', endTime: '', headcount: '' };
 
     // 3. 채팅 이력 불러오기 또는 초기 인사
     const loadChatHistory = () => {
@@ -118,23 +118,49 @@ document.addEventListener('DOMContentLoaded', function() {
         if (position === 'prepend') messageDiv.classList.add('history-msg');
         
         // --- 1. 특수 태그 처리 (PREFILL, COMPLETE_LINK) ---
-        // 형식: [[PREFILL:yyyy-MM-dd|HH:mm|HH:mm]]
-        const prefillMatch = text.match(/\[\[PREFILL:(.*?)\|(.*?)\|(.*?)\]\]/);
+        // 형식: [[PREFILL:yyyy-MM-dd|HH:mm|HH:mm|headcount]]
+        const prefillMatch = text.match(/\[\[PREFILL:(.*?)\|(.*?)\|(.*?)\|(.*?)\]\]/);
         if (prefillMatch) {
             prefillData.date = prefillMatch[1].trim();
             prefillData.startTime = prefillMatch[2].trim();
             prefillData.endTime = prefillMatch[3].trim();
-            console.log("[Prefill Detected]", prefillData);
+            prefillData.headcount = prefillMatch[4].trim();
+            console.log("[Prefill Detected with Headcount]", prefillData);
             text = text.replace(/\[\[PREFILL:.*?\]\]/g, '');
             
             // 현재 열려 있는 폼이 있다면 실시간 업데이트
             updateOpenForm();
+        } else {
+            // 하위 호환성 (3개 파라미터만 올 경우 대비)
+            const legacyMatch = text.match(/\[\[PREFILL:(.*?)\|(.*?)\|(.*?)\]\]/);
+            if (legacyMatch) {
+                prefillData.date = legacyMatch[1].trim();
+                prefillData.startTime = legacyMatch[2].trim();
+                prefillData.endTime = legacyMatch[3].trim();
+                text = text.replace(/\[\[PREFILL:.*?\]\]/g, '');
+                updateOpenForm();
+            }
         }
 
         const hasCompleteLink = text.includes('[[COMPLETE_LINK]]');
         text = text.replace('[[COMPLETE_LINK]]', '');
 
-        // --- 1-1. 범용 링크 태그 처리: [[GOTO:이름|URL]] ---
+        // --- 1-1. 예약 폼 자동 생성 태그 처리: [[RESERVE_FORM:공간ID|공간명|가격|타입]] ---
+        const reserveFormMatch = text.match(/\[\[RESERVE_FORM:(.*?)\|(.*?)\|(.*?)\|(.*?)\]\]/);
+        if (reserveFormMatch) {
+            const rfIdx = reserveFormMatch[1].trim();
+            const rfName = reserveFormMatch[2].trim();
+            const rfPrice = reserveFormMatch[3].trim();
+            const rfType = reserveFormMatch[4].trim();
+            text = text.replace(/\[\[RESERVE_FORM:.*?\]\]/g, '');
+            
+            // 답변 텍스트를 먼저 렌더링한 후 폼을 생성하기 위해 setTimeout 활용
+            setTimeout(() => {
+                renderReserveForm(rfIdx, rfName, rfPrice, rfType);
+            }, 100);
+        }
+
+        // --- 1-2. 범용 링크 태그 처리: [[GOTO:이름|URL]] ---
         const gotoMatches = [...text.matchAll(/\[\[GOTO:(.*?)\|(.*?)\]\]/g)];
         text = text.replace(/\[\[GOTO:.*?\]\]/g, '');
 
@@ -407,6 +433,11 @@ document.addEventListener('DOMContentLoaded', function() {
             endSelect.value = prefillData.endTime;
             endSelect.classList.add('is-prefilled');
         }
+        if (prefillData.headcount && form.querySelector('#res-count')) {
+            const countInput = form.querySelector('#res-count');
+            countInput.value = prefillData.headcount;
+            countInput.closest('.count-box').classList.add('is-prefilled');
+        }
     };
 
     // 위치 정보 획득 후 메시지 전송 핸들러
@@ -521,7 +552,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 </select>
             </div>
             <div class="form-row"><label>이용 인원</label>
-                <div class="count-box"><button type="button" class="minus">-</button><input type="number" id="res-count" value="1" min="1" max="10" readonly><button type="button" class="plus">+</button></div>
+                <div class="count-box ${prefillData.headcount ? 'is-prefilled' : ''}">
+                    <button type="button" class="minus">-</button>
+                    <input type="number" id="res-count" value="${prefillData.headcount || '1'}" min="1" max="10" readonly>
+                    <button type="button" class="plus">+</button>
+                </div>
             </div>
             <div class="price-row">
                 <span class="price-label">총 예상 금액</span>
@@ -667,7 +702,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(data => {
                     if(data.success) {
                         formDiv.remove();
-                        prefillData = { date: '', startTime: '', endTime: '' }; 
+                        // 성공 후 데이터 초기화
+                        prefillData = { date: '', startTime: '', endTime: '', headcount: '' }; 
                         renderPaymentChoice(data.resIdx, spcName, total);
                     } else {
                         alert(data.message || "예약에 실패했습니다.");
