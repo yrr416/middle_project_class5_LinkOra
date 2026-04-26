@@ -78,16 +78,19 @@ public class ChatServiceImpl implements ChatService {
 
         systemMsg.put("content",
                 "너는 공유 오피스의 인공지능 예약 에이전트 '오라(Ora)'야. 아래 [기능별 준수 지침]을 최우선으로 따라줘:\n" +
-
-                        "[강력 준수 지침 - 예약 및 취소]\n" +
-                        "1. **회원 전용 기능**: 예약(`COMMIT_BOOKING`) 및 취소(`CANCEL_BOOKING`)는 로그인한 회원만 가능해. 만약 사용자 ID가 0(Guest)이라면 \"회원 전용 기능입니다. 로그인 후 이용해 주세요\"라고 안내하고 로그인을 유도해.\n" +
-                        "2. **실시간 정보 동기화 (Smart Prefill)**: 대화 도중 날짜, 시간, 인원수가 언급되면 즉시 `[[PREFILL:yyyy-MM-dd|시작|종료]]` 태그를 답변 끝에 포함해. 이건 비회원에게도 보여줘.\n" +
-                        "3. **명령 실행 필수 (중요)**: 예약을 신청할 때는 `[[COMMIT_BOOKING:공간ID|시작T시각|종료T시각|인원]]`를, 취소할 때는 `[[CANCEL_BOOKING:예약ID]]` 태그를 답변에 **반드시** 포함해야 시스템에 반영돼. 태그 없이 말로만 성공했다고 하지 마.\n" +
-                        "4. **취소 권한 관련 (필독)**: 사용자가 자신의 예약을 취소해달라고 하면, 해당 예약의 상태가 **'대기중(신청 완료)'** 또는 **'확정됨(이용 가능)'**인 경우 아무런 제약 없이 즉시 `[[CANCEL_BOOKING:예약ID]]` 태그를 생성하여 취소를 진행해줘.\n" +
-                        "5. **신청 유도**: 텍스트 신청보다는 카드 UI의 **'바로예약' -> '공간 예약하기'** 순서로 유도해.\n" +
+                        "\n[현재 시간 정보]\n" +
+                        "- 오늘 날짜: " + java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd (E)").format(java.time.LocalDateTime.now()) + "\n" +
+                        "- 사용자 요청 중 '내일', '이번 주말', '오후 2시' 등의 표현은 위 날짜를 기준으로 계산해서 `[[PREFILL:yyyy-MM-dd|시작|종료|인원]]` 태그를 답변 끝에 포함해.\n" +
+                        "\n[강력 준수 지침 - 예약 및 취소]\n" +
+                        "1. **회원 전용 기능**: 예약 기능 안내 및 취소는 로그인한 회원만 가능해. 만약 사용자 ID가 0(Guest)이라면 \"회원 전용 기능입니다. 로그인 후 이용해 주세요\"라고 안내하고 로그인을 유도해.\n" +
+                        "2. **실시간 정보 동기화 (Smart Prefill)**: 대화 도중 날짜, 시간, 인원수가 언급되면 즉시 `[[PREFILL:yyyy-MM-dd|시작|종료|인원]]` 태그를 답변 끝에 포함해. 4번째 인자에는 숫자만 넣어줘. 이건 비회원에게도 보여줘.\n" +
+                        "3. **예약 폼 자동 생성 (중요)**: 사용자가 특정 공간 명칭과 예약 정보를 모두 말하면, 답변 끝에 반드시 `[[RESERVE_FORM:공간ID|공간명|가격|공간타입]]` 태그를 포함해. 이 태그는 채팅창 내에 즉시 예약 입력 폼 카드를 만들어줘.\n" +
+                        "4. **예약 프로세스 안내**: 직접 예약을 신청하는 태그(`[[COMMIT_BOOKING:...]]`) 보다는 `[[RESERVE_FORM]]` 태그를 통해 생성된 입력 폼 카드로 유저가 내용을 확인하고 직접 결제 수단을 선택하게 하는 것이 가장 안전하다고 강조해.\n" +
+                        "5. **취소 권한 관련 (필독)**: 사용자가 자신의 예약을 취소해달라고 하면, 해당 예약의 상태가 **'대기중(신청 완료)'** 또는 **'확정됨(이용 가능)'**인 경우 아무런 제약 없이 즉시 `[[CANCEL_BOOKING:예약ID]]` 태그를 생성하여 취소를 진행해줘.\n" +
+                        "6. **카드 UI 유도**: 텍스트 신청보다는 추천 카드 UI 밑의 **'바로예약' -> '공간 예약하기'** 순서로 유도하는 것이 결제 연동에 더 안전하다고 말해줘.\n" +
                         "\n[새로운 추천 시나리오 - 공간 추천]\n" +
                         "1. **위치 기반 추천**: 사용자가 '공간 추천'을 요청하면 [공간 정보 컨텍스트]에서 **가장 상단에 있는(가까운) 3개의 공간**을 `[[ACTIONS:공간ID|공간명|지점명|이미지|시설요약|가격|공간타입|지점ID]]` 태그로 보여줘. '지점ID'는 컨텍스트의 BrnID 값을 사용해.\n" +
-                        "2. **후속 대화 유도**: 추천 카드를 보여준 직후에는 반드시 \"몇 분이서 이용하시나요?\", \"주차나 24시간 이용 등 특별히 필요한 시설이 있으신가요?\"라고 질문하여 필터링을 구체화해.\n" +
+                        "2. **후속 대화 및 정보 사전 확보**: 추천 카드를 보여주기 전이나 후에 \"몇 분이서 이용하시나요?\", \"언제 이용 예정이신가요?\"라고 물어보고, 대답이 나오면 즉시 `[[PREFILL:...]]` 태그를 생성해.\n" +
                         "3. **정밀 추천**: 사용자가 인원이나 시설 조건을 말하면 해당 조건에 맞는 공간을 다시 검색하여 보여줘.\n" +
                         "\n[일반 운영 지침]\n" +
                         "1. **환영 메뉴 및 중복 금지**: 대화 이력에 봇의 메시지가 이미 존재한다면 대화 도중 `[[WELCOME_MENU:...]]`를 다시 사용하지 마.\n" +
@@ -131,58 +134,54 @@ public class ChatServiceImpl implements ChatService {
             }
         }
 
-        // --- [추가] 사용자 메시지에 포함된 다이렉트 예약 실행 태그 처리 ---
+        // --- [제거 대상] 사용자 메시지에 포함된 다이렉트 예약 실행 태그 처리 (보안 및 결제 수단 누락 방지) ---
+        /*
         String executionResult = null;
         if (userMessage.contains("[[COMMIT_BOOKING:")) {
             executionResult = executeDirectReservation(userMessage, chatVO.getUserIdx());
         }
+        */
 
         // 현재 사용자 메시지 추가
         messages.add(createMsg("user", userMessage));
 
-        // 예약 결과가 있다면 시스템 피드백으로 추가 (AI가 답변 시 참고하도록)
+        /*
+        // 예약 결과가 있다면 시스템 피드백으로 추가
         if (executionResult != null) {
             messages.add(createMsg("developer", "[시스템 메시지] 예약 처리 결과: " + executionResult +
                     "\n위의 정보를 바탕으로 사용자에게 '예약 신청이 접수되었음'을 안내해 주세요. 관리자 확인 후에 최종 확정된다는 점을 반드시 명시하고 예약 번호를 알려주세요."));
         }
+        */
         String botResponse;
         try {
             botResponse = chatGPTService.chat(messages);
 
             // --- 지능형 예약 명령어 핸들링 ---
-            // [고도화] 인텐트 결정을 핸들링 전의 원본 botResponse 및 사용자 메시지 기준으로 분석 (우선순위 체계 적용)
             String rawResponse = botResponse != null ? botResponse : "";
-            String rawUserMsg = userMessage != null ? userMessage : "";
             String determinedIntent = "AI_CONVERSATION";
 
-            // 1. 최우선 순위: 실제 예약 확정 및 취소
-            if (rawUserMsg.contains("[[COMMIT_BOOKING:") || rawResponse.contains("[[COMMIT_BOOKING:")) {
+            if (rawResponse.contains("[[COMMIT_BOOKING:")) {
                 determinedIntent = "BOOKING_COMMIT";
-            } else if (rawUserMsg.contains("[[CANCEL_BOOKING:") || rawResponse.contains("[[CANCEL_BOOKING:")) {
+            } else if (rawResponse.contains("[[CANCEL_BOOKING:")) {
                 determinedIntent = "BOOKING_CANCEL";
-            }
-            // 2. 예약 프로세스 진입 및 가용성 확인
-            else if (rawResponse.contains("[[PREFILL:")) {
+            } else if (rawResponse.contains("[[PREFILL:")) {
                 determinedIntent = "BOOKING_PREFILL";
             } else if (rawResponse.contains("[[CHECK_AVAILABILITY:")) {
                 determinedIntent = "AVAILABILITY_CHECK";
-            }
-            // 3. 공간 추천 및 FAQ 안내
-            else if (rawResponse.contains("[[ACTIONS:")) {
+            } else if (rawResponse.contains("[[ACTIONS:")) {
                 determinedIntent = "RECOMMEND_SPACE";
-            } else if (rawUserMsg.contains("자주 묻는 질문") || rawUserMsg.contains("FAQ") || rawResponse.contains("자주 묻는 질문")) {
-                determinedIntent = "FAQ_INQUIRY";
             }
 
             chatVO.setChatIntent(determinedIntent);
 
-
-
             if (botResponse.contains("[[CHECK_AVAILABILITY:")) {
                 botResponse = handleAvailabilityCheck(botResponse);
-            } else if (botResponse.contains("[[COMMIT_BOOKING:")) {
-                botResponse = handleCommitBooking(botResponse, chatVO.getUserIdx());
-            } else if (botResponse.contains("[[CANCEL_BOOKING:")) {
+            } 
+            // [수정] 대화 중 AI의 직접 DB 커밋 연동은 결제 수단 누락(Null) 방지를 위해 더 이상 직접 실행하지 않음
+            // else if (botResponse.contains("[[COMMIT_BOOKING:")) {
+            //     botResponse = handleCommitBooking(botResponse, chatVO.getUserIdx());
+            // } 
+            else if (botResponse.contains("[[CANCEL_BOOKING:")) {
                 botResponse = handleCancelBooking(botResponse, chatVO.getUserIdx());
             }
 

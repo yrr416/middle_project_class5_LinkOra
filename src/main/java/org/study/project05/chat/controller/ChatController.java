@@ -33,38 +33,40 @@ public class ChatController {
         }
         
         // 2. 세션 정보 또는 시큐리티 인증 정보 연동
-        Object uIdxObj = session.getAttribute("userIdx");
-        if (uIdxObj == null) {
-            // [보완] 세션에 없으면 시큐리티 컨텍스트에서 직접 확인
-            org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-            if (auth != null && auth.isAuthenticated() && !(auth instanceof org.springframework.security.authentication.AnonymousAuthenticationToken)) {
-                Object principal = auth.getPrincipal();
-                if (principal instanceof org.study.project05.login.config.CustomUserDetails userDetails) {
-                    Long idx = userDetails.getIdx();
-                    chatVO.setUserIdx(idx);
-                    
-                    // [복구] 세션 유실 방지를 위해 세션에 정보 다시 주입
-                    session.setAttribute("userIdx", idx);
-                    session.setAttribute("userName", userDetails.getRealName());
-                }
+        Long userIdx = null;
+
+        // 1. Spring Security ContextHolder에서 인증 정보 확인
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && ! (auth instanceof org.springframework.security.authentication.AnonymousAuthenticationToken)) {
+            Object principal = auth.getPrincipal();
+            if (principal instanceof org.study.project05.login.config.CustomUserDetails userDetails) {
+                userIdx = userDetails.getIdx();
+                // [복구] 세션 유실 방지를 위해 세션에 정보 다시 주입
+                session.setAttribute("userIdx", userIdx);
+                session.setAttribute("userName", userDetails.getRealName());
             }
-        } else {
-            // 기존 세션 속성 처리
+            log.info("[ChatController] Security Authenticated User (sendMessage): " + auth.getName());
+        }
+
+        // 2. 세션에서 userIdx 추출 (기존 방식 유지 및 보완)
+        Object uIdxObj = session.getAttribute("userIdx");
+        if (uIdxObj != null && userIdx == null) {
             try {
-                if (uIdxObj instanceof Long) {
-                    chatVO.setUserIdx((Long) uIdxObj);
-                } else if (uIdxObj instanceof Integer) {
-                    chatVO.setUserIdx(((Integer) uIdxObj).longValue());
-                } else {
-                    chatVO.setUserIdx(Long.parseLong(String.valueOf(uIdxObj)));
+                if (uIdxObj instanceof Integer) {
+                    userIdx = ((Integer) uIdxObj).longValue();
+                } else if (uIdxObj instanceof Long) {
+                    userIdx = (Long) uIdxObj;
+                } else if (uIdxObj instanceof String) {
+                    userIdx = Long.parseLong((String) uIdxObj);
                 }
             } catch (Exception e) {
-                log.warn("세션 userIdx 파싱 오류 - 값: {}, 원인: {}", uIdxObj, e.getMessage());
-                chatVO.setUserIdx(0L);
+                log.error("[ChatController] UserIdx parsing error (sendMessage): " + e.getMessage());
             }
         }
 
-        if (chatVO.getUserIdx() == null) {
+        if (userIdx != null) {
+            chatVO.setUserIdx(userIdx);
+        } else {
             chatVO.setUserIdx(0L); // 최종적으로 로그인 안된 경우
         }
 
@@ -118,18 +120,42 @@ public class ChatController {
     public Map<String, Object> chatbotReserve(@RequestBody UserReservationVO vo, jakarta.servlet.http.HttpSession session) {
         Map<String, Object> response = new HashMap<>();
         try {
+            // --- [보완] 사용자 식별 로직 강화 (Spring Security 인증 정보 우선 참조) ---
+            Long userIdx = null;
+
+            // 1. Spring Security ContextHolder에서 인증 정보 확인
+            org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && ! (auth instanceof org.springframework.security.authentication.AnonymousAuthenticationToken)) {
+                Object principal = auth.getPrincipal();
+                if (principal instanceof org.study.project05.login.config.CustomUserDetails userDetails) {
+                    userIdx = userDetails.getIdx();
+                }
+                log.info("[ChatController] Security Authenticated User: " + auth.getName());
+            }
+
+            // 2. 세션에서 userIdx 추출 (기존 방식 유지 및 보완)
             Object uIdxObj = session.getAttribute("userIdx");
-            if (uIdxObj == null) {
+            if (uIdxObj != null) {
+                try {
+                    if (uIdxObj instanceof Integer) {
+                        userIdx = ((Integer) uIdxObj).longValue();
+                    } else if (uIdxObj instanceof Long) {
+                        userIdx = (Long) uIdxObj;
+                    } else if (uIdxObj instanceof String) {
+                        userIdx = Long.parseLong((String) uIdxObj);
+                    }
+                } catch (Exception e) {
+                    log.error("[ChatController] UserIdx parsing error: " + e.getMessage());
+                }
+            }
+
+            if (userIdx == null) {
                 response.put("success", false);
                 response.put("message", "로그인 후 이용 가능합니다.");
                 return response;
             }
-            Long uIdx = 0L;
-            if (uIdxObj instanceof Long) uIdx = (Long) uIdxObj;
-            else if (uIdxObj instanceof Integer) uIdx = ((Integer) uIdxObj).longValue();
-            else uIdx = Long.parseLong(String.valueOf(uIdxObj));
             
-            vo.setUserIdx(uIdx.intValue());
+            vo.setUserIdx(userIdx.intValue());
             vo.setPaymentType("ONLINE"); // [안전장치] 기본을 ONLINE으로 생성하여 미결제 이탈 시 10분 후 자동취소되게 함
             
             userReservationService.reserve(vo);

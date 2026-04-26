@@ -51,7 +51,7 @@ public class PaymentServiceImpl implements PaymentService {
      * 6. 예약 확인 메일 발송 (실패해도 결제는 유지)
      */
     @Override
-    @Transactional
+    @Transactional(timeout = 3)
     public void confirmPayment(String paymentKey, String orderId, int amount,
                                int resIdx, int userIdx,
                                String email, String name, String spaceName) {
