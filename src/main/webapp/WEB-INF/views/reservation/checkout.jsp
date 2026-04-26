@@ -59,7 +59,7 @@
 
     document.getElementById("payBtn").addEventListener("click", function () {
         tossPayments.requestPayment("카드", {
-            amount:       ${amount},
+            amount:       ${empty amount ? 0 : amount},
             orderId:      "${orderId}",
             orderName:    "${spaceName}",
             customerName: "${sessionScope.loginUser.name}",

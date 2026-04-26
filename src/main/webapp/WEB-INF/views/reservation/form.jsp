@@ -253,7 +253,7 @@
     // 서버에서 파싱한 오늘 영업시간 (Java: parseBizHours)
     // open=-1 은 정보 없음(제한 없음)으로 처리
     const BIZ_HOURS = (function() {
-        const o = ${bizOpen}, c = ${bizClose};
+        const o = ${empty bizOpen ? 0 : bizOpen}, c = ${empty bizClose ? 24 : bizClose};
         return (o === -1) ? { open: 0, close: 24 } : { open: o, close: c };
     })();
 

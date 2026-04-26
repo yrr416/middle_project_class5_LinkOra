@@ -46,6 +46,10 @@ public class  UserReservationController {
                          Model model,
                          RedirectAttributes redirectAttributes) {
         UserProfileVO loginUser = (UserProfileVO) session.getAttribute("loginUser");
+        if (loginUser == null) {
+            redirectAttributes.addFlashAttribute("errorMsg", "세션이 만료되었습니다. 다시 로그인해주세요.");
+            return "redirect:/loginPage";
+        }
         vo.setUserIdx(loginUser.getUserIdx());
 
         try {
@@ -106,6 +110,9 @@ public class  UserReservationController {
     public String myList(@RequestParam(defaultValue = "1") int page,
                          HttpSession session, Model model) {
         UserProfileVO loginUser = (UserProfileVO) session.getAttribute("loginUser");
+        if (loginUser == null) {
+            return "redirect:/loginPage";
+        }
         int userIdx  = loginUser.getUserIdx();
         int pageSize = 5;
         int total    = reservationService.getMyReservationsCount(userIdx);
@@ -128,6 +135,10 @@ public class  UserReservationController {
                          HttpSession session,
                          RedirectAttributes redirectAttributes) {
         UserProfileVO loginUser = (UserProfileVO) session.getAttribute("loginUser");
+        if (loginUser == null) {
+            redirectAttributes.addFlashAttribute("errorMsg", "세션이 만료되었습니다. 다시 로그인해주세요.");
+            return "redirect:/loginPage";
+        }
         reservationService.cancelReservation(resIdx, loginUser.getUserIdx(),
                 loginUser.getEmail(), loginUser.getName());
         redirectAttributes.addFlashAttribute("cancelMsg", "예약이 취소되었습니다.");
