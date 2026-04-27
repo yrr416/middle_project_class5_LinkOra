@@ -43,11 +43,13 @@ public class UserReservationServiceImpl implements UserReservationService {
             throw new IllegalArgumentException("선택하신 공간 정보를 찾을 수 없습니다. (ID: " + vo.getSpcIdx() + ")");
         }
 
-        // ① 인원 초과 체크 (spcMaxCapacity는 int 타입이므로 parseInt 불필요)
+        // ① 인원 초과 체크 (GROUP 타입은 headcount가 폼에서 전송되지 않으므로 null 허용)
         int maxCapacity = space.getSpcMaxCapacity();
-        if (vo.getResHeadcount() > maxCapacity) {
+        int headcount = vo.getResHeadcount() != null ? vo.getResHeadcount() : 1;
+        vo.setResHeadcount(headcount);
+        if (headcount > maxCapacity) {
             throw new IllegalArgumentException(
-                    "예약 인원(" + vo.getResHeadcount() + "명)이 최대 수용 인원(" + maxCapacity + "명)을 초과했습니다."
+                    "예약 인원(" + headcount + "명)이 최대 수용 인원(" + maxCapacity + "명)을 초과했습니다."
             );
         }
 
