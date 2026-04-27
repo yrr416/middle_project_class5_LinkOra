@@ -3,6 +3,22 @@
 // 전역 알림 중복 방지 변수
 window.isLoginAlertShown = false;
 
+// 뒤로가기 시 이전 검색어 및 폼 데이터 초기화
+window.addEventListener('pageshow', (event) => {
+    // 캐시된 페이지가 로드되거나 뒤로가기 탐색일 경우 실행
+    if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+        const mapInput = document.getElementById('mapSearchInput');
+        const keywordInput = document.getElementById('keywordSearchInput');
+
+        // 검색창 입력값 비우기
+        if (mapInput) mapInput.value = '';
+        if (keywordInput) keywordInput.value = '';
+
+        // 모든 폼 요소 리셋
+        document.querySelectorAll('form').forEach(form => form.reset());
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // 1. 사이드바 및 아코디언 제어
@@ -151,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!document.querySelector('script[src*="dapi.kakao.com"]')) {
             const script = document.createElement('script');
             script.type = 'text/javascript';
-            script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=cd1f0f4ad9dcf4879bee2531dc5a0497&libraries=services&autoload=false';
+            script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=d20150f1426d32396d497433ec786c62&libraries=services&autoload=false';
             script.onload = () => { window.kakao.maps.load(initMapProcess); };
             document.head.appendChild(script);
         } else {
