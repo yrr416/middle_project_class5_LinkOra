@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    /* 메뉴 클릭 시 사이드바 닫기 */
+    // 메뉴 클릭 시 사이드바 닫기
     document.querySelectorAll('.sidebar-nav a').forEach(link => {
         link.addEventListener('click', (e) => {
             if (!link.classList.contains('accordion-toggle') && link.getAttribute('href') !== '#') {
@@ -178,7 +178,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadKakaoMap();
 
     function initMapProcess() {
-        let centerLatLng = new window.kakao.maps.LatLng(37.4775, 126.6325);
+        // 기본 좌표 마포구 백범로 23
+        let centerLatLng = new window.kakao.maps.LatLng(37.552456, 126.93811);
 
         // 지도 기본 줌 레벨 설정
         const mapOption = { center: centerLatLng, level: 5 };
@@ -276,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         </div>
                                     </div>`;
 
-                                // 알림창 대신 실제 디테일 페이지 경로로 이동하도록 수정
+                                // 실제 디테일 페이지 경로로 이동하도록 수정
                                 contentWrap.querySelector('.detailBtn').addEventListener('click', () => {
                                     location.href = `/linkora/detail/detail?brnIdx=${branch.brnIdx}`;
                                 });
@@ -327,22 +328,60 @@ document.addEventListener('DOMContentLoaded', () => {
         window.loadBranches("", "all");
         window.bindSearchEvents();
 
+        // ------------------ 스마트 위치 확인 시스템 추가 ------------------
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    const myPos = new window.kakao.maps.LatLng(lat, lng);
 
-                    map.setCenter(myPos);
-                    centerLatLng = myPos;
+            // 실제 위치 정보 요청 함수
+            const askLocation = () => {
+                navigator.geolocation.getCurrentPosition((position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        const myPos = new window.kakao.maps.LatLng(lat, lng);
 
-                    window.loadBranches("", "all");
-                }, (err) => {
-                    console.warn("GPS 획득 실패, 기본 위치로 로드함.");
-                },
-                { timeout: 1000 }
-            );
+                        map.setCenter(myPos);
+                        centerLatLng = myPos;
+
+                        window.loadBranches("", "all");
+                    }, (err) => {
+                        console.warn("GPS 획득 실패, 기본 위치로 로드함.");
+                    },
+                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                );
+            };
+
+            // 화면에 알림창 띄우고 4초 뒤에 예쁘게 지우는 함수
+            const showToast = () => {
+                const guideToast = document.createElement('div');
+                guideToast.id = "geoToast";
+                guideToast.style.cssText = "position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#2F4F4F; color:white; padding:15px 25px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.3); z-index:9999; text-align:center; font-size:14px; font-weight:bold; line-height:1.5; transition: opacity 0.5s ease-in-out;";
+                guideToast.innerHTML = "내 주변 지점을 정확히 보려면<br>상단의 <b>'위치 정보 사용'</b>을 <b>허용</b>해 주세요!";
+                document.body.appendChild(guideToast);
+
+                // 4초 뒤에 알아서 투명해졌다가 지워짐
+                setTimeout(() => {
+                    if(document.getElementById("geoToast")) {
+                        guideToast.style.opacity = '0';
+                        setTimeout(() => guideToast.remove(), 500);
+                    }
+                }, 4000);
+            };
+
+            // 브라우저가 위치 권한을 물어볼 상태(prompt)인지 먼저 똑똑하게 확인!
+            if (navigator.permissions) {
+                navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+                    // 아직 '허용/차단' 결정을 안 해서 물어봐야 할 때만 팝업 띄우기
+                    if (result.state === 'prompt') {
+                        showToast();
+                    }
+                    askLocation();
+                });
+            } else {
+                // 권한 확인을 지원하지 않는 옛날 브라우저라면 무조건 띄우기
+                showToast();
+                askLocation();
+            }
         }
+        // -----------------------------------------------------------------
 
         setTimeout(() => { map.relayout(); map.setCenter(centerLatLng); }, 100);
 
