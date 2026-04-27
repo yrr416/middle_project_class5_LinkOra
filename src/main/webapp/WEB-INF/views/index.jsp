@@ -522,7 +522,7 @@
         }
 
         document.getElementById('tourVideo').onended = function() {
-            const introSrc = "${pageContext.request.contextPath}/static/upload/video/link_ora_소개.mp4";
+            const introSrc = "${pageContext.request.contextPath}/static/upload/video/link_ora.mp4";
             if (this.src.includes('office_tour.mp4')) {
                 this.src = introSrc;
                 this.play();
