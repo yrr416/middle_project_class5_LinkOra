@@ -30,10 +30,12 @@
         WHERE YEAR(r_start_time)=YEAR(CURDATE()) AND MONTH(r_start_time)=MONTH(CURDATE()) AND r_status!='CANCELLED'
     </select>
 
-    <!-- 현재 이용 중인 공간 수 -->
+    <!-- 현재 이용 중인 공간 수 (오늘 날짜에 예약 시작 시간이 속하며, 이용 시간이 아직 끝나지 않은 확정 예약) -->
     <select id="getActiveSpaceCnt" resultType="int">
         SELECT COUNT(DISTINCT s_idx) FROM reservation
-        WHERE r_start_time &lt;= NOW() AND r_end_time &gt;= NOW() AND r_status NOT IN ('CANCELLED','PENDING')
+        WHERE DATE(r_start_time) = CURDATE()
+          AND r_end_time &gt;= NOW()
+          AND r_status NOT IN ('CANCELLED','PENDING')
     </select>
 
     <!-- 미처리 문의 건수 (inquiries 테이블) -->

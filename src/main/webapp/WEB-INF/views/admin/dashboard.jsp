@@ -133,7 +133,7 @@
                         <div>
                             <div class="sub-text mb-1">현재 이용 중인 공간</div>
                             <div class="big-num" style="color:#6f42c1">${summary.activeSpaceCnt}<span class="fs-6 fw-normal ms-1">개</span></div>
-                            <div class="mt-2 text-muted" style="font-size:.8rem;">오늘 기준 이용중 상태</div>
+                            <div class="mt-2 text-muted" style="font-size:.8rem;">오늘 예약 중 아직 종료되지 않은 공간</div>
                         </div>
                         <div class="icon-wrap icon-purple"><i class="bi bi-building-check"></i></div>
                     </div>
