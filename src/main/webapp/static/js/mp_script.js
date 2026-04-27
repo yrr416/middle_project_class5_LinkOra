@@ -3,6 +3,22 @@
 // 전역 알림 중복 방지 변수
 window.isLoginAlertShown = false;
 
+// 뒤로가기 시 이전 검색어 및 폼 데이터 초기화
+window.addEventListener('pageshow', (event) => {
+    // 캐시된 페이지가 로드되거나 뒤로가기 탐색일 경우 실행
+    if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+        const mapInput = document.getElementById('mapSearchInput');
+        const keywordInput = document.getElementById('keywordSearchInput');
+
+        // 검색창 입력값 비우기
+        if (mapInput) mapInput.value = '';
+        if (keywordInput) keywordInput.value = '';
+
+        // 모든 폼 요소 리셋
+        document.querySelectorAll('form').forEach(form => form.reset());
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // 1. 사이드바 및 아코디언 제어
