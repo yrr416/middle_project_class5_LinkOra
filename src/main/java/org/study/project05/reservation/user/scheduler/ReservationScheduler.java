@@ -25,6 +25,10 @@ public class ReservationScheduler {
     @Scheduled(fixedDelay = 60000)
     @Transactional
     public void cancelExpiredPending() {
-        reservationMapper.cancelExpiredPending();
+        try {
+            reservationMapper.cancelExpiredPending();
+        } catch (Exception e) {
+            System.err.println("[Scheduler Error] 만료 예약 취소 중 오류: " + e.getMessage());
+        }
     }
 }

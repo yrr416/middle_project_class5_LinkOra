@@ -83,6 +83,10 @@ public class PaymentController {
                           RedirectAttributes redirectAttributes) {
 
         UserProfileVO loginUser = (UserProfileVO) session.getAttribute("loginUser");
+        if (loginUser == null) {
+            redirectAttributes.addFlashAttribute("errorMsg", "결제는 성공했으나 세션이 만료되었습니다. 내 예약 목록을 확인해주세요.");
+            return "redirect:/loginPage";
+        }
         Integer resIdx = (Integer) session.getAttribute("pendingResIdx");
 
         try {
