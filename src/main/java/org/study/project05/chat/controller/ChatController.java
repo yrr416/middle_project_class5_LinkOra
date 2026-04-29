@@ -41,35 +41,33 @@ public class ChatController {
             Object principal = auth.getPrincipal();
             if (principal instanceof org.study.project05.login.config.CustomUserDetails userDetails) {
                 userIdx = userDetails.getIdx();
-                // [복구] 세션 유실 방지를 위해 세션에 정보 다시 주입
+                // [복구 강화] 세션 유실 방지를 위해 세션에 정보 다시 주입 (매 요청마다 동기화)
                 session.setAttribute("userIdx", userIdx);
                 session.setAttribute("userName", userDetails.getRealName());
+                log.debug("[ChatController] Restored session from SecurityContext: {}", userIdx);
             }
-            log.info("[ChatController] Security Authenticated User (sendMessage): " + auth.getName());
         }
 
-        // 2. 세션에서 userIdx 추출 (기존 방식 유지 및 보완)
-        Object uIdxObj = session.getAttribute("userIdx");
-        if (uIdxObj != null && userIdx == null) {
-            try {
-                if (uIdxObj instanceof Integer) {
-                    userIdx = ((Integer) uIdxObj).longValue();
-                } else if (uIdxObj instanceof Long) {
-                    userIdx = (Long) uIdxObj;
-                } else if (uIdxObj instanceof String) {
-                    userIdx = Long.parseLong((String) uIdxObj);
+        // 2. 세션에서 userIdx 추출 (시큐리티 정보가 없는 경우 폴백)
+        if (userIdx == null) {
+            Object uIdxObj = session.getAttribute("userIdx");
+            if (uIdxObj != null) {
+                try {
+                    if (uIdxObj instanceof Integer) userIdx = ((Integer) uIdxObj).longValue();
+                    else if (uIdxObj instanceof Long) userIdx = (Long) uIdxObj;
+                    else userIdx = Long.parseLong(String.valueOf(uIdxObj));
+                } catch (Exception e) {
+                    log.error("[ChatController] UserIdx parsing error: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                log.error("[ChatController] UserIdx parsing error (sendMessage): " + e.getMessage());
             }
         }
 
-        if (userIdx != null) {
+        if (userIdx != null && userIdx > 0) {
             chatVO.setUserIdx(userIdx);
         } else {
-            chatVO.setUserIdx(0L); // 최종적으로 로그인 안된 경우
+            chatVO.setUserIdx(null); // Guest
         }
-
+        
         // 3. 비회원 보안을 위한 세션 ID 기록
         chatVO.setHttpSessionId(session.getId());
         

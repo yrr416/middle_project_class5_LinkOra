@@ -528,8 +528,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const isStartPrefilled = !!prefillData.startTime;
         const isEndPrefilled = !!prefillData.endTime;
 
+        const isGuest = (window.userIdx === '0' || !window.userIdx);
+
         formDiv.innerHTML = `
             <div class="reserve-form-header"> ✨ ${spcName} 간편 예약</div>
+            ${isGuest ? `<div class="guest-warning-badge">⚠️ 로그인이 필요한 서비스입니다</div>` : ''}
             <div class="form-row"><label>이용 날짜</label><input type="date" id="res-date" value="${defDate}" style="width:100%; box-sizing:border-box;" class="${isDatePrefilled ? 'is-prefilled' : ''}"></div>
             <div class="form-row">
                 <label>시작 시간</label>
@@ -562,7 +565,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span class="price-label">총 예상 금액</span>
                 <span class="price-value" id="total-price-display">0원</span>
             </div>
-            <button class="btn-submit-form" id="submit-reserve">공간 예약하기</button>
+            <button class="btn-submit-form ${isGuest ? 'btn-guest-login' : ''}" id="submit-reserve">
+                ${isGuest ? '로그인 후 예약하기' : '공간 예약하기'}
+            </button>
         `;
         chatMessages.appendChild(formDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -624,6 +629,14 @@ document.addEventListener('DOMContentLoaded', function() {
         let formStep = 0;
 
         formDiv.querySelector('#submit-reserve').onclick = function() {
+            // --- 비회원인 경우 로그인 페이지로 유도 ---
+            if (isGuest) {
+                if (confirm("예약을 완료하려면 로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?")) {
+                    location.href = `${contextPath}/login`;
+                }
+                return;
+            }
+
             const date = formDiv.querySelector('#res-date').value;
             const startTimeVal = formDiv.querySelector('#res-time-start').value;
             const endTimeVal = formDiv.querySelector('#res-time-end').value;
