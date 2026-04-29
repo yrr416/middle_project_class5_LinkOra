@@ -906,3 +906,32 @@
     transform: translateY(-2px);
 }
 
+
+/* 비회원 전용 예약 폼 경고 스타일 */
+.guest-warning-badge {
+    background: #fff5f5;
+    color: #e53e3e;
+    border: 1px solid #feb2b2;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    text-align: center;
+    animation: shake 0.5s ease-in-out;
+}
+
+.btn-guest-login {
+    background: #4a5568 !important; /* 회색조로 변경하여 주의 환기 */
+    box-shadow: 0 4px 12px rgba(74, 85, 104, 0.2) !important;
+}
+
+.btn-guest-login:hover {
+    background: #2d3748 !important;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
